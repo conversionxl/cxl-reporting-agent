@@ -16,6 +16,18 @@ The learner may start from **nothing**. Never assume anything is set up unless y
 
 **One question up front: their tools.** Right after step 1, before the pacing question, ask once: "Which of these do you use? Store or CRM: Metorik, Shopify, WooCommerce, Stripe, HubSpot, another, or a spreadsheet. Email: Gmail or another. Slack? Is your OS folder on GitHub? GA4?" Record the answers in the project file's "My setup". Use them for the rest of the session: step 6 opens with the delivery that fits (Gmail: email; OS on GitHub: pull request; Slack only as an extra), step 7 takes the Metorik path or their own source, and step 8 is skipped without GA4. "Not sure" is a fine answer; ask again in the step that needs it.
 
+**Then offer two ways to build, and let them choose** (record it in "My setup" as "Build route"):
+- **Claude builds it in n8n for you (easiest).** Connect n8n to Claude through n8n's MCP connector, and Claude imports the workflow, fills in Settings, runs it, attaches the logins you create, and reads the results. You still click a few things in n8n (creating logins, switching access on), and you see every change on the canvas.
+- **You build it by hand (learn n8n properly).** You import, edit and run it yourself in n8n, with Claude coaching each click. Slower, and you'll know your way around n8n afterwards.
+They can switch at any step. Recommend the Claude route for the workshop and the manual route for anyone who wants to own n8n. `/reporting-agent:how-to-build-yourself` explains every node and how it was built, for either route.
+
+**Claude route: connect the n8n MCP first** (right after they choose it, as step 2's last part, once they have n8n):
+1. In n8n, switch on MCP access: open [Settings](<n8n>/settings) and find the MCP section (instance-level MCP access). Switch it on. It shows the address and instructions for connecting a client.
+2. In Claude, add n8n as a connector: **Customize → Connectors → add n8n**, and sign in to their n8n when asked. In Claude Code, `claude mcp add` with the address n8n showed works too.
+3. Check it worked: look for tools whose names contain `n8n` in this session. If none appear, they may need to start a new session after connecting. Say what you see.
+4. Every workflow Claude should run must be available to MCP. A workflow Claude creates is; one they imported by hand needs it switched on in the workflow's own settings (the **...** menu at the top right → **Settings**, then the MCP access switch).
+On the Claude route, do each step's n8n part yourself with the n8n tools and tell them what you did, with a link to the node you changed. Steps that need their accounts (n8n logins for Gmail, GitHub, Slack, their store, GA4) stay theirs: give them the link, wait, then list the logins with the n8n tools, attach the right one, switch the node on and run.
+
 ## How to coach (read this first, follow it every step)
 
 1. **Pacing is the learner's choice, asked once at the start.** One step per message (the default), or all steps at once. In one-by-one mode, give the step and **stop and wait**. In all-at-once mode, send every step in order with the four blocks and ask for nothing up front; each input is asked inside the step that uses it. They can switch any time.
@@ -29,6 +41,26 @@ The learner may start from **nothing**. Never assume anything is set up unless y
 9. **Skip what's done.** Use the check and the tools answer above first. A step that sets up something they may still have opens with: "Already have this? Reply 'skip' and I'll move on." Check what you can yourself (a file, a saved report) and say what you found.
 10. **Real data stays private.** From step 7 on, n8n shows real revenue in every node's output. Say once: do not screen-share it, and do not paste real figures into this chat or the project file.
 11. If they pass a step number, ask what is already done and resume there. No em dashes in anything you write. Keep each message short.
+12. **Always link to the place.** Every instruction that sends them somewhere gives the link: the node, the workflow, the screen, the settings page. Never "find the X node" without its link. Build links from the table below and their n8n address (step 2).
+
+## Links to use
+
+| Where | Link |
+|---|---|
+| Their workflow | `<n8n>/workflow/<workflow id>`: from the browser bar after import, or from the n8n tools on the Claude route |
+| A node | `<workflow link>/<node id>`. Node ids: on the Claude route, read them from the workflow with the n8n tools; after a manual import, `python3 -I -c 'import json,sys; [print(n["name"], n["id"], sep="  ") for n in json.load(open(sys.argv[1]))["nodes"]]' projects/reporting-agent/n8n/<file>.json` (n8n keeps the ids it imports). If the link opens the canvas without the node, say the node's name and to double-click it. |
+| A new workflow | `<n8n>/workflow/new` |
+| Their n8n logins (credentials) | `<n8n>/home/credentials` |
+| n8n settings (MCP access) | `<n8n>/settings` |
+| This workflow's runs | `<workflow link>/executions` |
+| n8n plans and trial | https://n8n.io/pricing |
+| GitHub token | https://github.com/settings/personal-access-tokens/new |
+| Slack apps | https://api.slack.com/apps |
+| GA4 property ID | https://analytics.google.com (Admin → Property settings) |
+| Analytics Data API in Google Cloud | https://console.cloud.google.com/apis/library/analyticsdata.googleapis.com |
+| Claude connectors | Claude → Customize → Connectors |
+
+`<n8n>` is their n8n address from "My setup". Until you have it, give the path and ask for the address once.
 
 ## Step 1: Set up your OS (I do this)
 
@@ -71,6 +103,8 @@ Recommend **Cloud** for the workshop. Say once: n8n usually offers new users a f
 ## Step 3: Import the demo
 
 **What this step does:** brings in the ready-made workflow, so you build nothing.
+
+**Claude route:** convert and create it yourself. Run `python3 -I "${CLAUDE_PLUGIN_ROOT}/plugin/to_sdk.py" projects/reporting-agent/n8n/four-reviews-demo-v1.1.json <scratch file>`, read the SDK code it writes, validate it with the n8n tools, then create the workflow from it. Say which n8n project it landed in and give the workflow link. Then skip to step 4 and do that through the n8n tools too. The manual steps below are the other route.
 **What you do:**
 1. Open a new workflow: give them the link `<their n8n address>/workflow/new` (from step 2), or say "click **Create workflow**".
 2. Offer: "Want me to copy the file's location to your clipboard?" On yes, put the full path of `projects/reporting-agent/n8n/four-reviews-demo-v1.1.json` on the clipboard with the shell (`pbcopy` on a Mac, `clip` on Windows, `xclip -selection clipboard` on Linux) and say it's copied.
@@ -83,7 +117,7 @@ Recommend **Cloud** for the workshop. Say once: n8n usually offers new users a f
 ## Step 4: Settings
 
 **What this step does:** one node holds everything you'd otherwise edit in ten places.
-**What you do:** double-click **Settings**. Set `currency` (EUR, GBP, USD...), `timeZone` (for example `Europe/London`) and `locale` (number format, for example `en-GB`). Leave `storeName` as `Demo Store` for the demo. Leave the GA4, email and GitHub lines for later steps. Close the node.
+**What you do:** open [Settings](<workflow link>/<Settings node id>). Set `currency` (EUR, GBP, USD...), `timeZone` (for example `Europe/London`), `locale` (number format, for example `en-GB`) and `n8nUrl` (their n8n address, so emails and Slack messages link back to the workflow and the run). Leave `storeName` as `Demo Store` for the demo. Leave the GA4, email and GitHub lines for later steps. Close the node. On the Claude route, change these values yourself with the n8n tools and show them what you set.
 **What you should see:** your values in the code, inside the quotes. Record currency and timezone in the project file's "My setup".
 **Could go wrong:** a missing quote or comma. Undo, and change only the text between the quotes.
 **Tell me when:** "settings done".
@@ -91,7 +125,7 @@ Recommend **Cloud** for the workshop. Say once: n8n usually offers new users a f
 ## Step 5: First run
 
 **What this step does:** runs all four reviews on made-up data. No API calls, no credentials.
-**What you do:** click **Execute workflow** (or **Test workflow**) at the bottom. When it finishes, double-click **Collect all four reports**.
+**What you do:** click **Execute workflow** (or **Test workflow**) at the bottom. When it finishes, open [Collect all four reports](<workflow link>/<node id>). On the Claude route, run it with the n8n tools, read the run's output yourself, and show them the first lines of each review with the [run's link](<workflow link>/executions).
 **What you should see:** four items, one per review, each with a `markdown` text and a `fileName` like `executive-2026-10-14-to-2026-10-20.md`. The three store reviews are a fixed example week; traffic uses the last 7 days. About 10 seconds. Tick "Demo workflow imported and run" in the project file.
 **Could go wrong:** an item named `...-incomplete.md` means a step failed; open it and read "Failed step" and "Reason". In the demo this usually means the Settings code was broken in step 4.
 **Tell me when:** "four reports".

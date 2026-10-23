@@ -4,10 +4,11 @@ Usage: python3 -I build.py <src_dir> <out_dir>
 Every string replacement asserts the exact number of matches, so a changed
 source fails loudly instead of producing a half-edited workflow.
 """
-import json, sys, uuid, copy
+import json, sys, uuid, copy, os
 
 SRC, OUT = sys.argv[1], sys.argv[2]
 LANES = ["Executive", "Marketing", "Products"]
+SLACK_FORMAT = open(os.path.join(os.path.dirname(os.path.abspath(__file__)), "js", "slack-format.js")).read()
 
 
 def rep(s, old, new, count=1):
@@ -106,11 +107,13 @@ def relayout(wf):
     nodes["Collect all four reports"]["position"] = [1900, mid]
     # Delivery: purple explainer and the Slack setup note side by side at the top,
     # then one frame per branch below them.
-    nodes["Delivery explainer"]["position"] = [2160, -360]
-    nodes["Delivery explainer"]["parameters"].update({"width": 600, "height": 440})
-    nodes["Slack app setup guide"]["position"] = [2800, -360]
-    nodes["Slack app setup guide"]["parameters"].update({"width": 600, "height": 440})
-    nodes["Deliver | Slack"]["position"] = [2280, 360]
+    nodes["Delivery explainer"]["position"] = [2160, -680]
+    nodes["Delivery explainer"]["parameters"].update({"width": 760, "height": 600})
+    nodes["Slack app setup guide"]["position"] = [2960, -680]
+    nodes["Slack app setup guide"]["parameters"].update({"width": 640, "height": 600})
+    nodes["How to demonstrate"]["parameters"].update({"height": 460})
+    nodes["Slack | Format for Slack"]["position"] = [2280, 360]
+    nodes["Deliver | Slack"]["position"] = [2520, 360]
     nodes["Email | Combine reports"]["position"] = [2280, 760]
     nodes["Deliver | Email"]["position"] = [2520, 760]
     for k, name in enumerate(["GitHub | Plan PR", "GitHub | Get base branch", "GitHub | Create branch",
@@ -121,6 +124,7 @@ def relayout(wf):
         ("Email frame", "## Email\nOne email per run: readable reviews, exact copies for `/get-email-reports`, and the four files attached.", [2160, 600], 600, 320),
         ("GitHub frame", "## GitHub pull request\nNew branch each run, four commits, one pull request. Never commits to your main branch: you merge.", [2160, 1000], 1600, 320),
     ]
+    frames.append(("Start here", "## Start here\n1. Edit **Settings**.\n2. Click **Execute workflow**.", [-560, 760], 500, 340))
     for name, text, pos, w, h in frames:
         wf["nodes"].append({"parameters": {"content": text, "width": w, "height": h, "color": 6}, "id": nid(),
                             "name": name, "type": "n8n-nodes-base.stickyNote", "typeVersion": 1, "position": pos})
@@ -140,7 +144,8 @@ return [{{json:{{
   githubOwner:'YOUR_GITHUB_USERNAME',// GitHub delivery: owner of your personal OS repo
   githubRepo:'YOUR_PERSONAL_OS_REPO',// GitHub delivery: that repo's name
   githubFolder:'projects/reporting-agent/reports', // folder in the repo, no slash at either end
-  githubBase:'main'                  // the PR targets this branch; nothing is committed to it
+  githubBase:'main',                 // the PR targets this branch; nothing is committed to it
+  n8nUrl:'https://YOUR-INSTANCE.app.n8n.cloud' // your n8n address, for the workflow links in email and Slack
 }}}}];"""
 
 
@@ -170,7 +175,8 @@ def incomplete_code(lane, traffic=False):
 EMAIL_COMBINE = """const items=$input.all(),s=$('Settings').first().json;
 const runDate=$now.setZone(s.timeZone).toISODate();
 const done=items.filter(i=>!i.json.incomplete).length;
-const body=['Weekly reports, run '+runDate+'. '+done+' of '+items.length+' reviews complete.','',
+const base=String(s.n8nUrl||'').replace(/\\/+$/,''),linked=/^https?:\\/\\//.test(base)&&!base.includes('YOUR-INSTANCE'),wfUrl=linked?base+'/workflow/'+$workflow.id:'';
+const body=['Weekly reports, run '+runDate+'. '+done+' of '+items.length+' reviews complete.',...(linked?['Workflow: '+wfUrl,'This run: '+wfUrl+'/executions/'+$execution.id]:[]),'',
  ...items.map(i=>'-----BEGIN REPORT '+i.json.fileName+'-----\\n'+i.json.markdown+'-----END REPORT-----\\n')].join('\\n');
 const exact=items.map(i=>'-----BEGIN FILE '+i.json.fileName+'-----\\n'+Buffer.from(i.json.markdown,'utf8').toString('base64').match(/.{1,76}/g).join('\\n')+'\\n-----END FILE-----').join('\\n');
 const binary={};items.forEach((i,k)=>{if(i.binary?.report)binary['report_'+k]=i.binary.report;});
@@ -179,9 +185,11 @@ return [{json:{subject:'Weekly reports '+runDate+(done<items.length?' (incomplet
 DELIVERY_NOTE = """## Delivery: choose one or more
 All four reports are collected first, then sent to every delivery node you switch on. Leave the others off, or delete them.
 
-- **Slack:** one message per report. See the Slack setup note.
+- **Slack:** one formatted message per report (emoji title, bold labels, tables as bullet lines). See the Slack setup note.
 - **GitHub:** opens a pull request to your personal OS repo with the four reports as dated .md files (Settings: githubOwner, githubRepo, githubFolder, githubBase). It creates a new branch each run and never commits to your main branch: you merge the PR. Use a private repo, because reports hold revenue. Needs a GitHub API credential with Contents and Pull requests set to read and write, on the four GitHub nodes.
 - **Email:** one email with all four reports in the body and attached (Settings: emailTo).
+
+Set `n8nUrl` in Settings to your n8n address and both email and Slack link back to this workflow and the run.
 
 Incomplete reports are delivered too, so a failed source shows up instead of going quiet."""
 
@@ -298,7 +306,13 @@ def build(fn, demo):
     slack = copy.deepcopy(slack_template)
     slack.update({"id": nid(), "name": "Deliver | Slack", "position": [2280, 460],
                   "notes": "One message per report. Setup: see the Slack setup note. Select your credential and Channel By ID, then switch on."})
+    slack["parameters"]["otherOptions"]["includeLinkToWorkflow"] = False
     wf["nodes"].append(slack)
+    wf["nodes"].append({"parameters": {"jsCode": SLACK_FORMAT}, "id": nid(), "name": "Slack | Format for Slack",
+                        "type": "n8n-nodes-base.code", "typeVersion": 2, "position": [2280, 460],
+                        "notes": "Rewrites each review for Slack: emoji title, bold labels, tables as bullet lines.",
+                        "notesInFlow": True})
+    conns["Slack | Format for Slack"] = {"main": [[{"node": "Deliver | Slack", "type": "main", "index": 0}]]}
     add_github_pr_chain(wf, conns)
     wf["nodes"].append({"parameters": {"jsCode": EMAIL_COMBINE}, "id": nid(), "name": "Email | Combine reports",
                         "type": "n8n-nodes-base.code", "typeVersion": 2, "position": [2280, 940]})
@@ -313,7 +327,7 @@ def build(fn, demo):
         "notes": "One email with all four reports. Set emailTo in Settings, select a Gmail credential, then switch on.",
         "notesInFlow": True})
     conns["Collect all four reports"] = {"main": [[
-        {"node": "Deliver | Slack", "type": "main", "index": 0},
+        {"node": "Slack | Format for Slack", "type": "main", "index": 0},
         {"node": "GitHub | Plan PR", "type": "main", "index": 0},
         {"node": "Email | Combine reports", "type": "main", "index": 0}]]}
     conns["Email | Combine reports"] = {"main": [[{"node": "Deliver | Email", "type": "main", "index": 0}]]}
@@ -322,7 +336,7 @@ def build(fn, demo):
                         "typeVersion": 1, "position": [2240, -20]})
 
     note("Slack app setup guide", "4. Select credential + channel By ID on each Slack node.\n5. Review Markdown, enable one Slack node, test, then enable all four.",
-         "4. Select credential + channel By ID on the Deliver | Slack node.\n5. Review the Markdown, then switch on Deliver | Slack. It posts one message per report.")
+         "4. Select credential + channel By ID on the Deliver | Slack node.\n5. Review the Markdown, then switch on Deliver | Slack. It posts one formatted message per report.")
     if demo:
         note("How to demonstrate", "Slack is disabled and has no destination or credential.",
              "All four reports are then collected. The delivery nodes (Slack, GitHub, Email) are switched off and have no destination or credential.")

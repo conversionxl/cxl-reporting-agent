@@ -36,7 +36,7 @@ async function run(path, opts = {}) {
   async function runCode(code, items, prev) {
     const ctx = vm.createContext({
       $input: { first: () => items[0], all: () => items, last: () => items[items.length - 1] },
-      $: ref, $now: DateTime.fromISO(fixedNow), $prevNode: { name: prev }, $execution: { id: '8200' },
+      $: ref, $now: DateTime.fromISO(fixedNow), $prevNode: { name: prev }, $execution: { id: '8200' }, $workflow: { id: 'wf123' },
       Buffer, Date: FixedDate, Intl, console,
     });
     return await vm.runInContext(`(async()=>{${code}\n})()`, ctx);

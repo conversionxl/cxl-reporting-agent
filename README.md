@@ -12,6 +12,8 @@ Built on Nick Christensen's four-reviews workflow (handoff of 22 October 2026). 
 | `workflows/four-reviews-connection-template-v1.1.json` | The same reviews wired for Metorik and GA4, all request and delivery nodes switched off, no credentials. |
 | `workflows/sample-reports/` | The four reports the demo produces, an INCOMPLETE example, and the email body. |
 | `commands/build-reporting-agent.md`, `plugin/setup.sh` | `/reporting-agent:build-reporting-agent`: sets the module up in a personal OS, then coaches step by step from no n8n to your own data. |
+| `commands/how-to-build-yourself.md` | `/reporting-agent:how-to-build-yourself`: every node and branch explained, how it was built with Claude and MCP, and help building from scratch or editing one branch. |
+| `plugin/to_sdk.py` | Converts a workflow file into n8n SDK code, so Claude can create it through the n8n MCP. |
 | `commands/get-email-reports.md` | `/reporting-agent:get-email-reports`: saves each run's reports from email into the OS and reads them. |
 | `frameworks/report-contract.md` | The format each review needs, for swapping Metorik for your own store or CRM. |
 | `frameworks/metric-limits.md` | What the reviews cannot tell you (from Nick's handoff). |

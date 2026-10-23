@@ -28,6 +28,13 @@ const decoded = i => Buffer.from(i.binary.report.data, 'base64').toString('utf8'
   ok(m['traffic-2026-10-14-to-2026-10-20.md'] === nickT, 'traffic report identical to Nick\'s example apart from the revenue-source line');
   ok(r.merged.every(i => decoded(i) === i.json.markdown), 'binary report matches markdown for all 4');
   ok(r.delivered.slack.length === 4 && r.delivered.slack.every(s => s.channel === 'SELECT_YOUR_TEST_CHANNEL'), 'Slack would post 4 messages to the placeholder channel');
+  const sl = r.delivered.slack;
+  ok(sl[0].text.startsWith('📊 *Executive business review*') && sl[3].text.startsWith('🌐 *Website traffic review*'), 'Slack titles carry an emoji and bold');
+  ok(sl.every(m => !m.text.split('\n').some(l => l.startsWith('|') || l.startsWith('#'))), 'no Markdown tables or headings left in Slack text');
+  ok(sl.every(m => m.text.includes('------------------------------')) && sl[0].text.includes('• *Net revenue:* $24,000'), 'dashed separators and bold labels');
+  ok(sl[3].text.includes('• *google / organic* · Sessions 5000 · Previous 4200 · Change 19.0% · Engagement 65.0%'), 'traffic table rows become bullet lines');
+  ok(!sl[0].text.includes('Open the workflow') && !r.delivered.email[0].body.includes('Workflow:'), 'no workflow links while n8nUrl is the placeholder');
+  console.log(sl[3].text.split('\n').slice(0, 12).join('\n'));
   ok(r.delivered.github.length === 4 && r.delivered.github[0].path === 'projects/reporting-agent/reports/executive-2026-10-14-to-2026-10-20.md' && r.delivered.github[0].owner === 'YOUR_GITHUB_USERNAME', 'GitHub paths and owner from Settings: ' + r.delivered.github[0].path);
   ok(r.delivered.github.every((g, i) => g.bytes === r.merged[i].json.markdown), 'GitHub commits the exact report text');
   const api = r.delivered.api, br = 'reports/2026-10-21-run-8200';
@@ -45,6 +52,13 @@ const decoded = i => Buffer.from(i.binary.report.data, 'base64').toString('utf8'
   fs.mkdirSync(SAMPLES, { recursive: true });
   for (const [f, md] of Object.entries(m)) fs.writeFileSync(`${SAMPLES}/${f}`, md);
   fs.writeFileSync(`${SAMPLES}/email-body-example.txt`, `Subject: ${em[0].subject}\n\n${em[0].body}`);
+
+  console.log('\n== T1b links when n8nUrl is set');
+  r = await run(demo, { deliver: true, settings: { n8nUrl: 'https://acme.app.n8n.cloud/' } });
+  ok(r.delivered.email[0].body.includes('Workflow: https://acme.app.n8n.cloud/workflow/wf123\nThis run: https://acme.app.n8n.cloud/workflow/wf123/executions/8200'), 'email links to the workflow and the run');
+  ok(r.delivered.slack[0].text.endsWith('<https://acme.app.n8n.cloud/workflow/wf123|Open the workflow> · <https://acme.app.n8n.cloud/workflow/wf123/executions/8200|This run>'), 'Slack links to the workflow and the run');
+  ok(r.merged.every(i => i.json.markdown === m[i.json.fileName]), 'the Markdown reports are unchanged by the Slack formatting');
+  console.log(r.delivered.slack[0].text);
 
   console.log('\n== T2 demo with EUR, Europe/Tallinn, de-DE');
   r = await run(demo, { settings: { currency: 'EUR', timeZone: 'Europe/Tallinn', locale: 'de-DE' } });

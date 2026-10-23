@@ -1,7 +1,7 @@
 {
   "name": "reporting-agent",
-  "version": "0.1.1",
-  "description": "Reporting agent module for the CXL AI Native Marketer cohort: four weekly reviews (executive, marketing sources, products, website traffic) built in n8n from your store or CRM and GA4, delivered by email, a GitHub pull request or Slack, and read in your personal OS. /reporting-agent:build-reporting-agent sets it up in your OS and walks you through n8n step by step; /reporting-agent:get-email-reports saves each run into your OS and reads it with you. Test build for review.",
+  "version": "0.2.0",
+  "description": "Reporting agent module for the CXL AI Native Marketer cohort: four weekly reviews (executive, marketing sources, products, website traffic) built in n8n from your store or CRM and GA4, delivered by email, a GitHub pull request or Slack, and read in your personal OS. /reporting-agent:build-reporting-agent sets it up in your OS and walks you through n8n step by step; /reporting-agent:how-to-build-yourself explains every node and how it was built with Claude and MCP; /reporting-agent:get-email-reports saves each run into your OS and reads it with you. Test build for review.",
   "author": {
     "name": "CXL",
     "email": "hesh@cxl.com"
@@ -18,6 +18,7 @@
   ],
   "commands": [
     "./commands/build-reporting-agent.md",
+    "./commands/how-to-build-yourself.md",
     "./commands/get-email-reports.md"
   ]
 }

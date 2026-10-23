@@ -16,6 +16,7 @@
 | Command | What it does |
 |---|---|
 | `/reporting-agent:build-reporting-agent [step]` | Sets the module up, then walks you through n8n one step at a time: import, run the demo, choose a delivery, connect your own store or CRM, GA4. |
+| `/reporting-agent:how-to-build-yourself [tour\|scratch\|edit]` | Explains every node and branch, how it was built in stages with Claude and the n8n MCP, and helps you build from scratch or change one branch. |
 | `/reporting-agent:get-email-reports [save\|read]` | Saves the reports from the latest emails into `raw/performance/reporting-agent/`, then reads them with you. Also reads reports merged in from a GitHub pull request. |
 
 **Rules for the reports:**

@@ -574,7 +574,7 @@
       ],
       "parameters": {
         "content": "## PRIVATE CONNECTION TEMPLATE\nAll HTTP and delivery nodes are disabled; credentials removed. Fill in the Settings node and credentials before enabling HTTP nodes. Until a source is connected, its lane writes an INCOMPLETE report instead of stopping the run.\n\nReal requests expose real data in execution outputs. Do not execute on a public screen. Use the demo for the workshop.\n\nSwitch on a delivery node only after choosing your own destination and reviewing the reports.",
-        "height": 400,
+        "height": 460,
         "width": 480,
         "color": 2
       }
@@ -676,21 +676,21 @@
       "type": "n8n-nodes-base.stickyNote",
       "typeVersion": 1,
       "position": [
-        2800,
-        -360
+        2960,
+        -680
       ],
       "parameters": {
-        "content": "## Slack setup — before delivery\nFollow SLACK-SETUP.md (10–15 min pre-work).\n\n1. Create/install a Slack app with bot scope chat:write.\n2. Save its token privately in n8n Credentials.\n3. Invite the bot to a test channel.\n4. Select credential + channel By ID on the Deliver | Slack node.\n5. Review the Markdown, then switch on Deliver | Slack. It posts one message per report.\n\nUse the SYNTHETIC demo for screen-sharing. No credentials are included. App installation may require workspace approval.",
-        "width": 600,
-        "height": 440,
+        "content": "## Slack setup — before delivery\nFollow SLACK-SETUP.md (10–15 min pre-work).\n\n1. Create/install a Slack app with bot scope chat:write.\n2. Save its token privately in n8n Credentials.\n3. Invite the bot to a test channel.\n4. Select credential + channel By ID on the Deliver | Slack node.\n5. Review the Markdown, then switch on Deliver | Slack. It posts one formatted message per report.\n\nUse the SYNTHETIC demo for screen-sharing. No credentials are included. App installation may require workspace approval.",
+        "width": 640,
+        "height": 600,
         "color": 4
       }
     },
     {
       "parameters": {
-        "jsCode": "// Edit these before the first run. Every lane reads its settings from here.\nreturn [{json:{\n  storeName:'YOUR_STORE_NAME',          // must match the store name your source returns\n  currency:'USD',                    // ISO code, for example EUR or GBP\n  timeZone:'America/Chicago',        // reporting timezone, for example Europe/London\n  locale:'en-US',                    // number and money format, for example en-GB or de-DE\n  ga4PropertyId:'YOUR_GA4_PROPERTY_ID', // numeric GA4 property ID (Traffic lane)\n  ga4Events:['purchase','generate_lead'], // events your GA4 property collects\n  emailTo:'YOU@EXAMPLE.COM',         // Email delivery: where the reports go\n  githubOwner:'YOUR_GITHUB_USERNAME',// GitHub delivery: owner of your personal OS repo\n  githubRepo:'YOUR_PERSONAL_OS_REPO',// GitHub delivery: that repo's name\n  githubFolder:'projects/reporting-agent/reports', // folder in the repo, no slash at either end\n  githubBase:'main'                  // the PR targets this branch; nothing is committed to it\n}}];"
+        "jsCode": "// Edit these before the first run. Every lane reads its settings from here.\nreturn [{json:{\n  storeName:'YOUR_STORE_NAME',          // must match the store name your source returns\n  currency:'USD',                    // ISO code, for example EUR or GBP\n  timeZone:'America/Chicago',        // reporting timezone, for example Europe/London\n  locale:'en-US',                    // number and money format, for example en-GB or de-DE\n  ga4PropertyId:'YOUR_GA4_PROPERTY_ID', // numeric GA4 property ID (Traffic lane)\n  ga4Events:['purchase','generate_lead'], // events your GA4 property collects\n  emailTo:'YOU@EXAMPLE.COM',         // Email delivery: where the reports go\n  githubOwner:'YOUR_GITHUB_USERNAME',// GitHub delivery: owner of your personal OS repo\n  githubRepo:'YOUR_PERSONAL_OS_REPO',// GitHub delivery: that repo's name\n  githubFolder:'projects/reporting-agent/reports', // folder in the repo, no slash at either end\n  githubBase:'main',                 // the PR targets this branch; nothing is committed to it\n  n8nUrl:'https://YOUR-INSTANCE.app.n8n.cloud' // your n8n address, for the workflow links in email and Slack\n}}];"
       },
-      "id": "d3710378-55d5-4291-86ef-e5aaee479b00",
+      "id": "77cd953b-15e8-4873-be31-d77fe2a95bcd",
       "name": "Settings",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -705,7 +705,7 @@
       "parameters": {
         "jsCode": "const p=$('Executive | Reporting period').first().json;const j=$input.first().json,e=j.error??j;const reason=String(typeof e==='string'?e:(e.message||e.description||JSON.stringify(e))).replace(/[\\r\\n]+/g,' ').slice(0,300);const markdown=['INCOMPLETE | '+p.storeName+' | Executive business review',p.start+' to '+p.end+' | '+p.currency+' | '+p.timeZone,'','This review did not run, so it reports no figures this week. Missing figures are not zero.','Failed step: '+$prevNode.name,'Reason: '+reason,'','First run before setup? The source nodes stay switched off until you connect them, so this is expected.','Review: fix the connection or setting named above, then run the workflow again.'].join('\\n')+'\\n';return [{json:{markdown,slackText:markdown,fileName:'executive-'+p.start+'-to-'+p.end+'-incomplete.md',incomplete:true}}];"
       },
-      "id": "5dd459e3-2bd2-4647-b9db-a1d531acfb8f",
+      "id": "77f44751-36a8-4583-9b2b-e2eaf2b676e6",
       "name": "Executive | Incomplete report",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -720,7 +720,7 @@
       "parameters": {
         "jsCode": "const p=$('Marketing | Reporting period').first().json;const j=$input.first().json,e=j.error??j;const reason=String(typeof e==='string'?e:(e.message||e.description||JSON.stringify(e))).replace(/[\\r\\n]+/g,' ').slice(0,300);const markdown=['INCOMPLETE | '+p.storeName+' | Marketing source review',p.start+' to '+p.end+' | '+p.currency+' | '+p.timeZone,'','This review did not run, so it reports no figures this week. Missing figures are not zero.','Failed step: '+$prevNode.name,'Reason: '+reason,'','First run before setup? The source nodes stay switched off until you connect them, so this is expected.','Review: fix the connection or setting named above, then run the workflow again.'].join('\\n')+'\\n';return [{json:{markdown,slackText:markdown,fileName:'marketing-'+p.start+'-to-'+p.end+'-incomplete.md',incomplete:true}}];"
       },
-      "id": "52051b37-b1a9-4bc9-ac3a-57d7219a5edd",
+      "id": "11aa4761-40bf-4b34-a728-c23aa0970016",
       "name": "Marketing | Incomplete report",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -735,7 +735,7 @@
       "parameters": {
         "jsCode": "const p=$('Products | Reporting period').first().json;const j=$input.first().json,e=j.error??j;const reason=String(typeof e==='string'?e:(e.message||e.description||JSON.stringify(e))).replace(/[\\r\\n]+/g,' ').slice(0,300);const markdown=['INCOMPLETE | '+p.storeName+' | Top product review',p.start+' to '+p.end+' | '+p.currency+' | '+p.timeZone,'','This review did not run, so it reports no figures this week. Missing figures are not zero.','Failed step: '+$prevNode.name,'Reason: '+reason,'','First run before setup? The source nodes stay switched off until you connect them, so this is expected.','Review: fix the connection or setting named above, then run the workflow again.'].join('\\n')+'\\n';return [{json:{markdown,slackText:markdown,fileName:'products-'+p.start+'-to-'+p.end+'-incomplete.md',incomplete:true}}];"
       },
-      "id": "c250b006-29c3-48c2-89ca-91c2a06b44aa",
+      "id": "c12eaa91-16cf-4eaf-8c02-43042ef99c52",
       "name": "Products | Incomplete report",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -750,7 +750,7 @@
       "parameters": {
         "jsCode": "const c=$('Traffic | Reporting period').first().json;const p={start:c.current.start,end:c.current.end};const s=$('Settings').first().json;const j=$input.first().json,e=j.error??j;const reason=String(typeof e==='string'?e:(e.message||e.description||JSON.stringify(e))).replace(/[\\r\\n]+/g,' ').slice(0,300);const markdown=['INCOMPLETE | '+s.storeName+' | Website traffic review',p.start+' to '+p.end+' | '+'GA4 | '+c.timeZone,'','This review did not run, so it reports no figures this week. Missing figures are not zero.','Failed step: '+$prevNode.name,'Reason: '+reason,'','First run before setup? The source nodes stay switched off until you connect them, so this is expected.','Review: fix the connection or setting named above, then run the workflow again.'].join('\\n')+'\\n';return [{json:{markdown,slackText:markdown,fileName:'traffic-'+p.start+'-to-'+p.end+'-incomplete.md',incomplete:true}}];"
       },
-      "id": "7fda0372-8c9a-45a8-afdc-3bb012328d8f",
+      "id": "e4d2e3cf-c298-4210-b8e7-5a91cdaf25a8",
       "name": "Traffic | Incomplete report",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -765,7 +765,7 @@
       "parameters": {
         "numberInputs": 4
       },
-      "id": "9fbf0181-325f-44fc-a807-8b327107560e",
+      "id": "72d7c3e8-7f51-4f86-a74e-31bb99d4e30c",
       "name": "Collect all four reports",
       "type": "n8n-nodes-base.merge",
       "typeVersion": 3.2,
@@ -775,12 +775,12 @@
       ]
     },
     {
-      "id": "380ffd85-393c-405b-9ee1-c83f678565fb",
+      "id": "88cd61e6-c371-4729-ae4e-5c0b416b343d",
       "name": "Deliver | Slack",
       "type": "n8n-nodes-base.slack",
       "typeVersion": 2.3,
       "position": [
-        2280,
+        2520,
         360
       ],
       "parameters": {
@@ -793,7 +793,8 @@
         "text": "={{ $json.slackText }}",
         "otherOptions": {
           "unfurl_links": false,
-          "unfurl_media": false
+          "unfurl_media": false,
+          "includeLinkToWorkflow": false
         }
       },
       "disabled": true,
@@ -802,9 +803,24 @@
     },
     {
       "parameters": {
+        "jsCode": "// Turns each review's Markdown into a Slack message: an emoji title, bold labels,\n// a dashed rule between parts, and table rows as bullet lines (Slack can't show\n// Markdown tables). The Markdown file itself is unchanged; only slackText is rewritten.\nconst s = $('Settings').first().json;\nconst base = String(s.n8nUrl || '').replace(/\\/+$/, '');\nconst linked = /^https?:\\/\\//.test(base) && !base.includes('YOUR-INSTANCE');\nconst wfUrl = linked ? base + '/workflow/' + $workflow.id : '';\nconst icon = { executive: '📊', marketing: '📣', products: '🛍️', traffic: '🌐' };\nconst title = { executive: 'Executive business review', marketing: 'Marketing source review', products: 'Top product review', traffic: 'Website traffic review' };\nconst rule = '------------------------------';\nconst esc = t => String(t).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');\nconst isContext = l => /^(DEMO|PRIVATE LIVE|SYNTHETIC DATA|LIVE GA4|INCOMPLETE \\|)/.test(l) || /^\\d{4}-\\d{2}-\\d{2}/.test(l) || /^(Synthetic example data|Live Metorik data)/.test(l);\nconst cells = l => l.replace(/^\\|/, '').replace(/\\|\\s*$/, '').split('|').map(c => c.trim());\n\nreturn $input.all().map(item => {\n  const j = item.json;\n  const lane = String(j.fileName || '').split('-')[0];\n  const head = (j.incomplete ? '⚠️' : (icon[lane] || '📄')) + ' *' + (title[lane] || esc(j.fileName || 'Review')) + (j.incomplete ? ': incomplete' : '') + '*';\n  const context = [], body = [];\n  let header = null;\n  for (const raw of String(j.markdown || '').split('\\n')) {\n    const l = raw.trim();\n    if (!l) { if (body.length && body[body.length - 1] !== '') body.push(''); continue; }\n    if (l.startsWith('# ')) continue;\n    if (!body.length && isContext(l)) { context.push('_' + esc(l.replace(/\\s*\\|\\s*/g, ' · ')) + '_'); continue; }\n    if (l.startsWith('## ')) { if (body.length && body[body.length - 1] !== '') body.push(''); body.push('*' + esc(l.slice(3)) + '*'); header = null; continue; }\n    if (l.startsWith('|')) {\n      const c = cells(l);\n      if (c.every(x => /^:?-+:?$/.test(x))) continue;\n      if (!header) { header = c; continue; }\n      body.push('• *' + esc(c[0]) + '*' + c.slice(1).map((v, k) => ' · ' + esc(header[k + 1]) + ' ' + esc(v)).join(''));\n      continue;\n    }\n    header = null;\n    let m;\n    if ((m = l.match(/^Review:\\s*(.*)$/))) { body.push('👉 *Review:* ' + esc(m[1])); continue; }\n    if ((m = l.match(/^([•-])\\s+([^:]{1,45}):\\s+(.*)$/))) { body.push('• *' + esc(m[2]) + ':* ' + esc(m[3]).replace(/\\s*\\|\\s*/g, ' · ')); continue; }\n    if ((m = l.match(/^(\\d+)\\.\\s+(.+?)\\s+—\\s+(.*)$/))) { body.push(m[1] + '. *' + esc(m[2]) + '* · ' + esc(m[3]).replace(/\\s*\\|\\s*/g, ' · ')); continue; }\n    if ((m = l.match(/^(Failed step|Reason):\\s*(.*)$/))) { body.push('*' + m[1] + ':* ' + esc(m[2])); continue; }\n    if (/^[^:]{3,60}:$/.test(l)) { body.push('*' + esc(l) + '*'); continue; }\n    body.push(esc(l).replace(/\\s*\\|\\s*/g, ' · '));\n  }\n  while (body.length && body[body.length - 1] === '') body.pop();\n  const parts = [head, ...context, rule, ...body];\n  if (linked) parts.push(rule, '<' + wfUrl + '|Open the workflow> · <' + wfUrl + '/executions/' + $execution.id + '|This run>');\n  return { json: { ...j, slackText: parts.join('\\n') }, binary: item.binary };\n});\n"
+      },
+      "id": "e3477636-8741-4949-870c-9f997e1682bb",
+      "name": "Slack | Format for Slack",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2280,
+        360
+      ],
+      "notes": "Rewrites each review for Slack: emoji title, bold labels, tables as bullet lines.",
+      "notesInFlow": true
+    },
+    {
+      "parameters": {
         "jsCode": "const s=$('Settings').first().json,items=$input.all();\nconst runDate=$now.setZone(s.timeZone).toISODate();\nconst done=items.filter(i=>!i.json.incomplete).length;\nconst branch='reports/'+runDate+'-run-'+$execution.id;\nconst files=items.map(i=>'- '+s.githubFolder+'/'+i.json.fileName+(i.json.incomplete?' (INCOMPLETE)':'')).join('\\n');\nreturn [{json:{owner:s.githubOwner,repo:s.githubRepo,base:s.githubBase,branch,\n title:'Weekly reports '+runDate+(done<items.length?' (incomplete)':''),\n body:'Weekly reports from the n8n reporting workflow, run '+runDate+'. '+done+' of '+items.length+' reviews complete.\\n\\n'+files+'\\n\\nMerge this pull request to add the reports. Nothing was committed to '+s.githubBase+'.'}}];"
       },
-      "id": "1aa53fea-1800-41ae-9248-8e1ba0061b93",
+      "id": "d7c06459-4cb7-4f0e-a0fe-968d676f2953",
       "name": "GitHub | Plan PR",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -830,7 +846,7 @@
         },
         "options": {}
       },
-      "id": "67e7f533-242a-4d0a-979c-c7daf5d3aa85",
+      "id": "c33008e4-8943-444d-bd2f-e9c828db1e8d",
       "name": "GitHub | Get base branch",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
@@ -863,7 +879,7 @@
         "specifyBody": "json",
         "jsonBody": "={{ JSON.stringify({ref:'refs/heads/'+$('GitHub | Plan PR').first().json.branch, sha:$json.object.sha}) }}"
       },
-      "id": "1f2d826a-8ec4-4551-b00f-0410d9a06b9d",
+      "id": "35c3c201-7ea3-44ab-b90b-80e99cbc5b4f",
       "name": "GitHub | Create branch",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
@@ -880,7 +896,7 @@
       "parameters": {
         "jsCode": "return $('Collect all four reports').all();"
       },
-      "id": "5bf9aca7-88cc-464e-b3c8-053ba5829368",
+      "id": "9c049207-1b24-424c-871e-3e23fba4bc73",
       "name": "GitHub | Reports to commit",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -913,7 +929,7 @@
           }
         }
       },
-      "id": "724bc489-25bf-44d4-84ed-4a6f0b02ddc9",
+      "id": "efcca5e1-d5e1-4813-aba5-bc8a7289fcb5",
       "name": "GitHub | Commit to branch",
       "type": "n8n-nodes-base.github",
       "typeVersion": 1.1,
@@ -946,7 +962,7 @@
         "specifyBody": "json",
         "jsonBody": "={{ JSON.stringify({title:$('GitHub | Plan PR').first().json.title, head:$('GitHub | Plan PR').first().json.branch, base:$('GitHub | Plan PR').first().json.base, body:$('GitHub | Plan PR').first().json.body}) }}"
       },
-      "id": "40605f31-16d3-43b1-9919-b76d7bbc875f",
+      "id": "e2459b4a-0700-4680-98f7-a96d8b0ad891",
       "name": "GitHub | Open pull request",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
@@ -962,9 +978,9 @@
     },
     {
       "parameters": {
-        "jsCode": "const items=$input.all(),s=$('Settings').first().json;\nconst runDate=$now.setZone(s.timeZone).toISODate();\nconst done=items.filter(i=>!i.json.incomplete).length;\nconst body=['Weekly reports, run '+runDate+'. '+done+' of '+items.length+' reviews complete.','',\n ...items.map(i=>'-----BEGIN REPORT '+i.json.fileName+'-----\\n'+i.json.markdown+'-----END REPORT-----\\n')].join('\\n');\nconst exact=items.map(i=>'-----BEGIN FILE '+i.json.fileName+'-----\\n'+Buffer.from(i.json.markdown,'utf8').toString('base64').match(/.{1,76}/g).join('\\n')+'\\n-----END FILE-----').join('\\n');\nconst binary={};items.forEach((i,k)=>{if(i.binary?.report)binary['report_'+k]=i.binary.report;});\nreturn [{json:{subject:'Weekly reports '+runDate+(done<items.length?' (incomplete)':''),body:body+'\\n\\nExact copies for /get-email-reports (base64, do not edit):\\n'+exact+'\\n',attachmentNames:Object.keys(binary).join(',')},binary}];"
+        "jsCode": "const items=$input.all(),s=$('Settings').first().json;\nconst runDate=$now.setZone(s.timeZone).toISODate();\nconst done=items.filter(i=>!i.json.incomplete).length;\nconst base=String(s.n8nUrl||'').replace(/\\/+$/,''),linked=/^https?:\\/\\//.test(base)&&!base.includes('YOUR-INSTANCE'),wfUrl=linked?base+'/workflow/'+$workflow.id:'';\nconst body=['Weekly reports, run '+runDate+'. '+done+' of '+items.length+' reviews complete.',...(linked?['Workflow: '+wfUrl,'This run: '+wfUrl+'/executions/'+$execution.id]:[]),'',\n ...items.map(i=>'-----BEGIN REPORT '+i.json.fileName+'-----\\n'+i.json.markdown+'-----END REPORT-----\\n')].join('\\n');\nconst exact=items.map(i=>'-----BEGIN FILE '+i.json.fileName+'-----\\n'+Buffer.from(i.json.markdown,'utf8').toString('base64').match(/.{1,76}/g).join('\\n')+'\\n-----END FILE-----').join('\\n');\nconst binary={};items.forEach((i,k)=>{if(i.binary?.report)binary['report_'+k]=i.binary.report;});\nreturn [{json:{subject:'Weekly reports '+runDate+(done<items.length?' (incomplete)':''),body:body+'\\n\\nExact copies for /get-email-reports (base64, do not edit):\\n'+exact+'\\n',attachmentNames:Object.keys(binary).join(',')},binary}];"
       },
-      "id": "2cc52e83-b004-4ab4-9d21-396bfef15493",
+      "id": "6f0ba44e-2423-4d48-bfee-24682a4b8ad0",
       "name": "Email | Combine reports",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -992,7 +1008,7 @@
           }
         }
       },
-      "id": "bd9b0be5-6035-495c-817b-45d45192ac91",
+      "id": "962d8ba6-eff7-47d7-ac15-eee37c2b8fc2",
       "name": "Deliver | Email",
       "type": "n8n-nodes-base.gmail",
       "typeVersion": 2.2,
@@ -1006,18 +1022,18 @@
     },
     {
       "parameters": {
-        "content": "## Delivery: choose one or more\nAll four reports are collected first, then sent to every delivery node you switch on. Leave the others off, or delete them.\n\n- **Slack:** one message per report. See the Slack setup note.\n- **GitHub:** opens a pull request to your personal OS repo with the four reports as dated .md files (Settings: githubOwner, githubRepo, githubFolder, githubBase). It creates a new branch each run and never commits to your main branch: you merge the PR. Use a private repo, because reports hold revenue. Needs a GitHub API credential with Contents and Pull requests set to read and write, on the four GitHub nodes.\n- **Email:** one email with all four reports in the body and attached (Settings: emailTo).\n\nIncomplete reports are delivered too, so a failed source shows up instead of going quiet.",
-        "height": 440,
-        "width": 600,
+        "content": "## Delivery: choose one or more\nAll four reports are collected first, then sent to every delivery node you switch on. Leave the others off, or delete them.\n\n- **Slack:** one formatted message per report (emoji title, bold labels, tables as bullet lines). See the Slack setup note.\n- **GitHub:** opens a pull request to your personal OS repo with the four reports as dated .md files (Settings: githubOwner, githubRepo, githubFolder, githubBase). It creates a new branch each run and never commits to your main branch: you merge the PR. Use a private repo, because reports hold revenue. Needs a GitHub API credential with Contents and Pull requests set to read and write, on the four GitHub nodes.\n- **Email:** one email with all four reports in the body and attached (Settings: emailTo).\n\nSet `n8nUrl` in Settings to your n8n address and both email and Slack link back to this workflow and the run.\n\nIncomplete reports are delivered too, so a failed source shows up instead of going quiet.",
+        "height": 600,
+        "width": 760,
         "color": 6
       },
-      "id": "f318d9a4-10d2-4226-a3a2-ad2a97811470",
+      "id": "62ac94bf-0237-4550-89c6-20a70df30042",
       "name": "Delivery explainer",
       "type": "n8n-nodes-base.stickyNote",
       "typeVersion": 1,
       "position": [
         2160,
-        -360
+        -680
       ]
     },
     {
@@ -1027,7 +1043,7 @@
         "height": 320,
         "color": 6
       },
-      "id": "252f4f61-9806-4095-8fc7-6dfc8b4ce7a1",
+      "id": "e3f3ba91-d617-45ed-ae0f-152da7ff1a74",
       "name": "Slack frame",
       "type": "n8n-nodes-base.stickyNote",
       "typeVersion": 1,
@@ -1043,7 +1059,7 @@
         "height": 320,
         "color": 6
       },
-      "id": "63cac6a2-3775-45e9-9a73-e9c741c305d1",
+      "id": "910b08db-b8be-43e0-a92b-eab68d220aa5",
       "name": "Email frame",
       "type": "n8n-nodes-base.stickyNote",
       "typeVersion": 1,
@@ -1059,13 +1075,29 @@
         "height": 320,
         "color": 6
       },
-      "id": "79988fad-76c3-408f-9b2a-0c143958281b",
+      "id": "5f1f6b1f-0261-41e6-92fd-a250a5da4b9b",
       "name": "GitHub frame",
       "type": "n8n-nodes-base.stickyNote",
       "typeVersion": 1,
       "position": [
         2160,
         1000
+      ]
+    },
+    {
+      "parameters": {
+        "content": "## Start here\n1. Edit **Settings**.\n2. Click **Execute workflow**.",
+        "width": 500,
+        "height": 340,
+        "color": 6
+      },
+      "id": "08284b7f-8bd2-41cc-b441-3c525e6762d6",
+      "name": "Start here",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -560,
+        760
       ]
     }
   ],
@@ -1556,6 +1588,17 @@
         ]
       ]
     },
+    "Slack | Format for Slack": {
+      "main": [
+        [
+          {
+            "node": "Deliver | Slack",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
     "GitHub | Plan PR": {
       "main": [
         [
@@ -1615,7 +1658,7 @@
       "main": [
         [
           {
-            "node": "Deliver | Slack",
+            "node": "Slack | Format for Slack",
             "type": "main",
             "index": 0
           },

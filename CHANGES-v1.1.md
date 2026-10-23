@@ -11,7 +11,8 @@ Proposed edits to Nick's handoff of 22 October 2026, and the plugin built around
 | 3 | **Collect all four reports** in one Merge node, then one branch per delivery: Slack, GitHub, Email | Attendees pick the delivery they want and switch the others off. The four per-lane Slack nodes are replaced by one, which still posts one message per report. | 1 Merge, 1 Slack, 1 Email (Gmail) with a Code node that combines the four reports into one email, and a 6-node GitHub chain (below). The 4 old Slack nodes are removed. |
 | 4 | **Dated traffic file:** `traffic-<start>-to-<end>.md` | It was always `website-traffic-review.md`, so each run overwrote the last. | Traffic, Compose review: 1 line |
 | 5 | **Neutral revenue source:** "Your store or CRM remains the revenue source." | Attendees without Metorik | Traffic, Compose review: 1 line. Sticky notes updated to match. |
-| 6 | **Framed layout:** each review and each delivery branch sits in its own coloured frame; lanes are spaced further apart; the Slack setup note sits next to the delivery note | Less overwhelming on first open. Positions and notes only, no logic. n8n's collapsible canvas groups (2.28 and later) are the next step once their export format is confirmed | 3 new notes, positions |
+| 6 | **Framed layout:** each review and each delivery branch sits in its own coloured frame; lanes are spaced further apart; the Slack setup note sits next to the delivery note | Less overwhelming on first open. Positions and notes only, no logic. n8n's collapsible canvas groups (2.28 and later) are the next step once their export format is confirmed | 4 new notes, positions |
+| 7 | **Slack formatting and workflow links:** a Format for Slack step rewrites each review for Slack (emoji title, bold labels, dashed separators, tables as bullet lines) and Slack's own n8n footer is off; with `n8nUrl` set in Settings, email and Slack link to the workflow and the run | Slack showed raw Markdown tables and headings. The Markdown files are unchanged | 1 new Code node, Settings, Email combine |
 
 All three delivery nodes are switched off, with no credentials and placeholder destinations.
 
@@ -26,6 +27,7 @@ All three delivery nodes are switched off, with no credentials and placeholder d
 |---|---|
 | `/reporting-agent:build-reporting-agent` | One command. Sets up the attendee's personal OS first (a project file, the two workflows to import, a local-only folder for saved reports), then coaches step by step: n8n, import, Settings, first run, delivery, then the exercise: swap one review (executive first) onto their own store or CRM. Claude writes the conversion Code node from a sample of their data with personal details removed. |
 | `/reporting-agent:get-email-reports` | Saves the reports from the email into the OS and gives a readout: what changed, facts vs hypotheses vs missing data, what to check next. |
+| `/reporting-agent:how-to-build-yourself` | Explains every node and branch, how this was built in stages with Claude and the n8n MCP, and helps build from scratch or edit one branch. |
 | `frameworks/report-contract.md` | The format each review needs, including a first draft of how CRM fields map onto the store fields. Please check the CRM mapping. |
 
 **The workshop demo:** a finished run on the made-up data passes. One review on their own store or CRM data, complete or a screenshot of where it failed, gets the fuller review from you and Hesh. Email and ads lanes come after you approve this version.
