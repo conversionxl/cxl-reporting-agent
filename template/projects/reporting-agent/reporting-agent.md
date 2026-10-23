@@ -17,11 +17,14 @@ Filled in as you go through `/reporting-agent:build-reporting-agent`. No keys, t
 
 | Setting | Value |
 |---|---|
-| n8n | Cloud or self-hosted: |
-| Store or CRM | Metorik, Shopify, Stripe, HubSpot, other: |
+| n8n | Cloud or self-hosted, and its address: |
+| Store or CRM | Metorik, Shopify, WooCommerce, Stripe, HubSpot, other, spreadsheet: |
+| Email | Gmail / other: |
+| Slack | yes / no |
+| OS folder on GitHub | yes / no |
+| GA4 | yes / no; property connected / not yet |
 | Currency and timezone | |
-| GA4 property | connected / not yet |
-| Delivery | email / GitHub pull request / Slack |
+| Delivery chosen | email / GitHub pull request / Slack |
 
 ## Demo progress
 

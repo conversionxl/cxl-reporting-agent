@@ -79,6 +79,53 @@ def add_github_pr_chain(wf, conns):
         conns[a["name"]] = {"main": [[{"node": b["name"], "type": "main", "index": 0}]]}
 
 
+def relayout(wf):
+    """Frame each review lane and each delivery branch, so the canvas reads in blocks.
+
+    Lanes move 640 px apart (they were 480) to leave room for a frame each. The
+    lane explainer notes become those frames: same text, sized to sit behind the
+    whole lane. Notes always render behind nodes in n8n.
+    """
+    nodes = {n["name"]: n for n in wf["nodes"]}
+    lanes = ["Executive", "Marketing", "Products", "Traffic"]
+    explainer = {"Executive": "Executive explainer", "Marketing": "Marketing explainer",
+                 "Products": "Products explainer", "Traffic": "Website traffic explainer"}
+    for i, lane in enumerate(lanes):
+        shift = i * 160
+        for n in wf["nodes"]:
+            if n["name"].startswith(lane + " | "):
+                n["position"] = [n["position"][0], n["position"][1] + shift]
+        base = i * 640
+        frame = nodes[explainer[lane]]
+        frame["position"] = [-60, base - 300]
+        frame["parameters"]["width"] = 1720
+        frame["parameters"]["height"] = 620
+    mid = 960
+    nodes["Run all four reviews"]["position"] = [-460, mid]
+    nodes["Settings"]["position"] = [-240, mid]
+    nodes["Collect all four reports"]["position"] = [1900, mid]
+    # Delivery: purple explainer and the Slack setup note side by side at the top,
+    # then one frame per branch below them.
+    nodes["Delivery explainer"]["position"] = [2160, -360]
+    nodes["Delivery explainer"]["parameters"].update({"width": 600, "height": 440})
+    nodes["Slack app setup guide"]["position"] = [2800, -360]
+    nodes["Slack app setup guide"]["parameters"].update({"width": 600, "height": 440})
+    nodes["Deliver | Slack"]["position"] = [2280, 360]
+    nodes["Email | Combine reports"]["position"] = [2280, 760]
+    nodes["Deliver | Email"]["position"] = [2520, 760]
+    for k, name in enumerate(["GitHub | Plan PR", "GitHub | Get base branch", "GitHub | Create branch",
+                              "GitHub | Reports to commit", "GitHub | Commit to branch", "GitHub | Open pull request"]):
+        nodes[name]["position"] = [2280 + 240 * k, 1160]
+    frames = [
+        ("Slack frame", "## Slack\nOne message per review. Optional, on top of email or GitHub.", [2160, 200], 600, 320),
+        ("Email frame", "## Email\nOne email per run: readable reviews, exact copies for `/get-email-reports`, and the four files attached.", [2160, 600], 600, 320),
+        ("GitHub frame", "## GitHub pull request\nNew branch each run, four commits, one pull request. Never commits to your main branch: you merge.", [2160, 1000], 1600, 320),
+    ]
+    for name, text, pos, w, h in frames:
+        wf["nodes"].append({"parameters": {"content": text, "width": w, "height": h, "color": 6}, "id": nid(),
+                            "name": name, "type": "n8n-nodes-base.stickyNote", "typeVersion": 1, "position": pos})
+
+
 def settings_code(demo):
     store = "Demo Store" if demo else "YOUR_STORE_NAME"
     return f"""// Edit these before the first run. Every lane reads its settings from here.
@@ -285,6 +332,7 @@ def build(fn, demo):
         note("How to demonstrate", "Enable Slack only after choosing your own test destination and reviewing the report.",
              "Switch on a delivery node only after choosing your own destination and reviewing the reports.")
 
+    relayout(wf)
     wf["name"] = wf["name"] + " | v1.1"
     out = f"{OUT}/{fn.replace('.json', '-v1.1.json')}"
     json.dump(wf, open(out, "w"), indent=2, ensure_ascii=False)

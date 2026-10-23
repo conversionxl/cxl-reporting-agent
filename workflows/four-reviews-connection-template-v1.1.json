@@ -8,7 +8,7 @@
       "typeVersion": 1,
       "position": [
         -460,
-        480
+        960
       ],
       "parameters": {}
     },
@@ -223,13 +223,13 @@
       "type": "n8n-nodes-base.stickyNote",
       "typeVersion": 1,
       "position": [
-        0,
-        -290
+        -60,
+        -300
       ],
       "parameters": {
         "content": "## 1. Business performance\n**For:** Net and gross sales, refunds, orders, renewal versus non-renewal revenue, and comparison with the previous week.\n\n**Connection pattern:** Metorik revenue + order-type reports → Markdown → collected with the other reports → delivery. Costs, profit and ad spend are not connected.\n\nLast 7 completed days • timezone and currency from Settings",
-        "height": 230,
-        "width": 760,
+        "height": 620,
+        "width": 1720,
         "color": 3
       }
     },
@@ -240,7 +240,7 @@
       "typeVersion": 2,
       "position": [
         0,
-        480
+        640
       ],
       "parameters": {
         "jsCode": "const s=$('Settings').first().json;const end=$now.setZone(s.timeZone).startOf('day').minus({days:1});return [{json:{start:end.minus({days:6}).toISODate(),end:end.toISODate(),previousStart:end.minus({days:13}).toISODate(),previousEnd:end.minus({days:7}).toISODate(),currency:s.currency,timeZone:s.timeZone,locale:s.locale,storeName:s.storeName}}];"
@@ -253,7 +253,7 @@
       "typeVersion": 4.2,
       "position": [
         220,
-        480
+        640
       ],
       "parameters": {
         "url": "https://app.metorik.com/api/v1/store/",
@@ -280,7 +280,7 @@
       "typeVersion": 2,
       "position": [
         440,
-        480
+        640
       ],
       "parameters": {
         "jsCode": "const s=$input.first().json,p=$('Marketing | Reporting period').first().json;if(s.name!==p.storeName||s.currency!==p.currency||s.timezone!==p.timeZone)throw Error('Wrong store/currency/timezone: expected '+p.storeName+', '+p.currency+', '+p.timeZone+'; got '+s.name+', '+s.currency+', '+s.timezone);return [{json:s}];"
@@ -294,7 +294,7 @@
       "typeVersion": 4.2,
       "position": [
         660,
-        480
+        640
       ],
       "parameters": {
         "url": "https://app.metorik.com/api/v1/store/reports/sources-utms",
@@ -338,7 +338,7 @@
       "typeVersion": 4.2,
       "position": [
         880,
-        480
+        640
       ],
       "parameters": {
         "url": "https://app.metorik.com/api/v1/store/reports/orders-by-date",
@@ -378,7 +378,7 @@
       "typeVersion": 2,
       "position": [
         1100,
-        480
+        640
       ],
       "parameters": {
         "jsCode": "const p=$('Marketing | Reporting period').first().json;const money=v=>new Intl.NumberFormat(p.locale,{style:'currency',currency:p.currency,maximumFractionDigits:0}).format(Number(v));const pct=(a,b)=>b?((a-b)/b*100).toFixed(1)+'%':'N/A';const safe=v=>String(v??'Unknown').replace(/[<>&|\\r\\n]/g,' ');const lines=['PRIVATE LIVE REVIEW | '+p.storeName+' — Marketing source review',p.start+'–'+p.end+' | '+p.currency+' | '+p.timeZone,'Live Metorik data. Previous period: '+p.previousStart+'–'+p.previousEnd,''];const rows=$('Marketing | Order sources').first().json.data,t=$('Marketing | All orders').first().json.totals;if(!Array.isArray(rows)||!t)throw Error('Source report missing');const count=rows.reduce((s,r)=>s+Number(r.count),0),net=rows.reduce((s,r)=>s+Number(r.net),0);lines.push('• Total store orders: '+t.orders+'; order-cohort net sales: '+money(t.net)+'.','• Source report represents '+count+' orders ('+(100*count/t.orders).toFixed(1)+'%) and '+money(net)+' net sales.','• '+(t.orders-count)+' orders are not represented in these source rows; do not classify them as Direct.','','Recorded source / medium → orders → net sales');for(const r of [...rows].sort((a,b)=>b.net-a.net).slice(0,10))lines.push('• '+safe(r.utm_source)+' / '+safe(r.utm_medium)+' → '+r.count+' → '+money(r.net));lines.push('','These are sources stored on orders, not GA4 session channels or proof of incremental sales. Google without a paid medium is not Google Ads.','Ad spend, ROAS, sessions and email-capture rate: unavailable from this connection.','Review: investigate missing attribution and separate paid vs organic before shifting spend.');const markdown=lines.join('\\n')+'\\n';return [{json:{markdown,slackText:markdown,fileName:'marketing-'+p.start+'-to-'+p.end+'.md',period:p}}];"
@@ -392,7 +392,7 @@
       "typeVersion": 2,
       "position": [
         1320,
-        480
+        640
       ],
       "parameters": {
         "jsCode": "const d=$input.first().json;return [{json:d,binary:{report:{data:Buffer.from(d.markdown,'utf8').toString('base64'),mimeType:'text/markdown',fileExtension:'md',fileName:d.fileName}}}];"
@@ -404,13 +404,13 @@
       "type": "n8n-nodes-base.stickyNote",
       "typeVersion": 1,
       "position": [
-        0,
-        190
+        -60,
+        340
       ],
       "parameters": {
         "content": "## 2. Where sales come from\n**For:** Revenue and orders by recorded marketing source, plus how much of the store is covered by source attribution.\n\n**Connection pattern:** Metorik order-source + order reports → Markdown → collected with the other reports → delivery. This is store attribution, not GA4 or ad-platform ROAS.\n\nLast 7 completed days • timezone and currency from Settings",
-        "height": 230,
-        "width": 760,
+        "height": 620,
+        "width": 1720,
         "color": 4
       }
     },
@@ -421,7 +421,7 @@
       "typeVersion": 2,
       "position": [
         0,
-        960
+        1280
       ],
       "parameters": {
         "jsCode": "const s=$('Settings').first().json;const end=$now.setZone(s.timeZone).startOf('day').minus({days:1});return [{json:{start:end.minus({days:6}).toISODate(),end:end.toISODate(),previousStart:end.minus({days:13}).toISODate(),previousEnd:end.minus({days:7}).toISODate(),currency:s.currency,timeZone:s.timeZone,locale:s.locale,storeName:s.storeName}}];"
@@ -434,7 +434,7 @@
       "typeVersion": 4.2,
       "position": [
         220,
-        960
+        1280
       ],
       "parameters": {
         "url": "https://app.metorik.com/api/v1/store/",
@@ -461,7 +461,7 @@
       "typeVersion": 2,
       "position": [
         440,
-        960
+        1280
       ],
       "parameters": {
         "jsCode": "const s=$input.first().json,p=$('Products | Reporting period').first().json;if(s.name!==p.storeName||s.currency!==p.currency||s.timezone!==p.timeZone)throw Error('Wrong store/currency/timezone: expected '+p.storeName+', '+p.currency+', '+p.timeZone+'; got '+s.name+', '+s.currency+', '+s.timezone);return [{json:s}];"
@@ -475,7 +475,7 @@
       "typeVersion": 4.2,
       "position": [
         660,
-        960
+        1280
       ],
       "parameters": {
         "url": "https://app.metorik.com/api/v1/store/products",
@@ -527,7 +527,7 @@
       "typeVersion": 2,
       "position": [
         880,
-        960
+        1280
       ],
       "parameters": {
         "jsCode": "const p=$('Products | Reporting period').first().json;const money=v=>new Intl.NumberFormat(p.locale,{style:'currency',currency:p.currency,maximumFractionDigits:0}).format(Number(v));const pct=(a,b)=>b?((a-b)/b*100).toFixed(1)+'%':'N/A';const safe=v=>String(v??'Unknown').replace(/[<>&|\\r\\n]/g,' ');const lines=['PRIVATE LIVE REVIEW | '+p.storeName+' — Top product review',p.start+'–'+p.end+' | '+p.currency+' | '+p.timeZone,'Live Metorik data. Previous period: '+p.previousStart+'–'+p.previousEnd,''];const d=$('Products | Top products').first().json;if(!Array.isArray(d.data))throw Error('Product response missing');lines.push('Products ranked by net sales (subscription renewals included):','');for(const [i,r] of d.data.entries()){if(!Number.isFinite(Number(r.net_sales)))throw Error('Product net sales missing');lines.push((i+1)+'. '+safe(r.title)+' — '+money(r.net_sales)+' | '+r.net_orders+' orders | '+r.net_items_sold+' units','   Catalog status: '+safe(r.status)+' | '+safe(r.type),r.permalink||'No product URL');}lines.push('','Ranking is sales, not conversion rate. Units can include seats; product order counts can overlap.','Subscription product names do not identify the course that persuaded someone to subscribe.','Catalog status and links come from WooCommerce via Metorik; checkout availability has not been independently tested.','Review: inspect the linked pages and distinguish subscription plans from one-off course demand.');const markdown=lines.join('\\n')+'\\n';return [{json:{markdown,slackText:markdown,fileName:'products-'+p.start+'-to-'+p.end+'.md',period:p}}];"
@@ -541,7 +541,7 @@
       "typeVersion": 2,
       "position": [
         1100,
-        960
+        1280
       ],
       "parameters": {
         "jsCode": "const d=$input.first().json;return [{json:d,binary:{report:{data:Buffer.from(d.markdown,'utf8').toString('base64'),mimeType:'text/markdown',fileExtension:'md',fileName:d.fileName}}}];"
@@ -553,13 +553,13 @@
       "type": "n8n-nodes-base.stickyNote",
       "typeVersion": 1,
       "position": [
-        0,
-        670
+        -60,
+        980
       ],
       "parameters": {
         "content": "## 3. What is selling\n**For:** Rank products and plans by sales, units and orders; include available product links and publication status.\n\n**Connection pattern:** Metorik product report → Markdown → collected with the other reports → delivery. Published status does not verify the live checkout.\n\nLast 7 completed days • timezone and currency from Settings",
-        "height": 230,
-        "width": 760,
+        "height": 620,
+        "width": 1720,
         "color": 5
       }
     },
@@ -586,7 +586,7 @@
       "typeVersion": 2,
       "position": [
         0,
-        1440
+        1920
       ],
       "parameters": {
         "jsCode": "const s=$('Settings').first().json,timeZone=s.timeZone;\nconst today=new Intl.DateTimeFormat('en-CA',{timeZone,year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date());\nconst day=n=>{const d=new Date(today+'T12:00:00Z');d.setUTCDate(d.getUTCDate()-n);return d.toISOString().slice(0,10)};\nreturn [{json:{propertyId:s.ga4PropertyId,timeZone,current:{start:day(7),end:day(1)},previous:{start:day(14),end:day(8)},events:s.ga4Events}}];"
@@ -599,7 +599,7 @@
       "typeVersion": 2,
       "position": [
         220,
-        1440
+        1920
       ],
       "parameters": {
         "jsCode": "const c=$input.first().json;\nconst dateRanges=[{startDate:c.current.start,endDate:c.current.end,name:'current'},{startDate:c.previous.start,endDate:c.previous.end,name:'previous'}];\nconst req=(dims,metrics,extra={})=>({dateRanges,dimensions:dims.map(name=>({name})),metrics:metrics.map(name=>({name})),...extra});\nconst requests=[req([],['sessions','engagedSessions','engagementRate']),req(['sessionSourceMedium'],['sessions','engagedSessions','engagementRate'],{limit:'100',orderBys:[{metric:{metricName:'sessions'},desc:true}]}),req(['landingPage'],['sessions','engagedSessions','engagementRate'],{limit:'20',orderBys:[{metric:{metricName:'sessions'},desc:true}]}),req(['eventName'],['eventCount'],{dimensionFilter:{filter:{fieldName:'eventName',inListFilter:{values:c.events}}}})];\nreturn [{json:{...c,body:{requests}}}];"
@@ -612,7 +612,7 @@
       "typeVersion": 4.2,
       "position": [
         440,
-        1440
+        1920
       ],
       "parameters": {
         "method": "POST",
@@ -634,7 +634,7 @@
       "typeVersion": 2,
       "position": [
         660,
-        1440
+        1920
       ],
       "parameters": {
         "jsCode": "const data=$input.first().json,c=$('Traffic | Reporting period').first().json;\nif(!Array.isArray(data.reports)||data.reports.length!==4)throw Error('Expected four GA4 reports; configure the connection first.');\nconst warnings=[];\nconst tables=data.reports.map((r,i)=>{\n if(r.metadata?.subjectToThresholding||r.metadata?.samplingMetadatas?.length||r.metadata?.dataLossFromOtherRow)warnings.push('Report '+(i+1)+': thresholding, sampling or aggregated rows may affect results.');\n if(r.rowCount>(r.rows||[]).length)warnings.push('Report '+(i+1)+': limited rows; this is not a complete breakdown.');\n return (r.rows||[]).map(row=>{const o={};(r.dimensionHeaders||[]).forEach((h,j)=>o[h.name]=row.dimensionValues[j].value);(r.metricHeaders||[]).forEach((h,j)=>o[h.name]=Number(row.metricValues[j].value));return o;});\n});\nconst current=tables[0].find(r=>r.dateRange==='current'),prior=tables[0].find(r=>r.dateRange==='previous');\nif(!current||!prior)throw Error('Missing current/prior totals; do not interpret missing GA4 data as zero.');\nconst delta=(a,b)=>b?((a-b)/b*100).toFixed(1)+'%':'n/a (prior zero)';\nconst pct=x=>(100*x).toFixed(1)+'%';\nconst sections=[];\nfor(const [index,key,title] of [[1,'sessionSourceMedium','Sources / mediums'],[2,'landingPage','Top landing pages']]){\n const now=tables[index].filter(r=>r.dateRange==='current').sort((a,b)=>b.sessions-a.sessions).slice(0,10);\n sections.push('## '+title+'\\n| '+key+' | Sessions | Previous | Change | Engagement |\\n|---|---:|---:|---:|---:|\\n'+now.map(r=>{const old=tables[index].find(v=>v.dateRange==='previous'&&v[key]===r[key]);return '| '+String(r[key]).replaceAll('|',' / ')+' | '+r.sessions+' | '+(old?.sessions??'unavailable')+' | '+(old?delta(r.sessions,old.sessions):'n/a')+' | '+pct(r.engagementRate)+' |';}).join('\\n'));\n}\nconst events=c.events.map(name=>{const a=tables[3].find(r=>r.dateRange==='current'&&r.eventName===name),b=tables[3].find(r=>r.dateRange==='previous'&&r.eventName===name);return '- '+name+': '+(a?.eventCount??'not returned')+' vs '+(b?.eventCount??'not returned')+' events';}).join('\\n');\nconst label=data.synthetic?'SYNTHETIC DATA — invented workshop example':'LIVE GA4 — private data';\nconst markdown='# Website traffic review\\n\\n'+label+'\\n\\n'+c.current.start+'–'+c.current.end+' vs '+c.previous.start+'–'+c.previous.end+' ('+c.timeZone+').\\n\\nSessions: '+current.sessions+' vs '+prior.sessions+' ('+delta(current.sessions,prior.sessions)+'). Engagement rate: '+pct(current.engagementRate)+' vs '+pct(prior.engagementRate)+'.\\n\\n'+sections.join('\\n\\n')+'\\n\\n## Tracked events\\n'+events+'\\n\\n## Readout\\nTraffic '+(current.sessions>=prior.sessions?'increased':'decreased')+'; engagement rate changed by '+((current.engagementRate-prior.engagementRate)*100).toFixed(1)+' percentage points. Review the source mix and landing pages before choosing an action. Event counts are not unique buyers or proof of incremental sales. Your store or CRM remains the revenue source.\\n\\n'+(warnings.length?'Warnings: '+warnings.join(' '):'No API quality flags returned; this does not guarantee complete tracking.')+'\\n';\nreturn [{json:{markdown,slackText:markdown,fileName:'traffic-'+c.current.start+'-to-'+c.current.end+'.md'}}];"
@@ -648,7 +648,7 @@
       "typeVersion": 2,
       "position": [
         880,
-        1440
+        1920
       ],
       "parameters": {
         "jsCode": "const d=$input.first().json;return [{json:d,binary:{report:{data:Buffer.from(d.markdown,'utf8').toString('base64'),mimeType:'text/markdown',fileExtension:'md',fileName:d.fileName}}}];"
@@ -660,13 +660,13 @@
       "type": "n8n-nodes-base.stickyNote",
       "typeVersion": 1,
       "position": [
-        0,
-        1150
+        -60,
+        1620
       ],
       "parameters": {
         "content": "## 4. Website traffic review (GA4)\n**For:** traffic quality, channel mix, landing pages and purchase/lead events. Last 7 completed days vs prior 7.\n**Demo:** fictional GA4 response → review → Markdown file → collected with the other reports → delivery (switched off).\n**Real connection:** select GA4 OAuth and property ID in Settings (connection template). Revenue stays in your store or CRM.",
-        "height": 240,
-        "width": 950,
+        "height": 620,
+        "width": 1720,
         "color": 5
       }
     },
@@ -676,13 +676,13 @@
       "type": "n8n-nodes-base.stickyNote",
       "typeVersion": 1,
       "position": [
-        -700,
-        1400
+        2800,
+        -360
       ],
       "parameters": {
         "content": "## Slack setup — before delivery\nFollow SLACK-SETUP.md (10–15 min pre-work).\n\n1. Create/install a Slack app with bot scope chat:write.\n2. Save its token privately in n8n Credentials.\n3. Invite the bot to a test channel.\n4. Select credential + channel By ID on the Deliver | Slack node.\n5. Review the Markdown, then switch on Deliver | Slack. It posts one message per report.\n\nUse the SYNTHETIC demo for screen-sharing. No credentials are included. App installation may require workspace approval.",
-        "width": 550,
-        "height": 420,
+        "width": 600,
+        "height": 440,
         "color": 4
       }
     },
@@ -690,13 +690,13 @@
       "parameters": {
         "jsCode": "// Edit these before the first run. Every lane reads its settings from here.\nreturn [{json:{\n  storeName:'YOUR_STORE_NAME',          // must match the store name your source returns\n  currency:'USD',                    // ISO code, for example EUR or GBP\n  timeZone:'America/Chicago',        // reporting timezone, for example Europe/London\n  locale:'en-US',                    // number and money format, for example en-GB or de-DE\n  ga4PropertyId:'YOUR_GA4_PROPERTY_ID', // numeric GA4 property ID (Traffic lane)\n  ga4Events:['purchase','generate_lead'], // events your GA4 property collects\n  emailTo:'YOU@EXAMPLE.COM',         // Email delivery: where the reports go\n  githubOwner:'YOUR_GITHUB_USERNAME',// GitHub delivery: owner of your personal OS repo\n  githubRepo:'YOUR_PERSONAL_OS_REPO',// GitHub delivery: that repo's name\n  githubFolder:'projects/reporting-agent/reports', // folder in the repo, no slash at either end\n  githubBase:'main'                  // the PR targets this branch; nothing is committed to it\n}}];"
       },
-      "id": "2ef174db-1e09-4496-97d3-4c7c1e2ab364",
+      "id": "d3710378-55d5-4291-86ef-e5aaee479b00",
       "name": "Settings",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
         -240,
-        480
+        960
       ],
       "notes": "Edit before the first run: store, currency, timezone, GA4 and delivery settings.",
       "notesInFlow": true
@@ -705,7 +705,7 @@
       "parameters": {
         "jsCode": "const p=$('Executive | Reporting period').first().json;const j=$input.first().json,e=j.error??j;const reason=String(typeof e==='string'?e:(e.message||e.description||JSON.stringify(e))).replace(/[\\r\\n]+/g,' ').slice(0,300);const markdown=['INCOMPLETE | '+p.storeName+' | Executive business review',p.start+' to '+p.end+' | '+p.currency+' | '+p.timeZone,'','This review did not run, so it reports no figures this week. Missing figures are not zero.','Failed step: '+$prevNode.name,'Reason: '+reason,'','First run before setup? The source nodes stay switched off until you connect them, so this is expected.','Review: fix the connection or setting named above, then run the workflow again.'].join('\\n')+'\\n';return [{json:{markdown,slackText:markdown,fileName:'executive-'+p.start+'-to-'+p.end+'-incomplete.md',incomplete:true}}];"
       },
-      "id": "d6cda23a-960b-4476-9e45-379f6c841eb1",
+      "id": "5dd459e3-2bd2-4647-b9db-a1d531acfb8f",
       "name": "Executive | Incomplete report",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -720,13 +720,13 @@
       "parameters": {
         "jsCode": "const p=$('Marketing | Reporting period').first().json;const j=$input.first().json,e=j.error??j;const reason=String(typeof e==='string'?e:(e.message||e.description||JSON.stringify(e))).replace(/[\\r\\n]+/g,' ').slice(0,300);const markdown=['INCOMPLETE | '+p.storeName+' | Marketing source review',p.start+' to '+p.end+' | '+p.currency+' | '+p.timeZone,'','This review did not run, so it reports no figures this week. Missing figures are not zero.','Failed step: '+$prevNode.name,'Reason: '+reason,'','First run before setup? The source nodes stay switched off until you connect them, so this is expected.','Review: fix the connection or setting named above, then run the workflow again.'].join('\\n')+'\\n';return [{json:{markdown,slackText:markdown,fileName:'marketing-'+p.start+'-to-'+p.end+'-incomplete.md',incomplete:true}}];"
       },
-      "id": "bcc0c5c8-90d4-40f4-84fd-b1493469c15d",
+      "id": "52051b37-b1a9-4bc9-ac3a-57d7219a5edd",
       "name": "Marketing | Incomplete report",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
         1100,
-        680
+        840
       ],
       "notes": "Runs only when a step in this lane fails. Writes an INCOMPLETE report so the other reviews still go out.",
       "notesInFlow": true
@@ -735,13 +735,13 @@
       "parameters": {
         "jsCode": "const p=$('Products | Reporting period').first().json;const j=$input.first().json,e=j.error??j;const reason=String(typeof e==='string'?e:(e.message||e.description||JSON.stringify(e))).replace(/[\\r\\n]+/g,' ').slice(0,300);const markdown=['INCOMPLETE | '+p.storeName+' | Top product review',p.start+' to '+p.end+' | '+p.currency+' | '+p.timeZone,'','This review did not run, so it reports no figures this week. Missing figures are not zero.','Failed step: '+$prevNode.name,'Reason: '+reason,'','First run before setup? The source nodes stay switched off until you connect them, so this is expected.','Review: fix the connection or setting named above, then run the workflow again.'].join('\\n')+'\\n';return [{json:{markdown,slackText:markdown,fileName:'products-'+p.start+'-to-'+p.end+'-incomplete.md',incomplete:true}}];"
       },
-      "id": "0baef79a-f5a5-4b30-b4a8-c3db7f3518f4",
+      "id": "c250b006-29c3-48c2-89ca-91c2a06b44aa",
       "name": "Products | Incomplete report",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
         880,
-        1160
+        1480
       ],
       "notes": "Runs only when a step in this lane fails. Writes an INCOMPLETE report so the other reviews still go out.",
       "notesInFlow": true
@@ -750,13 +750,13 @@
       "parameters": {
         "jsCode": "const c=$('Traffic | Reporting period').first().json;const p={start:c.current.start,end:c.current.end};const s=$('Settings').first().json;const j=$input.first().json,e=j.error??j;const reason=String(typeof e==='string'?e:(e.message||e.description||JSON.stringify(e))).replace(/[\\r\\n]+/g,' ').slice(0,300);const markdown=['INCOMPLETE | '+s.storeName+' | Website traffic review',p.start+' to '+p.end+' | '+'GA4 | '+c.timeZone,'','This review did not run, so it reports no figures this week. Missing figures are not zero.','Failed step: '+$prevNode.name,'Reason: '+reason,'','First run before setup? The source nodes stay switched off until you connect them, so this is expected.','Review: fix the connection or setting named above, then run the workflow again.'].join('\\n')+'\\n';return [{json:{markdown,slackText:markdown,fileName:'traffic-'+p.start+'-to-'+p.end+'-incomplete.md',incomplete:true}}];"
       },
-      "id": "26704baf-b7b8-4ed9-90ae-464cc3f6e7b1",
+      "id": "7fda0372-8c9a-45a8-afdc-3bb012328d8f",
       "name": "Traffic | Incomplete report",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
         660,
-        1640
+        2120
       ],
       "notes": "Runs only when a step in this lane fails. Writes an INCOMPLETE report so the other reviews still go out.",
       "notesInFlow": true
@@ -765,23 +765,23 @@
       "parameters": {
         "numberInputs": 4
       },
-      "id": "2c8449bc-8a3d-4b2a-aafc-d3520634c9d0",
+      "id": "9fbf0181-325f-44fc-a807-8b327107560e",
       "name": "Collect all four reports",
       "type": "n8n-nodes-base.merge",
       "typeVersion": 3.2,
       "position": [
-        2000,
-        700
+        1900,
+        960
       ]
     },
     {
-      "id": "1b4f2899-32fe-4349-a7ef-f5137951afb7",
+      "id": "380ffd85-393c-405b-9ee1-c83f678565fb",
       "name": "Deliver | Slack",
       "type": "n8n-nodes-base.slack",
       "typeVersion": 2.3,
       "position": [
         2280,
-        460
+        360
       ],
       "parameters": {
         "select": "channel",
@@ -804,13 +804,13 @@
       "parameters": {
         "jsCode": "const s=$('Settings').first().json,items=$input.all();\nconst runDate=$now.setZone(s.timeZone).toISODate();\nconst done=items.filter(i=>!i.json.incomplete).length;\nconst branch='reports/'+runDate+'-run-'+$execution.id;\nconst files=items.map(i=>'- '+s.githubFolder+'/'+i.json.fileName+(i.json.incomplete?' (INCOMPLETE)':'')).join('\\n');\nreturn [{json:{owner:s.githubOwner,repo:s.githubRepo,base:s.githubBase,branch,\n title:'Weekly reports '+runDate+(done<items.length?' (incomplete)':''),\n body:'Weekly reports from the n8n reporting workflow, run '+runDate+'. '+done+' of '+items.length+' reviews complete.\\n\\n'+files+'\\n\\nMerge this pull request to add the reports. Nothing was committed to '+s.githubBase+'.'}}];"
       },
-      "id": "71ba509c-0113-4cf0-b201-106146d484ad",
+      "id": "1aa53fea-1800-41ae-9248-8e1ba0061b93",
       "name": "GitHub | Plan PR",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
         2280,
-        700
+        1160
       ]
     },
     {
@@ -830,13 +830,13 @@
         },
         "options": {}
       },
-      "id": "cecea100-c52c-422b-8c80-d2e74b0b202a",
+      "id": "67e7f533-242a-4d0a-979c-c7daf5d3aa85",
       "name": "GitHub | Get base branch",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        2500,
-        700
+        2520,
+        1160
       ],
       "disabled": true,
       "onError": "continueErrorOutput",
@@ -863,13 +863,13 @@
         "specifyBody": "json",
         "jsonBody": "={{ JSON.stringify({ref:'refs/heads/'+$('GitHub | Plan PR').first().json.branch, sha:$json.object.sha}) }}"
       },
-      "id": "64c3da7b-f39a-4147-956b-11ea3ab33368",
+      "id": "1f2d826a-8ec4-4551-b00f-0410d9a06b9d",
       "name": "GitHub | Create branch",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        2720,
-        700
+        2760,
+        1160
       ],
       "disabled": true,
       "onError": "continueErrorOutput",
@@ -880,13 +880,13 @@
       "parameters": {
         "jsCode": "return $('Collect all four reports').all();"
       },
-      "id": "5a033293-495e-4111-9d00-32b31b517e53",
+      "id": "5bf9aca7-88cc-464e-b3c8-053ba5829368",
       "name": "GitHub | Reports to commit",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        2940,
-        700
+        3000,
+        1160
       ]
     },
     {
@@ -913,13 +913,13 @@
           }
         }
       },
-      "id": "7ad6296d-c4e7-4cd9-902f-f6feb0eec601",
+      "id": "724bc489-25bf-44d4-84ed-4a6f0b02ddc9",
       "name": "GitHub | Commit to branch",
       "type": "n8n-nodes-base.github",
       "typeVersion": 1.1,
       "position": [
-        3160,
-        700
+        3240,
+        1160
       ],
       "disabled": true,
       "onError": "continueRegularOutput",
@@ -946,13 +946,13 @@
         "specifyBody": "json",
         "jsonBody": "={{ JSON.stringify({title:$('GitHub | Plan PR').first().json.title, head:$('GitHub | Plan PR').first().json.branch, base:$('GitHub | Plan PR').first().json.base, body:$('GitHub | Plan PR').first().json.body}) }}"
       },
-      "id": "68fa8092-adc9-48c1-be41-498acc380571",
+      "id": "40605f31-16d3-43b1-9919-b76d7bbc875f",
       "name": "GitHub | Open pull request",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        3380,
-        700
+        3480,
+        1160
       ],
       "disabled": true,
       "onError": "continueRegularOutput",
@@ -964,13 +964,13 @@
       "parameters": {
         "jsCode": "const items=$input.all(),s=$('Settings').first().json;\nconst runDate=$now.setZone(s.timeZone).toISODate();\nconst done=items.filter(i=>!i.json.incomplete).length;\nconst body=['Weekly reports, run '+runDate+'. '+done+' of '+items.length+' reviews complete.','',\n ...items.map(i=>'-----BEGIN REPORT '+i.json.fileName+'-----\\n'+i.json.markdown+'-----END REPORT-----\\n')].join('\\n');\nconst exact=items.map(i=>'-----BEGIN FILE '+i.json.fileName+'-----\\n'+Buffer.from(i.json.markdown,'utf8').toString('base64').match(/.{1,76}/g).join('\\n')+'\\n-----END FILE-----').join('\\n');\nconst binary={};items.forEach((i,k)=>{if(i.binary?.report)binary['report_'+k]=i.binary.report;});\nreturn [{json:{subject:'Weekly reports '+runDate+(done<items.length?' (incomplete)':''),body:body+'\\n\\nExact copies for /get-email-reports (base64, do not edit):\\n'+exact+'\\n',attachmentNames:Object.keys(binary).join(',')},binary}];"
       },
-      "id": "04d2db56-8301-41ff-b53c-a99eeafc7618",
+      "id": "2cc52e83-b004-4ab4-9d21-396bfef15493",
       "name": "Email | Combine reports",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
         2280,
-        940
+        760
       ]
     },
     {
@@ -992,13 +992,13 @@
           }
         }
       },
-      "id": "4fe4ffff-e80f-4aae-9001-14191122d62c",
+      "id": "bd9b0be5-6035-495c-817b-45d45192ac91",
       "name": "Deliver | Email",
       "type": "n8n-nodes-base.gmail",
       "typeVersion": 2.2,
       "position": [
-        2500,
-        940
+        2520,
+        760
       ],
       "disabled": true,
       "notes": "One email with all four reports. Set emailTo in Settings, select a Gmail credential, then switch on.",
@@ -1007,17 +1007,65 @@
     {
       "parameters": {
         "content": "## Delivery: choose one or more\nAll four reports are collected first, then sent to every delivery node you switch on. Leave the others off, or delete them.\n\n- **Slack:** one message per report. See the Slack setup note.\n- **GitHub:** opens a pull request to your personal OS repo with the four reports as dated .md files (Settings: githubOwner, githubRepo, githubFolder, githubBase). It creates a new branch each run and never commits to your main branch: you merge the PR. Use a private repo, because reports hold revenue. Needs a GitHub API credential with Contents and Pull requests set to read and write, on the four GitHub nodes.\n- **Email:** one email with all four reports in the body and attached (Settings: emailTo).\n\nIncomplete reports are delivered too, so a failed source shows up instead of going quiet.",
-        "height": 430,
-        "width": 520,
+        "height": 440,
+        "width": 600,
         "color": 6
       },
-      "id": "3d7d2426-e3fc-4e6b-8bc9-ae3c0b012518",
+      "id": "f318d9a4-10d2-4226-a3a2-ad2a97811470",
       "name": "Delivery explainer",
       "type": "n8n-nodes-base.stickyNote",
       "typeVersion": 1,
       "position": [
-        2240,
-        -20
+        2160,
+        -360
+      ]
+    },
+    {
+      "parameters": {
+        "content": "## Slack\nOne message per review. Optional, on top of email or GitHub.",
+        "width": 600,
+        "height": 320,
+        "color": 6
+      },
+      "id": "252f4f61-9806-4095-8fc7-6dfc8b4ce7a1",
+      "name": "Slack frame",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        2160,
+        200
+      ]
+    },
+    {
+      "parameters": {
+        "content": "## Email\nOne email per run: readable reviews, exact copies for `/get-email-reports`, and the four files attached.",
+        "width": 600,
+        "height": 320,
+        "color": 6
+      },
+      "id": "63cac6a2-3775-45e9-9a73-e9c741c305d1",
+      "name": "Email frame",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        2160,
+        600
+      ]
+    },
+    {
+      "parameters": {
+        "content": "## GitHub pull request\nNew branch each run, four commits, one pull request. Never commits to your main branch: you merge.",
+        "width": 1600,
+        "height": 320,
+        "color": 6
+      },
+      "id": "79988fad-76c3-408f-9b2a-0c143958281b",
+      "name": "GitHub frame",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        2160,
+        1000
       ]
     }
   ],
