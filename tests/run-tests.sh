@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
-# Rebuilds v1.1 from Nick's v1.0 exports, checks the result matches the shipped
-# workflows, runs every lane locally (made-up data, failures, delivery), and runs
-# the static checks. Needs python3 and node; installs luxon once into tests/.
+# Checks the shipped demo is Nick's v1.0 export unchanged, rebuilds the v1.1
+# connection template from Nick's export and checks it matches the shipped one,
+# runs every lane locally (made-up data, failures, delivery), and runs the static
+# checks. Needs python3 and node; installs luxon once into tests/.
 set -e
 HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 ROOT="$(cd "$HERE/.." && pwd)"
@@ -10,7 +11,9 @@ trap 'rm -rf "$WORK"' EXIT
 mkdir -p "$WORK/out" "$WORK/samples"
 ln -s "$HERE/fixtures/nick-v1.0" "$WORK/handoff-src"
 python3 -I "$HERE/build.py" "$HERE/fixtures/nick-v1.0" "$WORK/out"
-for f in "$ROOT"/workflows/*.json; do
+cmp "$ROOT/workflows/four-reviews-demo-v1.0.json" "$HERE/fixtures/nick-v1.0/four-reviews-demo.json"
+echo "PASS shipped four-reviews-demo-v1.0.json is Nick's v1.0 demo, byte for byte"
+for f in "$ROOT"/workflows/four-reviews-connection-template-*.json; do
   b="$(basename "$f")"
   python3 -I - "$f" "$WORK/out/$b" <<'PY'
 import json,sys

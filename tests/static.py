@@ -1,5 +1,5 @@
 import json,sys,re
-for old,new in [("handoff-src/four-reviews-demo.json","out/four-reviews-demo-v1.1.json"),("handoff-src/four-reviews-connection-template.json","out/four-reviews-connection-template-v1.1.json")]:
+for old,new in [("handoff-src/four-reviews-connection-template.json","out/four-reviews-connection-template-v1.1.json")]:
     a=json.load(open(old)); b=json.load(open(new))
     ids=[n["id"] for n in b["nodes"]]; names=[n["name"] for n in b["nodes"]]
     print("==",new,"| nodes",len(b["nodes"]),"| unique ids",len(set(ids))==len(ids),"| unique names",len(set(names))==len(names))

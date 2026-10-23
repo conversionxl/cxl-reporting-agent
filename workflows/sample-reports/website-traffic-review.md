@@ -26,6 +26,6 @@ Sessions: 12000 vs 10000 (20.0%). Engagement rate: 60.0% vs 55.0%.
 - generate_lead: 240 vs 160 events
 
 ## Readout
-Traffic increased; engagement rate changed by 5.0 percentage points. Review the source mix and landing pages before choosing an action. Event counts are not unique buyers or proof of incremental sales. Your store or CRM remains the revenue source.
+Traffic increased; engagement rate changed by 5.0 percentage points. Review the source mix and landing pages before choosing an action. Event counts are not unique buyers or proof of incremental sales. Metorik remains the revenue source.
 
 No API quality flags returned; this does not guarantee complete tracking.

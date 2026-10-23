@@ -24,14 +24,18 @@ Filled in as you go through `/reporting-agent:build-reporting-agent`. No keys, t
 | OS folder on GitHub | yes / no |
 | GA4 | yes / no; property connected / not yet |
 | Currency and timezone | |
+| Source label on the reports | |
+| Customer.io / AI summary | off / on |
 | Delivery chosen | email / GitHub pull request / Slack |
 
 ## Demo progress
 
-- [ ] Demo workflow imported and run (four reports in "Collect all four reports")
+- [ ] Demo workflow imported and run (a Markdown report at the end of each of the four rows)
+- [ ] Connection template imported, Settings filled in, first run (four INCOMPLETE reports)
 - [ ] Reports delivered and saved into this OS (`/reporting-agent:get-email-reports`)
-- [ ] One lane on my own store or CRM data (complete run, or a screenshot of where it failed)
+- [ ] One lane on my own store or CRM data (complete run, or a screenshot of where it failed), reconciled against the old source
 - [ ] GA4 connected (optional)
+- [ ] Customer.io review and AI summary (optional)
 - [ ] Demo posted for review
 
 ## Log

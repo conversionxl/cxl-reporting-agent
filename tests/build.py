@@ -1,6 +1,9 @@
-"""Apply the v1.1 edits to Nick's two workflow exports.
+"""Apply the v1.1 edits to Nick's connection template export.
 
 Usage: python3 -I build.py <src_dir> <out_dir>
+The demo ships as Nick's v1.0 export, unchanged (workflows/four-reviews-demo-v1.0.json):
+Settings, Collect and delivery belong to the connection template only. The demo
+branches in build() are kept so the template's edits stay in one place.
 Every string replacement asserts the exact number of matches, so a changed
 source fails loudly instead of producing a half-edited workflow.
 """
@@ -353,5 +356,4 @@ def build(fn, demo):
     print("wrote", out, len(wf["nodes"]), "nodes")
 
 
-build("four-reviews-demo.json", True)
 build("four-reviews-connection-template.json", False)

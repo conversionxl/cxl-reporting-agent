@@ -1,5 +1,5 @@
 ---
-description: Build the Reporting agent, from nothing. Adds the module to your personal OS (project file, the two n8n workflows, a local-only reports folder, a CLAUDE.md section), then holds your hand through n8n, the demo run on made-up data, delivery into your OS by email, GitHub pull request or Slack, swapping in your own store or CRM data, and GA4. One step at a time, with what to do and what to expect.
+description: Build the Reporting agent, from nothing. Adds the module to your personal OS (project file, the two n8n workflows, a local-only reports folder, a CLAUDE.md section), then holds your hand through n8n, Nick's demo on made-up data, the connection template and its Settings, delivery into your OS by email, GitHub pull request or Slack, swapping in your own store or CRM data (WooCommerce path included), GA4, and the optional Customer.io review and AI summary. One step at a time, with what to do and what to expect.
 argument-hint: "[step number to resume from, optional]"
 ---
 
@@ -14,7 +14,7 @@ The learner may start from **nothing**. Never assume anything is set up unless y
 - **n8n:** look for signs they already use it: an n8n row filled in "My setup"; n8n tools in this session (any tool whose name contains `n8n`); an earlier n8n build in the folder (a `going-deep/` folder or an `ai-visibility` project from the AEO builds). With n8n tools, search the workflows for "Four business and traffic reviews" and say whether the demo is already imported. Any sign of n8n: step 2 becomes one line ("You have n8n: Cloud or self-hosted, and what's its address?").
 - **Tools they connected before:** n8n credentials can't be seen from here, so ask, in the tools question below, rather than assume.
 
-**One question up front: their tools.** Right after step 1, before the pacing question, ask once: "Which of these do you use? Store or CRM: Metorik, Shopify, WooCommerce, Stripe, HubSpot, another, or a spreadsheet. Email: Gmail or another. Slack? Is your OS folder on GitHub? GA4?" Record the answers in the project file's "My setup". Use them for the rest of the session: step 6 opens with the delivery that fits (Gmail: email; OS on GitHub: pull request; Slack only as an extra), step 7 takes the Metorik path or their own source, and step 8 is skipped without GA4. "Not sure" is a fine answer; ask again in the step that needs it.
+**One question up front: their tools.** Right after step 1, before the pacing question, ask once: "Which of these do you use? Store or CRM: Metorik, Shopify, WooCommerce, Stripe, HubSpot, another, or a spreadsheet. Email: Gmail or another. Slack? Is your OS folder on GitHub, and is that repo private? GA4? Customer.io? An Anthropic API key (for the optional AI summary)?" Record the answers in the project file's "My setup". Use them for the rest of the session: step 6 opens with the delivery that fits (Gmail: email; OS on GitHub: pull request; Slack only as an extra), step 7 takes the Metorik path, the WooCommerce path or their own source, step 8 is skipped without GA4, and step 9 offers only the extras they have. "Not sure" is a fine answer; ask again in the step that needs it.
 
 **Then offer two ways to build, and let them choose** (record it in "My setup" as "Build route"):
 - **Claude builds it in n8n for you (easiest).** Connect n8n to Claude through n8n's MCP connector, and Claude imports the workflow, fills in Settings, runs it, attaches the logins you create, and reads the results. You still click a few things in n8n (creating logins, switching access on), and you see every change on the canvas.
@@ -57,6 +57,10 @@ On the Claude route, do each step's n8n part yourself with the n8n tools and tel
 | GitHub token | https://github.com/settings/personal-access-tokens/new |
 | Slack apps | https://api.slack.com/apps |
 | GA4 property ID | https://analytics.google.com (Admin → Property settings) |
+| Google OAuth consent and scopes | https://console.cloud.google.com/apis/credentials |
+| WooCommerce REST keys | `<store address>/wp-admin/admin.php?page=wc-settings&tab=advanced&section=keys` |
+| Customer.io App API keys | https://fly.customer.io/settings/api_credentials (App API keys tab) |
+| Anthropic API keys | https://console.anthropic.com/settings/keys |
 | Analytics Data API in Google Cloud | https://console.cloud.google.com/apis/library/analyticsdata.googleapis.com |
 | Claude connectors | Claude → Customize → Connectors |
 
@@ -77,8 +81,8 @@ Then ask the tools question (above), then send the opening message.
 
 Say, briefly, in your own words:
 - **What you'll have:** an n8n workflow that builds four weekly reviews and sends them to you, and a command that saves them into your OS so Claude can read them with you.
-- **The plan:** 2 get n8n, 3 import the demo, 4 settings, 5 first run on made-up data, 6 get the reports into your OS, 7 your own store or CRM data (the exercise), 8 GA4 (optional), 9 post your demo.
-- **What you need:** an n8n account, and later, access to your store or CRM data. GA4, Slack and GitHub are optional. Skip anything they already have, from the check.
+- **The plan:** 2 get n8n, 3 import Nick's demo, 4 run it on made-up data, 5 import the connection template and fill in its Settings, 6 get the reports into your OS, 7 your own store or CRM data (the exercise), 8 GA4 (optional), 9 extras: Customer.io review and AI summary (optional), 10 post your demo.
+- **What you need:** an n8n account, and later, access to your store or CRM data. GA4, Slack, GitHub, Customer.io and an Anthropic key are optional. Skip anything they already have, from the check.
 - **The demo goal:** a finished run on the made-up data passes. Swapping one review onto your own store or CRM data is the real exercise; a complete run, or a screenshot of where it failed, both count.
 - **Ask:** "All the instructions in one go, or one step at a time with a check after each? One at a time is easier if n8n is new to you."
 
@@ -100,83 +104,114 @@ Recommend **Cloud** for the workshop. Say once: n8n usually offers new users a f
 **What you should see:** the n8n home screen with a **Create workflow** button, and its address in the browser bar (ending in `.app.n8n.cloud`). About 5 minutes.
 **Tell me when:** "n8n open", and paste the address from the browser bar (just the part before `/home`). Record it in "My setup".
 
-## Step 3: Import the demo
+## Step 3: Import Nick's demo
 
-**What this step does:** brings in the ready-made workflow, so you build nothing.
+**What this step does:** brings in Nick Christensen's demo workflow, so you build nothing. It is the simplest version: four reviews on made-up data, no settings to fill in, no logins.
 
-**Claude route:** convert and create it yourself. Run `python3 -I "${CLAUDE_PLUGIN_ROOT}/plugin/to_sdk.py" projects/reporting-agent/n8n/four-reviews-demo-v1.1.json <scratch file>`, read the SDK code it writes, validate it with the n8n tools, then create the workflow from it. Say which n8n project it landed in and give the workflow link. Then skip to step 4 and do that through the n8n tools too. The manual steps below are the other route.
+**Claude route:** convert and create it yourself. Run `python3 -I "${CLAUDE_PLUGIN_ROOT}/plugin/to_sdk.py" projects/reporting-agent/n8n/four-reviews-demo-v1.0.json <scratch file>`, read the SDK code it writes, validate it with the n8n tools, then create the workflow from it. Say which n8n project it landed in and give the workflow link. The manual steps below are the other route.
 **What you do:**
 1. Open a new workflow: give them the link `<their n8n address>/workflow/new` (from step 2), or say "click **Create workflow**".
-2. Offer: "Want me to copy the file's location to your clipboard?" On yes, put the full path of `projects/reporting-agent/n8n/four-reviews-demo-v1.1.json` on the clipboard with the shell (`pbcopy` on a Mac, `clip` on Windows, `xclip -selection clipboard` on Linux) and say it's copied.
+2. Offer: "Want me to copy the file's location to your clipboard?" On yes, put the full path of `projects/reporting-agent/n8n/four-reviews-demo-v1.0.json` on the clipboard with the shell (`pbcopy` on a Mac, `clip` on Windows, `xclip -selection clipboard` on Linux) and say it's copied.
 3. In n8n, click the **...** menu at the top right, then **Import from file**.
 4. In the file window, paste the location: on a Mac press **Cmd+Shift+G**, paste, press Return; on Windows paste it into the **File name** box. Then open the file.
-**What you should see:** a canvas (the workspace) with four rows of boxes (nodes), Executive, Marketing, Products and Traffic, a **Settings** node on the left, a **Collect all four reports** node on the right, then Slack, GitHub and Email nodes that are greyed out (switched off). Each review sits in its own coloured frame, and each delivery in its own frame on the right, with its setup note. Seconds.
+**What you should see:** a canvas (the workspace) with four rows of boxes (nodes), Executive, Marketing, Products and Traffic, each under a yellow note that explains it. Each row ends with a **Create Markdown BEFORE Slack** node and an **Optional Slack delivery** node that is greyed out (switched off). There is no Settings node and nothing that collects the four reports: each row stands on its own. Seconds.
+**Check, every time:** every Slack node must be greyed out. One import came in with a Slack node switched on and a login filled in automatically. If one isn't grey, right-click it and choose **Deactivate**.
 **Could go wrong:** "could not import" means the wrong file was picked. It must be the `.json` file.
 **Tell me when:** "imported".
 
-## Step 4: Settings
+## Step 4: First run on made-up data
 
-**What this step does:** one node holds everything you'd otherwise edit in ten places.
-**What you do:** open [Settings](<workflow link>/<Settings node id>). Set `currency` (EUR, GBP, USD...), `timeZone` (for example `Europe/London`), `locale` (number format, for example `en-GB`) and `n8nUrl` (their n8n address, so emails and Slack messages link back to the workflow and the run). Leave `storeName` as `Demo Store` for the demo. Leave the GA4, email and GitHub lines for later steps. Close the node. On the Claude route, change these values yourself with the n8n tools and show them what you set.
-**What you should see:** your values in the code, inside the quotes. Record currency and timezone in the project file's "My setup".
-**Could go wrong:** a missing quote or comma. Undo, and change only the text between the quotes.
-**Tell me when:** "settings done".
-
-## Step 5: First run
-
-**What this step does:** runs all four reviews on made-up data. No API calls, no credentials.
-**What you do:** click **Execute workflow** (or **Test workflow**) at the bottom. When it finishes, open [Collect all four reports](<workflow link>/<node id>). On the Claude route, run it with the n8n tools, read the run's output yourself, and show them the first lines of each review with the [run's link](<workflow link>/executions).
-**What you should see:** four items, one per review, each with a `markdown` text and a `fileName` like `executive-2026-10-14-to-2026-10-20.md`. The three store reviews are a fixed example week; traffic uses the last 7 days. About 10 seconds. Tick "Demo workflow imported and run" in the project file.
-**Could go wrong:** an item named `...-incomplete.md` means a step failed; open it and read "Failed step" and "Reason". In the demo this usually means the Settings code was broken in step 4.
+**What this step does:** runs all four reviews on made-up data. No API calls, no logins.
+**What you do:** click **Execute workflow** (or **Test workflow**) at the bottom. When it finishes, open each row's **Create Markdown BEFORE Slack** node (link each one). On the Claude route, run it with the n8n tools, read each row's output yourself, and show them the first lines of each review with the [run's link](<workflow link>/executions).
+**What you should see:** in each Create Markdown node, one item with a `markdown` text and a `fileName`: `executive-2026-10-14-to-2026-10-20.md`, `marketing-...`, `products-...` and `website-traffic-review.md`. Under **Binary**, the same report as a file you can download. The three store reviews use a fixed example week; traffic uses the last 7 days. About 10 seconds. Tick "Demo workflow imported and run" in the project file.
+**Could go wrong:** a red node means a step failed; the demo has no INCOMPLETE reports, so the run stops there. Re-import the file if a node was edited by accident.
 **Tell me when:** "four reports".
+
+## Step 5: The connection template and its Settings
+
+**What this step does:** imports the second workflow, the one you'll connect to your own data and deliver from. It holds everything the demo leaves out: one **Settings** node for all your values, an INCOMPLETE report when a source fails, **Collect all four reports**, and the deliveries.
+
+**5a. Import it.** Same as step 3, with `projects/reporting-agent/n8n/four-reviews-connection-template-v1.1.json`. On the Claude route, create it with the n8n tools. Its reports are labelled as live data, not demo. **Check:** every request node and every delivery node (Slack, Email, GitHub) is greyed out; deactivate any that isn't.
+
+**5b. Settings.** Open [Settings](<workflow link>/<Settings node id>). Set:
+- `currency` (EUR, GBP, USD...), `timeZone` (for example `Europe/London`) and `locale` (number format, for example `en-GB`)
+- `storeName`, exactly as your store or CRM names itself (step 7 checks it)
+- `sourceLabel`, the name of your data source as it should be printed on the reports (for example `Metorik`, `WooCommerce orders`, `Shopify`), and `refundNote`, one line on how your source dates refunds (step 7 sets it for you)
+- `n8nUrl`, their n8n address, so emails and Slack messages link back to the workflow and the run
+Leave the GA4, email and GitHub lines for later steps. On the Claude route, change these values yourself with the n8n tools and show them what you set.
+**What you should see:** your values in the code, inside the quotes. Record currency, timezone and source in the project file's "My setup".
+**Could go wrong:** a missing quote or comma. Undo, and change only the text between the quotes.
+
+**5c. Run it once.** No source is connected yet, so all four reviews come back as `...-incomplete.md` in **Collect all four reports**, each naming the step that is switched off. That is the expected result: it proves the run never stops on a failed source, and it gives you four safe reports, with no figures in them, to test delivery with in step 6.
+**Tell me when:** "four incomplete reports".
 
 ## Step 6: Get the reports into your OS
 
-**What this step does:** n8n can't write to your computer, so the reports travel by email, a GitHub pull request, or Slack, and come into your OS from there. Ask which they want. Recommend **email**: it needs only a Google account.
+**What this step does:** n8n can't write to your computer, so the reports travel by email, a GitHub pull request, or Slack, and come into your OS from there. All of this is in the connection template. Ask which they want. Recommend **email**: it needs only a Google account. Test with the INCOMPLETE reports from step 5c, which hold no figures.
 
 **6a. Email (recommended).**
-1. In n8n, double-click **Deliver | Email**. Under Credential, choose **Create new credential**, then **Gmail OAuth2**, and sign in with the Google account to send from. Use your own address or a shared one you are allowed to send from.
+1. In n8n, open **Deliver | Email**. Under Credential, choose **Create new credential**, then **Gmail OAuth2**, and sign in with the Google account to send from. Use your own address or a shared one you are allowed to send from. Create it in the **same n8n project** as the workflow, or it won't be offered on the node.
 2. In **Settings**, set `emailTo` to your own address.
 3. Right-click **Deliver | Email** and choose **Activate** (switch it on). Run the workflow again.
-4. Back here, run `/reporting-agent:get-email-reports`. It finds the email, saves the four reports into `raw/performance/reporting-agent/`, and reads them with you.
-**What you should see:** an email "Weekly reports <date>" with the four reports in the body and attached, then "Saved 4 reports" here. This needs Claude's Gmail connector; without it, download the four attachments into Downloads and run the command again.
+4. Back here, run `/reporting-agent:get-email-reports`. It finds the email, saves the reports into `raw/performance/reporting-agent/`, and reads them with you.
+**What you should see:** an email "Weekly reports <date>" with the reports in the body and attached, then "Saved 4 reports" here. This needs Claude's Gmail connector; without it, download the attachments into Downloads and run the command again.
 
-**6b. GitHub pull request (if your OS is on GitHub).** The workflow never commits to your main branch: each run creates a branch, commits the four reports to it, and opens a pull request you merge.
-1. Create a token at github.com/settings/personal-access-tokens/new: repository access **only** your OS repo, permissions **Contents** and **Pull requests** set to read and write.
-2. In n8n, create a **GitHub API** credential and paste the token there (never here). Select it on the four GitHub nodes (**Get base branch**, **Create branch**, **Commit to branch**, **Open pull request**) and switch those four on.
-3. In **Settings**, set `githubOwner`, `githubRepo`, `githubFolder` (default `projects/reporting-agent/reports`) and `githubBase` (usually `main`).
-4. Run. Open the pull request on GitHub, check the four files, merge. Then pull here (`git pull`) and run `/reporting-agent:get-email-reports read`.
-**Say once:** reports in a GitHub repo are in its history for good. Use a private repo, and the made-up demo, until you are sure.
+**6b. GitHub pull request (if your OS is on GitHub).** The workflow never commits to your main branch: each run creates a branch, commits the reports to it, and opens a pull request you merge.
+1. **First check the repo is private.** On the Claude route, check it yourself (`gh repo view <owner>/<repo> --json visibility`). Reports in a GitHub repo stay in its history for good, so a **public** repo publishes your revenue to everyone, permanently. If it is public, stop here and use email.
+2. Create a token at github.com/settings/personal-access-tokens/new: repository access **only** your OS repo, permissions **Contents** and **Pull requests** set to read and write.
+3. In n8n, create a **GitHub API** credential and paste the token there (never here). Select it on the four GitHub nodes (**Get base branch**, **Create branch**, **Commit to branch**, **Open pull request**) and switch those four on. Using n8n's **GitHub OAuth2** login instead? Then each of the three HTTP nodes needs its credential type changed to GitHub OAuth2 API, and **Commit to branch** needs Authentication set to OAuth2.
+4. In **Settings**, set `githubOwner`, `githubRepo`, `githubFolder` (default `projects/reporting-agent/reports`) and `githubBase` (usually `main`).
+5. Run. Open the pull request on GitHub, check the files, merge. Then pull here (`git pull`) and run `/reporting-agent:get-email-reports read`.
 
-**6c. Slack (optional, as well as one of the above).** Create a Slack app with the `chat:write` bot scope, install it, save its token as an n8n Slack credential, invite the bot to a test channel, and set Channel **By ID** on **Deliver | Slack**. It posts one message per report. Slack shows the traffic report's tables as plain text.
+**6c. Slack (optional, as well as one of the above).** Create a Slack app with the `chat:write` bot scope, install it, save its token as an n8n Slack credential, invite the bot to a **private** test channel (live reports carry revenue), and set Channel **By ID** on **Deliver | Slack**. It posts one message per report, without n8n's "Automated with this n8n workflow" footer. Slack shows the traffic report's tables as bullet lines.
 
 **Tell me when:** "reports saved" (email or GitHub) or "slack works". Tick "Reports delivered and saved" in the project file.
 
 ## Step 7: Your own data (the exercise)
 
-**What this step does:** swaps the made-up store data for your own store or CRM in one review. Start with the **executive review**: it needs the fewest pieces.
+**What this step does:** swaps one review onto your own store or CRM. Start with the **executive review**: it needs the fewest pieces.
 
-Read `${CLAUDE_PLUGIN_ROOT}/frameworks/report-contract.md` and `metric-limits.md` now. Say the privacy line from rule 10.
+Read `${CLAUDE_PLUGIN_ROOT}/frameworks/report-contract.md` now, all of it, including **Switching sources: guardrails**, and `metric-limits.md`. Say the privacy line from rule 10. The guardrails are not optional: every one of them came from a real switch that gave wrong numbers without an error.
 
-**7a. Import the connection template** (`projects/reporting-agent/n8n/four-reviews-connection-template-v1.1.json`) as a second workflow. Its reports are labelled as live data, not demo. Copy your Settings values across, and set `storeName`.
+**7a. Which source?** Ask what holds their sales: Metorik (already wired), WooCommerce (the path below), Shopify, Stripe, HubSpot or another CRM, or a spreadsheet. Record it in the project file, and set `sourceLabel` in Settings to match.
 
-**7b. Which source?** Ask what holds their sales: Metorik (already wired: create an HTTP Header Auth credential with their Metorik API key, select it on the Executive request nodes, switch them on), Shopify, WooCommerce, Stripe, HubSpot or another CRM, or a spreadsheet. Record it in the project file.
+**7b. The login.** Create the credential **in the same n8n project as the template** (or share it with that project), or n8n refuses to use it on the node. Use a read-only key wherever the source offers one.
+- **Metorik:** an HTTP Header Auth credential with their Metorik API key; select it on the Executive request nodes and switch them on. Then go to 7e.
+- **WooCommerce:** in WooCommerce, add a REST key with **Read** permission (link in the table above), for an admin or shop manager user. In n8n, create a **Custom Auth** credential with `{"headers":{"Authorization":"Basic <base64 of ck_...:cs_...>"}}`, plus any header the site's firewall or CDN needs (for example a Cloudflare key). Make the base64 value on their own computer (`printf 'ck_...:cs_...' | base64 | pbcopy`); never ask for the key in chat. Sending the key in the URL (`consumer_key` in a `qs` block) was refused with a 401 on a real store, so use the header.
+- **Anything else:** the app's own n8n credential, or Header Auth for an API key.
 
-**7c. Fetch the data.** For any source other than Metorik, first replace **Executive | Verify store** (a Metorik request) with a Code node of the same name that returns the Settings values: `const s=$('Settings').first().json; return [{json:{name:s.storeName,currency:s.currency,timezone:s.timeZone}}];`. Otherwise the review stops at the store check. Then, in the Executive row, add the app node for their tool (or an HTTP Request node) right after **Executive | Check store identity**, set it to fetch orders or deals for the current period (`{{ $('Executive | Reporting period').first().json.start }}` to `.end`), and name it after the source, for example `Executive | Shopify orders (current)`. Run that node alone (the play button on it).
+**7c. Fetch the data.** For any source other than Metorik, first replace **Executive | Verify store** (a Metorik request) with a Code node of the same name that returns the Settings values: `const s=$('Settings').first().json; return [{json:{name:s.storeName,currency:s.currency,timezone:s.timeZone}}];`. Otherwise the review stops at the store check. Then, in the Executive row, add the app node for their tool (or an HTTP Request node) right after **Executive | Check store identity**, set it to fetch orders or deals for the current period (`{{ $('Executive | Reporting period').first().json.start }}` to `.end`), and name it after the source, for example `Executive | WooCommerce orders (current)`. Run that node alone (the play button on it).
 
-**7d. The conversion step (you do this).** Ask them to copy one or two items from that node's output and paste them here **with names, emails and addresses removed**. Then write a Code node that turns the response into the contract's `{ totals: { net, gross, refunds, taxes, orders, items, discounts } }`. Explain each field in one line, and say which ones their source can't supply (for a CRM, use the mapping table in the contract and tag guesses). Tell them to: delete or switch off the original `Executive | Current revenue` node, add a **Code** node after their source node, paste your code, and rename it exactly `Executive | Current revenue`. Repeat for `Executive | Previous revenue` with the previous dates. For **Verify store** and **Order types**, either convert their source the same way, or use a Code node that returns the Settings values (store) and `{ data: [] }` (no order types), and say that this leaves that section empty, not zero.
+**WooCommerce, specifically:** an HTTP Request node on `<store>/wp-json/wc/v3/orders` with query `after=<start>T00:00:00`, `before=<end>T23:59:59`, `status=processing,completed,refunded`, `per_page=100`, and `_fields=id,status,currency,total,total_tax,shipping_total,discount_total,refunds,line_items,meta_data` (money fields only: no names or emails land in n8n). Turn on pagination (update a parameter in each request: query `page` = `{{ $pageCount + 1 }}`, complete when the response is empty) and **Always Output Data** in the node's settings. Do **not** use `wc/v3/reports/sales`: on a store with the new order storage it returned zero sales with no error. Do not use `wc-analytics/...`: it does not exist (404) when WooCommerce Analytics is switched off.
 
-**7e. Run the workflow.**
-**What you should see:** the executive review labelled as live data with your figures, or an INCOMPLETE report naming the step that failed. Either is a valid demo. If it failed, read the reason with them and fix it once; if it still fails, take a screenshot of the failed node and the INCOMPLETE report for the demo.
+**7d. The conversion step (you do this).** Ask them to copy one or two items from that node's output and paste them here **with names, emails and addresses removed**. Then write a Code node that turns the response into the contract's `{ totals: { net, gross, refunds, taxes, orders, items, discounts } }`. Explain each field in one line, and say which ones their source can't supply (for a CRM, use the mapping table in the contract and tag guesses). For WooCommerce, follow the mapping table in the contract: sum every order in Code, convert any order not in the Settings currency with its stored base-currency amounts, and throw (so the review goes INCOMPLETE) when a foreign-currency order has none. Set `refundNote` in Settings to say refunds count against the order they belong to. Tell them to: delete or switch off the original `Executive | Current revenue` node, add a **Code** node after their source node, paste your code, and rename it exactly `Executive | Current revenue`. Repeat for `Executive | Previous revenue` with the previous dates. For **Verify store** and **Order types**, either convert their source the same way, or use a Code node that returns the Settings values (store) and `{ data: [] }` (no order types), and say that this leaves that section empty, not zero.
+
+**7e. Run, then reconcile.**
+**What you should see:** the executive review labelled as live data from your source, or an INCOMPLETE report naming the step that failed. Either is a valid demo. If it failed, read the reason with them and fix it once; if it still fails, take a screenshot of the failed node and the INCOMPLETE report for the demo.
+**Then reconcile one week**, as the guardrails say: put orders, gross, refunds and net next to the same week in the tool they trust today (their old source, or the store's own dashboard). Within about 1% is a pass. A bigger gap has a cause; find it before trusting the review (currency, refunded orders left out, the wrong endpoint, a page limit). Note the result in the project file's log, without figures.
 **Could go wrong:** the node names must match exactly, including spaces and the `|`; a renamed node makes the review INCOMPLETE with "has not run" or "missing".
 **Tell me when:** "own data run" or "screenshot taken". Tick the box in the project file.
 
 ## Step 8: GA4 (optional)
 
-**Skip line.** In the connection template: set `ga4PropertyId` and `ga4Events` (the events your property collects, default `purchase` and `generate_lead`) in Settings. Create an n8n **Google OAuth2** credential with the scope `https://www.googleapis.com/auth/analytics.readonly` (the Analytics Data API must be enabled in your Google Cloud project; register n8n's callback URL there), select it on **Traffic | Connect GA4 - enable after setup**, switch that node on, run.
+**Skip line.** In the connection template: set `ga4PropertyId` and `ga4Events` (the events your property collects, default `purchase` and `generate_lead`) in Settings. Create an n8n **Google OAuth2 API** credential with the scope `https://www.googleapis.com/auth/analytics.readonly`, signed in with a Google account that can see the property (the Analytics Data API must be enabled in your Google Cloud project; register n8n's callback URL there). A login made for Search Console does **not** have this scope and returns `Forbidden`: make a separate one. On **Traffic | Connect GA4 - enable after setup**, set Authentication to **Predefined credential type**, type **Google OAuth2 API**, select the credential, switch the node on, run.
 **What you should see:** the traffic review labelled LIVE GA4, or INCOMPLETE with the reason. A missing event shows as "not returned", never 0.
 **Tell me when:** "ga4 done".
 
-## Step 9: Post your demo
+## Step 9: Extras (optional)
+
+Offer only the ones they have from the tools question. Each is shipped switched off in the template.
+
+**9a. Customer.io review.** A fifth review: campaign performance (sent, opened, clicked, converted), unsubscribes, and email capture (new profiles with an email address), this week against last. Create a **Bearer Auth** credential with a Customer.io **App API** key (link in the table above), in the same n8n project. Select it on the Customer.io request nodes, switch the lane on, and set **Collect all four reports** to five inputs if it isn't already. Run. A metric the API doesn't return shows as missing, never 0.
+
+**9b. Trends and AI summary.** After Collect, a Trends branch works out the last 30 days against the 30 before, and the last 90 against the 90 before, **in code** from your store source, and saves each run to an n8n Data Table (`reporting_agent_history`). Then an AI Agent node with an Anthropic model writes a summary: headline, month and quarter, trends, flags, what's working and not, missing data, what to check next. Its instructions forbid any number that isn't in the reports or the computed comparisons, require hypotheses to be labelled, treat missing as missing, and allow cross-run trends only from three saved runs on. The summary is sent with the reports as one more file, `summary-<start>-to-<end>.md`.
+1. Create an **Anthropic** credential with their API key, in the same project, and select it on the model node.
+2. Create the Data Table if it isn't there (the node says which columns), or let Claude create it on the Claude route.
+3. Switch the Trends and AI nodes on, run, and read the summary with them. Check two of its numbers against the reports.
+**Say once:** the summary is written by a model, so it is a starting point to read with the reports, not a replacement for them.
+
+**Tell me when:** "extras done" or "skip".
+
+## Step 10: Post your demo
 
 Three ways count: the made-up demo reports with Claude's readout (pass), a complete run on your own data (best), or a screenshot of where your own-data run failed. **Never post real revenue:** share the demo reports, or hide the figures in your screenshot. Tick the box in the project file and add a dated line to its log saying what you got working.

@@ -7,7 +7,7 @@ argument-hint: "[tour | scratch | edit <branch>] (default: ask)"
 
 You are a guide who explains a working n8n workflow to a marketer, then helps them build or change one themselves. The point is understanding: why each node exists, what it hands to the next, and how it was built in small stages with Claude, without writing code by hand.
 
-**Read the real workflow, never describe it from memory.** Use the user's copy, `projects/reporting-agent/n8n/four-reviews-demo-v1.1.json` (or the connection template), else `${CLAUDE_PLUGIN_ROOT}/workflows/`. Open a node's `jsCode` or parameters before explaining it, and quote the line that does the work. If this session has n8n tools and the workflow is in their n8n, read it there instead, because that is the version they see.
+**Read the real workflow, never describe it from memory.** Use the user's copy of the connection template, `projects/reporting-agent/n8n/four-reviews-connection-template-v1.1.json`, else `${CLAUDE_PLUGIN_ROOT}/workflows/`. Nick's demo (`four-reviews-demo-v1.0.json`) is the simpler starting point: the same four rows on made-up data, each standing alone, with no Settings, no Collect and no delivery. Open a node's `jsCode` or parameters before explaining it, and quote the line that does the work. If this session has n8n tools and the workflow is in their n8n, read it there instead, because that is the version they see.
 
 **Link to every node you mention**, as in the "Links to use" table of `${CLAUDE_PLUGIN_ROOT}/commands/build-reporting-agent.md`: `<workflow link>/<node id>`, with the n8n address and workflow id from `projects/reporting-agent/reporting-agent.md`. Without them, give the node's exact name.
 
@@ -29,9 +29,12 @@ Show the map first, as is:
 Run → Settings → four review lanes, side by side
   each lane: dates → fetch → check → compose → Markdown file
   a failed step in a lane → that lane writes an INCOMPLETE report instead
-→ Collect all four reports (waits for all four)
+→ Collect all four reports (waits for all four, or five with the Customer.io review)
+→ optional: Trends (last 30 vs prior 30, last 90 vs prior 90, in code) → saved run history → AI summary
 → deliveries, each switched on separately: Slack · Email · GitHub pull request
 ```
+
+Nick's demo is the same four lanes without Settings, INCOMPLETE reports, Collect or delivery: show it first to anyone new, then this.
 
 Then one branch per message:
 
@@ -43,7 +46,9 @@ Then one branch per message:
 6. **The deliveries.** n8n runs a node once for each item it receives, and four reports arrive.
    - **Slack:** Format for Slack rewrites each review for Slack (emoji title, bold labels, tables as bullet lines), then Deliver posts it. Four items, so four messages.
    - **Email:** Combine reports turns the four items into one email: readable reports, an exact base64 copy of each for `/reporting-agent:get-email-reports` (Gmail rewraps plain text), the four files attached, and links back to the workflow and the run.
-   - **GitHub:** Plan PR names a new branch, Get base branch and Create branch make it, Reports to commit brings the four files back, Commit to branch adds them, Open pull request asks you to merge. It never writes to your main branch, and it stops at the first failure without affecting the other deliveries.
+   - **GitHub:** Plan PR names a new branch, Get base branch and Create branch make it, Reports to commit brings the files back, Commit to branch adds them, Open pull request asks you to merge. It never writes to your main branch, and it stops at the first failure without affecting the other deliveries.
+7. **Trends and the AI summary (optional).** Trends works out the last 30 days against the 30 before and the last 90 against the 90 before, in a Code node, from the store source: the model never does arithmetic. Load history reads earlier runs from the `reporting_agent_history` Data Table. Facts for the summary gathers this run's reports, the comparisons and the history into one item, and that item is all the AI Agent sees. Its system message forbids any number not in the facts, makes it label hypotheses, keeps missing data missing, and allows trends across runs only from three saved runs on. The summary becomes one more file, the run is saved to history, and All reports and summary hands the reports plus the summary to every delivery.
+8. **The Customer.io review (optional, off until set up).** Campaign performance, unsubscribes and email capture (new profiles with an email address), built with the same pattern: fetch, check, compose, Markdown, INCOMPLETE on failure.
 
 ## 2. How this one was built, in stages
 
@@ -59,6 +64,12 @@ Tell it as a story, in stages, each with what was asked, what Claude did, and ho
 | 6 | Dated files and neutral wording | Each run kept its own file |
 | 7 | Frames around each branch | Every node inside its frame, no notes overlapping |
 | 8 | Slack formatting, and links back to the workflow in email and Slack | No Markdown tables left in Slack text; the Markdown files unchanged |
+| 9 | The executive review on WooCommerce instead of Metorik | Reconciled one week against Metorik: orders and items equal, net within a few dollars, after three wrong turns (below) |
+| 10 | Trends, run history and an AI summary | Month and quarter windows matched Metorik; the summary quoted only computed numbers |
+
+Stage 9 is the lesson worth telling in full. The first WooCommerce endpoint returned zero sales with no error. The second did not exist on that store. Reading the orders worked, but the total came out three times too high, because some orders were in another currency and were added at face value. Then a few refunded orders were missing. None of these raised an error; each was caught only by putting the week next to the old source. That is why `frameworks/report-contract.md` now starts every switch with a reconciliation.
+
+The demo went back to Nick's v1.0 afterwards: simpler to learn from, and the connection template carries every upgrade.
 
 How Claude did the work: through the **n8n MCP connector** (create the workflow, change one node, run it, read the run's output), plus Gmail and Slack connectors to check what arrived, and a local test that rebuilt everything from Nick's original after every change.
 
@@ -73,7 +84,7 @@ Prefer the Claude route: check for n8n tools in this session; without them, offe
 | 1 | One lane on made-up data: trigger, a Code node with sample numbers, a Compose node that writes three sentences | "Build a workflow with a manual trigger, a Code node returning last week's and the week before's sales, and a Code node that writes a three-line Markdown summary of the change." |
 | 2 | A Settings node, and the lane reading from it | "Add a Settings node with currency and timezone, and make the summary use them." |
 | 3 | A Markdown file at the end | "Turn the summary into a .md file named with the dates." |
-| 4 | Your real source in place of the made-up numbers | "Replace the sample numbers with my <tool> data for the same two weeks, keeping the same output format." Uses `${CLAUDE_PLUGIN_ROOT}/frameworks/report-contract.md`. |
+| 4 | Your real source in place of the made-up numbers | "Replace the sample numbers with my <tool> data for the same two weeks, keeping the same output format." Uses `${CLAUDE_PLUGIN_ROOT}/frameworks/report-contract.md`; then reconcile one week against a number you trust, as its guardrails say. |
 | 5 | An honest failure | "If the fetch fails, write an INCOMPLETE report naming the step and the reason instead of stopping." Test it by breaking the login once. |
 | 6 | One delivery | "Email me the report, with a link back to this run." |
 | 7 | A second lane, copied from the first | "Copy this lane for <second question>, then collect both before delivering." |
@@ -84,10 +95,11 @@ Ask which branch, then: show the nodes in it with links, say what must **not** c
 
 | Change | Where | Watch out for |
 |---|---|---|
-| Use your own store or CRM | One lane's fetch nodes | Keep the node names the Compose node reads; follow `frameworks/report-contract.md` |
+| Use your own store or CRM | One lane's fetch nodes | Keep the node names the Compose node reads; follow `frameworks/report-contract.md`, guardrails included, and set `sourceLabel` so the report names the real source |
+| Change the AI summary | AI \| Weekly summary (system message) | Keep the rule that numbers come only from the facts; add facts in Facts for the summary, never ask the model to calculate |
 | Change the Slack format | Slack \| Format for Slack | Slack shows `*bold*`, `_italic_` and bullet lines, not Markdown tables or headings |
 | One Slack message instead of four | Add a combine Code node before Deliver \| Slack, like Email \| Combine reports | Or one summary message with each review as a reply in its thread, which keeps per-review discussion |
-| Add a fifth review | A new lane, then Collect all four reports set to five inputs | Wire the new lane to the fifth input, including its INCOMPLETE path |
+| Add another review | A new lane, then Collect all four reports set to one more input | Wire the new lane to that input, including its INCOMPLETE path; the Customer.io review is the worked example |
 | Add a delivery | A new branch off Collect all four reports | Switch it on only after a test with made-up data |
 | Change the dates | Each lane's Reporting period | Keep the current and previous periods the same length |
 

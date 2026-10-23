@@ -8,6 +8,35 @@ Dates: each lane's `Reporting period` node gives `start`, `end`, `previousStart`
 
 If a node fails or returns the wrong shape, that review becomes an INCOMPLETE report that names the step and the reason. That is a valid demo result.
 
+## Switching sources: guardrails
+
+Every one of these came from a real switch (Metorik to WooCommerce, October 2026) that produced wrong numbers **without any error**. They apply to any translation: Shopify, Stripe, HubSpot, a spreadsheet, another store.
+
+1. **Reconcile one week before you trust it.** Put orders, gross, refunds and net next to the same week in the source you trust today. Within about 1% is a pass. A bigger gap has a cause; find it first. A review that runs is not a review that is right.
+2. **A zero next to activity is a broken source, not zero sales.** If sales or orders come back 0 while the same response, or another source, shows customers, sessions or sign-ups, treat the source as broken and make the conversion step throw, so the review goes INCOMPLETE.
+3. **One currency.** Every amount must be in the Settings currency. Multi-currency stores keep a converted amount per order (WooCommerce plugins store base-currency fields); use the source's own converted amount, never the face value, and throw when it is missing rather than guess a rate.
+4. **Decide which states count, and write down how refunds are dated.** Include refunded and partly refunded orders on purpose, or gross and refunds drift from the old source. Say in `refundNote` whether refunds count on the day they happen (refund date) or against the original order (order date); the two give different weeks.
+5. **Distrust summary endpoints.** "Reports" and "analytics" endpoints can be stale, disabled, or blind to newer storage, and still answer with a 200. Prefer the raw records (orders, charges, deals) summed in a Code node, with a check that throws when an expected field is missing.
+6. **Page through everything, and flag truncation.** Fetch every page until an empty one. If a page limit is hit, say so on the report instead of reporting a partial total.
+7. **Ask for the fields you need, nothing more.** Limit the response to money fields and identifiers (`_fields` on WooCommerce). It keeps customer names and emails out of n8n's execution history and keeps runs fast.
+8. **The report names the real source.** Set `sourceLabel` (and `refundNote`) in Settings, so no report says "Metorik" when the numbers came from somewhere else. A reader, or the AI summary, will otherwise compare it with the wrong thing.
+
+## WooCommerce mapping
+
+Read `wc/v3/orders` with statuses `processing,completed,refunded`, `per_page=100`, pagination until empty, and `_fields=id,status,currency,total,total_tax,shipping_total,discount_total,refunds,line_items,meta_data`. Sum in a Code node. Do not use `wc/v3/reports/sales` (returned zeros on a store with the new order storage) or `wc-analytics` (absent when WooCommerce Analytics is off).
+
+| Contract field | WooCommerce, order in the Settings currency | WooCommerce, order in another currency |
+|---|---|---|
+| `totals.gross` | sum of `total` | sum of meta `_order_total_base_currency` |
+| `totals.taxes` | sum of `total_tax` | sum of meta `_order_tax_base_currency` |
+| `totals.discounts` | sum of `discount_total` | sum of meta `_cart_discount_base_currency` |
+| `totals.refunds` | sum of the absolute `refunds[].total` | the same, times meta `_base_currency_exchange_rate` |
+| `totals.orders` | number of orders | same |
+| `totals.items` | sum of `line_items[].quantity` | same |
+| `totals.net` | gross minus taxes, shipping (`shipping_total`) and refunds | the same, with `_order_shipping_base_currency` |
+
+Refunds then count against the order they belong to (order date): say so in `refundNote`. The meta key names come from the store's multi-currency plugin; check one foreign-currency order before relying on them.
+
 ## Executive review
 
 | Node name (keep it) | Output (one item) | Notes |

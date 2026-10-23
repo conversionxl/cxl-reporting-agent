@@ -43,7 +43,8 @@ for i, n in enumerate(wf["nodes"]):
     else:
         lines.append(f"const {v} = {fn}({{ type: {json.dumps(n['type'])}, version: {n['typeVersion']}, config: {js(cfg)}, output: [{{}}] }});")
 
-chain = [f"export default workflow('four-reviews-demo-v1-1', {json.dumps(wf['name'])})"]
+wf_id = re.sub(r"[^a-z0-9]+", "-", sys.argv[1].rsplit("/", 1)[-1].rsplit(".", 1)[0].lower()).strip("-")
+chain = [f"export default workflow({json.dumps(wf_id)}, {json.dumps(wf['name'])})"]
 added = set()
 for src, c in wf["connections"].items():
     for out_i, targets in enumerate(c["main"]):
