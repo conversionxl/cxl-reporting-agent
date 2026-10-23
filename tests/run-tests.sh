@@ -20,8 +20,8 @@ for f in "$ROOT"/workflows/four-reviews-metorik-template-v1.1.json "$ROOT"/workf
 import json,sys
 strip=lambda w:[{k:v for k,v in n.items() if k!="id"} for n in w["nodes"]]
 a,b=(json.load(open(p)) for p in sys.argv[1:])
-assert strip(a)==strip(b) and a["connections"]==b["connections"], "shipped workflow differs from build: "+sys.argv[1]
-print("PASS shipped "+sys.argv[1].split("/")[-1]+" matches a fresh build (node ids aside)")
+assert strip(a)==strip(b) and a["connections"]==b["connections"] and a.get("nodeGroups")==b.get("nodeGroups"), "shipped workflow differs from build: "+sys.argv[1]
+print("PASS shipped "+sys.argv[1].split("/")[-1]+" matches a fresh build, groups included (node ids aside)")
 PY
 done
 [ -d "$HERE/node_modules/luxon" ] || (cd "$HERE" && npm install --silent --no-save luxon@3.5.0)

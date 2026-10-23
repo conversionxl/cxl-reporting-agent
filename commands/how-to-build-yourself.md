@@ -34,7 +34,9 @@ Run → Settings → five review lanes, side by side (Executive, Marketing, Prod
 → deliveries, each switched on separately: Slack · Email · GitHub pull request
 ```
 
-Nick's demo is the same four store and traffic lanes without Settings, INCOMPLETE reports, Collect or delivery: show it first to anyone new, then this. The Metorik template is this map with four lanes on Metorik, Collect all four reports, and no trends, summary or email lane.
+Nick's demo is the same four store and traffic lanes without Settings, INCOMPLETE reports, Collect or delivery: show it first to anyone new, then this. The Metorik template is this same map, with the store lanes on Metorik and Trends read from four Metorik revenue reports.
+
+**The groups are the map.** On the canvas, each review, the Trends and AI summary branch, and each delivery is a collapsible group named as above ("1. Executive review" to "5. Email review (Customer.io)", "Trends and AI summary", "Deliver: Slack", "Deliver: GitHub pull request", "Deliver: Email"), with its explainer note to the left. Only the trigger, Settings and Collect all reports stay outside a group. Collapse everything, then open one group at a time as you walk through it. An n8n version without canvas groups ignores them and shows every node.
 
 Then one branch per message:
 

@@ -10,7 +10,7 @@ Built on Nick Christensen's four-reviews workflow (handoff of 22 October 2026). 
 |---|---|
 | `workflows/four-reviews-demo-v1.0.json` | Nick's original demo, unchanged: four rows on made-up data, no Settings, no Collect, no delivery, no credentials. Import into n8n and run. |
 | `workflows/four-reviews-connection-template-v1.2.json` | The full template, built and tested on a live WooCommerce store, Customer.io and GA4: five reviews (executive, marketing sources, products, traffic, email), Settings, INCOMPLETE reports, Collect, trends (30 and 90 days, in code), run history in an n8n Data Table, an AI summary, and delivery (Slack, email, GitHub). Every source, the AI summary and every delivery switched off, no credentials. |
-| `workflows/four-reviews-metorik-template-v1.1.json` | The four reviews wired for Metorik and GA4, with Settings, INCOMPLETE reports, Collect and delivery: for stores whose data lives in Metorik. |
+| `workflows/four-reviews-metorik-template-v1.1.json` | The same five reviews, trends, history, AI summary and delivery, with the store reviews and the trends wired for Metorik: for stores whose data lives in Metorik. Shipped switched off, no credentials. |
 | `workflows/sample-reports/` | The four reports the demo produces, an INCOMPLETE example, the template's email body, an email review and an INCOMPLETE summary, all on made-up data. |
 | `commands/build-reporting-agent.md`, `plugin/setup.sh` | `/reporting-agent:build-reporting-agent`: sets the module up in a personal OS, then coaches step by step from no n8n to your own data. |
 | `commands/how-to-build-yourself.md` | `/reporting-agent:how-to-build-yourself`: every node and branch explained, how it was built with Claude and MCP, and help building from scratch or editing one branch. |
@@ -39,7 +39,9 @@ Run → Settings → five lanes (Executive, Marketing, Products, Traffic, Email)
        GitHub (new branch, one commit per file, one pull request; never commits to main)
 ```
 
-**Metorik template (v1.1):** the same shape with four lanes on Metorik, Collect all four reports, and no trends, summary or email lane.
+**Metorik template (v1.1):** the same shape, with the store lanes on Metorik and the trends read from four Metorik revenue reports (last 30, prior 30, last 90, prior 90 days).
+
+**Both templates are grouped:** each review, Trends and AI summary, and each delivery is a collapsible n8n canvas group with its explainer note beside it, so collapsed the canvas is about a dozen blocks. Groups need an n8n version with canvas groups; an older one ignores them and shows every node.
 
 ## Install
 

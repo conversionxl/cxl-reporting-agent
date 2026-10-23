@@ -48,6 +48,8 @@ The full template (`four-reviews-connection-template-v1.2.json`) has this built 
 | Products | the week's orders with `line_items` and `refunds`, then `wc/v3/products?include=<ids>&_fields=id,name,status,type,permalink` | `Products \| Top products`: grouped by parent `product_id`, net sales = line totals (tax excluded) minus each order's refunds shared by line value, converted with the order's exchange rate |
 | Trends | every paid or refunded order in the last 180 days, with `date_created` | windows summed in code: last 30 vs prior 30 and last 90 vs prior 90 |
 
+In the Metorik template, Trends reads four Metorik revenue reports instead (`revenue-by-date` for the last 30, prior 30, last 90 and prior 90 days), through `.totals.net` and `.totals.orders` only. Any missing total makes Trends report itself unavailable, never zero.
+
 ## Executive review
 
 | Node name (keep it) | Output (one item) | Notes |

@@ -40,4 +40,31 @@ check(all(k+":" in settings for k in ["storeUrl","n8nUrl","sourceLabel","refundN
 added=[ln for n in full["nodes"] for ln in re.split(r"[\n;]",n.get("parameters",{}).get("jsCode","")+"\n"+n.get("parameters",{}).get("content","")) if "—" in ln and ln.strip() not in nick]
 check(not added,"full template: no em dashes in added code or notes "+str(added[:2]))
 check(nodes["AI | Claude model"]["parameters"]["model"]["value"]=="claude-sonnet-5-5","full template: AI model id claude-sonnet-5-5")
+check(nodes["AI | Claude model"]["parameters"]["options"].get("maxTokensToSample")==6000,"full template: summary has room to finish (6000 tokens)")
+
+# Both templates: collapsible groups, hard public-repo checks, notes clear of grouped nodes
+for fn in ["out/four-reviews-metorik-template-v1.1.json","out/four-reviews-connection-template-v1.2.json"]:
+    w=json.load(open(fn)); N={n["name"]:n for n in w["nodes"]}; tag=fn.split("/")[-1]+": "
+    groups=w.get("nodeGroups") or []
+    members=[m for g in groups for m in g["nodeNames"]]
+    check(len(groups)==9 and all(g.get("id") and g.get("name") and g.get("description") for g in groups),tag+"9 named groups with ids and descriptions")
+    check(all(m in N for m in members),tag+"every grouped node exists")
+    check(not [m for m in members if N[m]["type"]=="n8n-nodes-base.manualTrigger"],tag+"no trigger in a group")
+    check(len(members)==len(set(members)),tag+"no node in two groups")
+    visible={"Run all four reviews","Settings","Collect all reports"}
+    loose=[n["name"] for n in w["nodes"] if n["type"]!="n8n-nodes-base.stickyNote" and n["name"] not in visible and n["name"] not in members]
+    check(not loose and visible<=set(N) and not visible&set(members),tag+"every node except trigger, Settings and Collect is in exactly one group "+str(loose[:3]))
+    over=[]
+    for n in w["nodes"]:
+        if n["type"]!="n8n-nodes-base.stickyNote": continue
+        x,y=n["position"];W=n["parameters"].get("width",240);H=n["parameters"].get("height",160)
+        over+=[(n["name"],m) for m in members if N[m]["position"][0]<x+W and N[m]["position"][0]+100>x and N[m]["position"][1]<y+H and N[m]["position"][1]+100>y]
+    check(not over,tag+"no sticky note overlaps a grouped node "+str(over[:2]))
+    t=json.dumps(w)
+    check(not [n for n in w["nodes"] if n.get("credentials")],tag+"no credentials")
+    check(not re.search(r"(?i)cxl|institute",t),tag+"no CXL names or addresses")
+    check(all(N[d].get("disabled") for d in delivery),tag+"every delivery node switched off")
+    src=[n for n in w["nodes"] if n["type"]=="n8n-nodes-base.httpRequest" and not n["name"].startswith("GitHub |")]
+    check(all(n.get("disabled") for n in src) and N["AI | Weekly summary"].get("disabled"),tag+"every source request ("+str(len(src))+") and the AI summary switched off")
+    check("}}" not in N["History | Save this run"]["parameters"]["columns"]["value"]["facts_json"][3:-2],tag+"history expression has no }} inside it")
 sys.exit(1 if fails else 0)

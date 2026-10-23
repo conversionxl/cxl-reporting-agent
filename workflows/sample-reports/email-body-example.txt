@@ -1,6 +1,6 @@
 Subject: Weekly reports 2026-10-21
 
-Weekly reports, run 2026-10-21. 4 of 4 reviews complete.
+Weekly reports, run 2026-10-21. 5 of 5 reviews complete.
 
 -----BEGIN REPORT executive-2026-10-14-to-2026-10-20.md-----
 PRIVATE LIVE REVIEW | Demo Store — Executive business review
@@ -101,6 +101,35 @@ Traffic increased; engagement rate changed by 5.0 percentage points. Review the 
 No API quality flags returned; this does not guarantee complete tracking.
 -----END REPORT-----
 
+-----BEGIN REPORT email-2026-10-14-to-2026-10-20.md-----
+PRIVATE LIVE REVIEW | Demo Store | Email review (Customer.io)
+2026-10-14 to 2026-10-20 | Customer.io days are UTC | prior week 2026-10-07 to 2026-10-13
+
+• Emails sent: 240 (242.9% vs prior week); delivered: 240.
+• Human opens: 44 (18.3% of delivered, prior 10.0%); human clicks: 0 (0.0%, prior 0.0%).
+• Conversions: 0 (prior 0).
+• Unsubscribes: 2 (0.8% of delivered) vs 1 (1.4%); topic unsubscribes: 0.
+• Bounces: 0; spam complaints: 0.
+
+Top sends this week (sent, open rate, click rate, unsubscribes):
+• Automation: Welcome series → 140 → 10.0% → 0.0% → 2
+• Broadcast: October newsletter → 100 → 30.0% → 0.0% → 0
+
+Email capture: not set up yet. Set cioCaptureSegmentId in Settings. Missing, not zero.
+
+Covers 1 running automations and 1 broadcasts sent in the two weeks. Counts are messages, not unique people. Opens and clicks are human-only. Conversions follow each campaign's own goal.
+Review: check the sends with the highest unsubscribe rate before their next send.
+-----END REPORT-----
+
+-----BEGIN REPORT summary-2026-10-14-to-2026-10-20.md-----
+# Weekly summary | Demo Store
+2026-10-14 to 2026-10-20
+Written by an AI model from this run's reports and the comparisons computed in the workflow. Check a number against its report before acting on it.
+
+## Headline
+Test summary: 5 of 5 reviews ran; history weeks 1.
+-----END REPORT-----
+
 
 Exact copies for /get-email-reports (base64, do not edit):
 -----BEGIN FILE executive-2026-10-14-to-2026-10-20.md-----
@@ -185,4 +214,31 @@ bmcgcGFnZXMgYmVmb3JlIGNob29zaW5nIGFuIGFjdGlvbi4gRXZlbnQgY291bnRzIGFyZSBub3Qg
 dW5pcXVlIGJ1eWVycyBvciBwcm9vZiBvZiBpbmNyZW1lbnRhbCBzYWxlcy4gWW91ciBzdG9yZSBv
 ciBDUk0gcmVtYWlucyB0aGUgcmV2ZW51ZSBzb3VyY2UuCgpObyBBUEkgcXVhbGl0eSBmbGFncyBy
 ZXR1cm5lZDsgdGhpcyBkb2VzIG5vdCBndWFyYW50ZWUgY29tcGxldGUgdHJhY2tpbmcuCg==
+-----END FILE-----
+-----BEGIN FILE email-2026-10-14-to-2026-10-20.md-----
+UFJJVkFURSBMSVZFIFJFVklFVyB8IERlbW8gU3RvcmUgfCBFbWFpbCByZXZpZXcgKEN1c3RvbWVy
+LmlvKQoyMDI2LTEwLTE0IHRvIDIwMjYtMTAtMjAgfCBDdXN0b21lci5pbyBkYXlzIGFyZSBVVEMg
+fCBwcmlvciB3ZWVrIDIwMjYtMTAtMDcgdG8gMjAyNi0xMC0xMwoK4oCiIEVtYWlscyBzZW50OiAy
+NDAgKDI0Mi45JSB2cyBwcmlvciB3ZWVrKTsgZGVsaXZlcmVkOiAyNDAuCuKAoiBIdW1hbiBvcGVu
+czogNDQgKDE4LjMlIG9mIGRlbGl2ZXJlZCwgcHJpb3IgMTAuMCUpOyBodW1hbiBjbGlja3M6IDAg
+KDAuMCUsIHByaW9yIDAuMCUpLgrigKIgQ29udmVyc2lvbnM6IDAgKHByaW9yIDApLgrigKIgVW5z
+dWJzY3JpYmVzOiAyICgwLjglIG9mIGRlbGl2ZXJlZCkgdnMgMSAoMS40JSk7IHRvcGljIHVuc3Vi
+c2NyaWJlczogMC4K4oCiIEJvdW5jZXM6IDA7IHNwYW0gY29tcGxhaW50czogMC4KClRvcCBzZW5k
+cyB0aGlzIHdlZWsgKHNlbnQsIG9wZW4gcmF0ZSwgY2xpY2sgcmF0ZSwgdW5zdWJzY3JpYmVzKToK
+4oCiIEF1dG9tYXRpb246IFdlbGNvbWUgc2VyaWVzIOKGkiAxNDAg4oaSIDEwLjAlIOKGkiAwLjAl
+IOKGkiAyCuKAoiBCcm9hZGNhc3Q6IE9jdG9iZXIgbmV3c2xldHRlciDihpIgMTAwIOKGkiAzMC4w
+JSDihpIgMC4wJSDihpIgMAoKRW1haWwgY2FwdHVyZTogbm90IHNldCB1cCB5ZXQuIFNldCBjaW9D
+YXB0dXJlU2VnbWVudElkIGluIFNldHRpbmdzLiBNaXNzaW5nLCBub3QgemVyby4KCkNvdmVycyAx
+IHJ1bm5pbmcgYXV0b21hdGlvbnMgYW5kIDEgYnJvYWRjYXN0cyBzZW50IGluIHRoZSB0d28gd2Vl
+a3MuIENvdW50cyBhcmUgbWVzc2FnZXMsIG5vdCB1bmlxdWUgcGVvcGxlLiBPcGVucyBhbmQgY2xp
+Y2tzIGFyZSBodW1hbi1vbmx5LiBDb252ZXJzaW9ucyBmb2xsb3cgZWFjaCBjYW1wYWlnbidzIG93
+biBnb2FsLgpSZXZpZXc6IGNoZWNrIHRoZSBzZW5kcyB3aXRoIHRoZSBoaWdoZXN0IHVuc3Vic2Ny
+aWJlIHJhdGUgYmVmb3JlIHRoZWlyIG5leHQgc2VuZC4K
+-----END FILE-----
+-----BEGIN FILE summary-2026-10-14-to-2026-10-20.md-----
+IyBXZWVrbHkgc3VtbWFyeSB8IERlbW8gU3RvcmUKMjAyNi0xMC0xNCB0byAyMDI2LTEwLTIwCldy
+aXR0ZW4gYnkgYW4gQUkgbW9kZWwgZnJvbSB0aGlzIHJ1bidzIHJlcG9ydHMgYW5kIHRoZSBjb21w
+YXJpc29ucyBjb21wdXRlZCBpbiB0aGUgd29ya2Zsb3cuIENoZWNrIGEgbnVtYmVyIGFnYWluc3Qg
+aXRzIHJlcG9ydCBiZWZvcmUgYWN0aW5nIG9uIGl0LgoKIyMgSGVhZGxpbmUKVGVzdCBzdW1tYXJ5
+OiA1IG9mIDUgcmV2aWV3cyByYW47IGhpc3Rvcnkgd2Vla3MgMS4K
 -----END FILE-----

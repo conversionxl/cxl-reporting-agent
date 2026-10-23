@@ -10,7 +10,7 @@
 
 | Folder | What goes in it |
 |---|---|
-| `projects/reporting-agent/` | The project file (your settings, which delivery you use, your demo progress) and `n8n/`, the workflows to import: Nick's demo with made-up data, the full template for your own data (WooCommerce, GA4, Customer.io, trends, AI summary, delivery), and a Metorik template for stores on Metorik. |
+| `projects/reporting-agent/` | The project file (your settings, which delivery you use, your demo progress) and `n8n/`, the workflows to import: Nick's demo with made-up data, the full template for your own data (WooCommerce, GA4, Customer.io, trends, AI summary, delivery), and a Metorik template with the same branches for stores on Metorik. Both are grouped into collapsible blocks. |
 | `raw/performance/reporting-agent/` | The saved reports, one file per review per run. Kept out of git, because real reports hold revenue. |
 
 | Command | What it does |
