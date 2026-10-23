@@ -1,0 +1,190 @@
+Subject: Weekly reports 2026-10-21
+
+Weekly reports, run 2026-10-21. 4 of 4 reviews complete.
+
+-----BEGIN REPORT executive-2026-10-14-to-2026-10-20.md-----
+DEMO — SYNTHETIC DATA | Example Store — Executive business review
+2026-10-14–2026-10-20 | USD | America/Chicago
+Synthetic example data; no real business figures. Previous period: 2026-10-07–2026-10-13
+
+• Net revenue: $24,000 (20.0% vs prior week).
+• Gross revenue: $26,000; refunds: $1,000; sales taxes: $1,000.
+• Orders: 80 (14.3%); items: 90.
+• Discounts recorded: $2,000 (already reflected in gross; not subtracted again).
+
+Order-type revenue (Metorik grouped report):
+• Non-renewal orders: $18,000
+• Renewals: $6,000
+
+COGS, gross profit, operating income, net profit, marketing spend and MER: unavailable with this connection. Missing costs are not zero.
+Includes subscription renewals. Non-renewal orders are not the same as first-time buyers.
+Net revenue uses refund-date reporting; order/product reports can differ because refunds follow the original order cohort.
+Review: check renewal timing and product mix before explaining the revenue change.
+-----END REPORT-----
+
+-----BEGIN REPORT marketing-2026-10-14-to-2026-10-20.md-----
+DEMO — SYNTHETIC DATA | Example Store — Marketing source review
+2026-10-14–2026-10-20 | USD | America/Chicago
+Synthetic example data; no real business figures. Previous period: 2026-10-07–2026-10-13
+
+• Total store orders: 80; order-cohort net sales: $24,000.
+• Source report represents 60 orders (75.0%) and $18,000 net sales.
+• 20 orders are not represented in these source rows; do not classify them as Direct.
+
+Recorded source / medium → orders → net sales
+• newsletter / email → 25 → $7,500
+• google / cpc → 20 → $6,000
+• google / organic → 15 → $4,500
+
+These are sources stored on orders, not GA4 session channels or proof of incremental sales. Google without a paid medium is not Google Ads.
+Ad spend, ROAS, sessions and email-capture rate: unavailable from this connection.
+Review: investigate missing attribution and separate paid vs organic before shifting spend.
+-----END REPORT-----
+
+-----BEGIN REPORT products-2026-10-14-to-2026-10-20.md-----
+DEMO — SYNTHETIC DATA | Example Store — Top product review
+2026-10-14–2026-10-20 | USD | America/Chicago
+Synthetic example data; no real business figures. Previous period: 2026-10-07–2026-10-13
+
+Products ranked by net sales (subscription renewals included):
+
+1. Annual learning plan — $12,000 | 20 orders | 20 units
+   Catalog status: publish | subscription
+https://example.com/products/annual
+2. Quarterly learning plan — $6,000 | 30 orders | 30 units
+   Catalog status: publish | subscription
+https://example.com/products/quarterly
+3. Analytics foundations — $4,000 | 20 orders | 20 units
+   Catalog status: publish | simple
+https://example.com/products/analytics
+4. Email essentials — $2,000 | 10 orders | 10 units
+   Catalog status: publish | simple
+https://example.com/products/email
+
+Ranking is sales, not conversion rate. Units can include seats; product order counts can overlap.
+Subscription product names do not identify the course that persuaded someone to subscribe.
+Catalog status and links come from WooCommerce via Metorik; checkout availability has not been independently tested.
+Review: inspect the linked pages and distinguish subscription plans from one-off course demand.
+-----END REPORT-----
+
+-----BEGIN REPORT traffic-2026-10-14-to-2026-10-20.md-----
+# Website traffic review
+
+SYNTHETIC DATA — invented workshop example
+
+2026-10-14–2026-10-20 vs 2026-10-07–2026-10-13 (America/Chicago).
+
+Sessions: 12000 vs 10000 (20.0%). Engagement rate: 60.0% vs 55.0%.
+
+## Sources / mediums
+| sessionSourceMedium | Sessions | Previous | Change | Engagement |
+|---|---:|---:|---:|---:|
+| google / organic | 5000 | 4200 | 19.0% | 65.0% |
+| google / cpc | 3000 | 2600 | 15.4% | 50.0% |
+| (direct) / (none) | 2500 | 2000 | 25.0% | 60.0% |
+| newsletter / email | 1500 | 1200 | 25.0% | 63.3% |
+
+## Top landing pages
+| landingPage | Sessions | Previous | Change | Engagement |
+|---|---:|---:|---:|---:|
+| / | 4000 | 3500 | 14.3% | 60.0% |
+| /programs/example-course | 3000 | 2400 | 25.0% | 60.0% |
+| /webinar | 2000 | 1500 | 33.3% | 60.0% |
+
+## Tracked events
+- purchase: 80 vs 70 events
+- generate_lead: 240 vs 160 events
+
+## Readout
+Traffic increased; engagement rate changed by 5.0 percentage points. Review the source mix and landing pages before choosing an action. Event counts are not unique buyers or proof of incremental sales. Your store or CRM remains the revenue source.
+
+No API quality flags returned; this does not guarantee complete tracking.
+-----END REPORT-----
+
+
+Exact copies for /get-email-reports (base64, do not edit):
+-----BEGIN FILE executive-2026-10-14-to-2026-10-20.md-----
+REVNTyDigJQgU1lOVEhFVElDIERBVEEgfCBFeGFtcGxlIFN0b3JlIOKAlCBFeGVjdXRpdmUgYnVz
+aW5lc3MgcmV2aWV3CjIwMjYtMTAtMTTigJMyMDI2LTEwLTIwIHwgVVNEIHwgQW1lcmljYS9DaGlj
+YWdvClN5bnRoZXRpYyBleGFtcGxlIGRhdGE7IG5vIHJlYWwgYnVzaW5lc3MgZmlndXJlcy4gUHJl
+dmlvdXMgcGVyaW9kOiAyMDI2LTEwLTA34oCTMjAyNi0xMC0xMwoK4oCiIE5ldCByZXZlbnVlOiAk
+MjQsMDAwICgyMC4wJSB2cyBwcmlvciB3ZWVrKS4K4oCiIEdyb3NzIHJldmVudWU6ICQyNiwwMDA7
+IHJlZnVuZHM6ICQxLDAwMDsgc2FsZXMgdGF4ZXM6ICQxLDAwMC4K4oCiIE9yZGVyczogODAgKDE0
+LjMlKTsgaXRlbXM6IDkwLgrigKIgRGlzY291bnRzIHJlY29yZGVkOiAkMiwwMDAgKGFscmVhZHkg
+cmVmbGVjdGVkIGluIGdyb3NzOyBub3Qgc3VidHJhY3RlZCBhZ2FpbikuCgpPcmRlci10eXBlIHJl
+dmVudWUgKE1ldG9yaWsgZ3JvdXBlZCByZXBvcnQpOgrigKIgTm9uLXJlbmV3YWwgb3JkZXJzOiAk
+MTgsMDAwCuKAoiBSZW5ld2FsczogJDYsMDAwCgpDT0dTLCBncm9zcyBwcm9maXQsIG9wZXJhdGlu
+ZyBpbmNvbWUsIG5ldCBwcm9maXQsIG1hcmtldGluZyBzcGVuZCBhbmQgTUVSOiB1bmF2YWlsYWJs
+ZSB3aXRoIHRoaXMgY29ubmVjdGlvbi4gTWlzc2luZyBjb3N0cyBhcmUgbm90IHplcm8uCkluY2x1
+ZGVzIHN1YnNjcmlwdGlvbiByZW5ld2Fscy4gTm9uLXJlbmV3YWwgb3JkZXJzIGFyZSBub3QgdGhl
+IHNhbWUgYXMgZmlyc3QtdGltZSBidXllcnMuCk5ldCByZXZlbnVlIHVzZXMgcmVmdW5kLWRhdGUg
+cmVwb3J0aW5nOyBvcmRlci9wcm9kdWN0IHJlcG9ydHMgY2FuIGRpZmZlciBiZWNhdXNlIHJlZnVu
+ZHMgZm9sbG93IHRoZSBvcmlnaW5hbCBvcmRlciBjb2hvcnQuClJldmlldzogY2hlY2sgcmVuZXdh
+bCB0aW1pbmcgYW5kIHByb2R1Y3QgbWl4IGJlZm9yZSBleHBsYWluaW5nIHRoZSByZXZlbnVlIGNo
+YW5nZS4K
+-----END FILE-----
+-----BEGIN FILE marketing-2026-10-14-to-2026-10-20.md-----
+REVNTyDigJQgU1lOVEhFVElDIERBVEEgfCBFeGFtcGxlIFN0b3JlIOKAlCBNYXJrZXRpbmcgc291
+cmNlIHJldmlldwoyMDI2LTEwLTE04oCTMjAyNi0xMC0yMCB8IFVTRCB8IEFtZXJpY2EvQ2hpY2Fn
+bwpTeW50aGV0aWMgZXhhbXBsZSBkYXRhOyBubyByZWFsIGJ1c2luZXNzIGZpZ3VyZXMuIFByZXZp
+b3VzIHBlcmlvZDogMjAyNi0xMC0wN+KAkzIwMjYtMTAtMTMKCuKAoiBUb3RhbCBzdG9yZSBvcmRl
+cnM6IDgwOyBvcmRlci1jb2hvcnQgbmV0IHNhbGVzOiAkMjQsMDAwLgrigKIgU291cmNlIHJlcG9y
+dCByZXByZXNlbnRzIDYwIG9yZGVycyAoNzUuMCUpIGFuZCAkMTgsMDAwIG5ldCBzYWxlcy4K4oCi
+IDIwIG9yZGVycyBhcmUgbm90IHJlcHJlc2VudGVkIGluIHRoZXNlIHNvdXJjZSByb3dzOyBkbyBu
+b3QgY2xhc3NpZnkgdGhlbSBhcyBEaXJlY3QuCgpSZWNvcmRlZCBzb3VyY2UgLyBtZWRpdW0g4oaS
+IG9yZGVycyDihpIgbmV0IHNhbGVzCuKAoiBuZXdzbGV0dGVyIC8gZW1haWwg4oaSIDI1IOKGkiAk
+Nyw1MDAK4oCiIGdvb2dsZSAvIGNwYyDihpIgMjAg4oaSICQ2LDAwMArigKIgZ29vZ2xlIC8gb3Jn
+YW5pYyDihpIgMTUg4oaSICQ0LDUwMAoKVGhlc2UgYXJlIHNvdXJjZXMgc3RvcmVkIG9uIG9yZGVy
+cywgbm90IEdBNCBzZXNzaW9uIGNoYW5uZWxzIG9yIHByb29mIG9mIGluY3JlbWVudGFsIHNhbGVz
+LiBHb29nbGUgd2l0aG91dCBhIHBhaWQgbWVkaXVtIGlzIG5vdCBHb29nbGUgQWRzLgpBZCBzcGVu
+ZCwgUk9BUywgc2Vzc2lvbnMgYW5kIGVtYWlsLWNhcHR1cmUgcmF0ZTogdW5hdmFpbGFibGUgZnJv
+bSB0aGlzIGNvbm5lY3Rpb24uClJldmlldzogaW52ZXN0aWdhdGUgbWlzc2luZyBhdHRyaWJ1dGlv
+biBhbmQgc2VwYXJhdGUgcGFpZCB2cyBvcmdhbmljIGJlZm9yZSBzaGlmdGluZyBzcGVuZC4K
+-----END FILE-----
+-----BEGIN FILE products-2026-10-14-to-2026-10-20.md-----
+REVNTyDigJQgU1lOVEhFVElDIERBVEEgfCBFeGFtcGxlIFN0b3JlIOKAlCBUb3AgcHJvZHVjdCBy
+ZXZpZXcKMjAyNi0xMC0xNOKAkzIwMjYtMTAtMjAgfCBVU0QgfCBBbWVyaWNhL0NoaWNhZ28KU3lu
+dGhldGljIGV4YW1wbGUgZGF0YTsgbm8gcmVhbCBidXNpbmVzcyBmaWd1cmVzLiBQcmV2aW91cyBw
+ZXJpb2Q6IDIwMjYtMTAtMDfigJMyMDI2LTEwLTEzCgpQcm9kdWN0cyByYW5rZWQgYnkgbmV0IHNh
+bGVzIChzdWJzY3JpcHRpb24gcmVuZXdhbHMgaW5jbHVkZWQpOgoKMS4gQW5udWFsIGxlYXJuaW5n
+IHBsYW4g4oCUICQxMiwwMDAgfCAyMCBvcmRlcnMgfCAyMCB1bml0cwogICBDYXRhbG9nIHN0YXR1
+czogcHVibGlzaCB8IHN1YnNjcmlwdGlvbgpodHRwczovL2V4YW1wbGUuY29tL3Byb2R1Y3RzL2Fu
+bnVhbAoyLiBRdWFydGVybHkgbGVhcm5pbmcgcGxhbiDigJQgJDYsMDAwIHwgMzAgb3JkZXJzIHwg
+MzAgdW5pdHMKICAgQ2F0YWxvZyBzdGF0dXM6IHB1Ymxpc2ggfCBzdWJzY3JpcHRpb24KaHR0cHM6
+Ly9leGFtcGxlLmNvbS9wcm9kdWN0cy9xdWFydGVybHkKMy4gQW5hbHl0aWNzIGZvdW5kYXRpb25z
+IOKAlCAkNCwwMDAgfCAyMCBvcmRlcnMgfCAyMCB1bml0cwogICBDYXRhbG9nIHN0YXR1czogcHVi
+bGlzaCB8IHNpbXBsZQpodHRwczovL2V4YW1wbGUuY29tL3Byb2R1Y3RzL2FuYWx5dGljcwo0LiBF
+bWFpbCBlc3NlbnRpYWxzIOKAlCAkMiwwMDAgfCAxMCBvcmRlcnMgfCAxMCB1bml0cwogICBDYXRh
+bG9nIHN0YXR1czogcHVibGlzaCB8IHNpbXBsZQpodHRwczovL2V4YW1wbGUuY29tL3Byb2R1Y3Rz
+L2VtYWlsCgpSYW5raW5nIGlzIHNhbGVzLCBub3QgY29udmVyc2lvbiByYXRlLiBVbml0cyBjYW4g
+aW5jbHVkZSBzZWF0czsgcHJvZHVjdCBvcmRlciBjb3VudHMgY2FuIG92ZXJsYXAuClN1YnNjcmlw
+dGlvbiBwcm9kdWN0IG5hbWVzIGRvIG5vdCBpZGVudGlmeSB0aGUgY291cnNlIHRoYXQgcGVyc3Vh
+ZGVkIHNvbWVvbmUgdG8gc3Vic2NyaWJlLgpDYXRhbG9nIHN0YXR1cyBhbmQgbGlua3MgY29tZSBm
+cm9tIFdvb0NvbW1lcmNlIHZpYSBNZXRvcmlrOyBjaGVja291dCBhdmFpbGFiaWxpdHkgaGFzIG5v
+dCBiZWVuIGluZGVwZW5kZW50bHkgdGVzdGVkLgpSZXZpZXc6IGluc3BlY3QgdGhlIGxpbmtlZCBw
+YWdlcyBhbmQgZGlzdGluZ3Vpc2ggc3Vic2NyaXB0aW9uIHBsYW5zIGZyb20gb25lLW9mZiBjb3Vy
+c2UgZGVtYW5kLgo=
+-----END FILE-----
+-----BEGIN FILE traffic-2026-10-14-to-2026-10-20.md-----
+IyBXZWJzaXRlIHRyYWZmaWMgcmV2aWV3CgpTWU5USEVUSUMgREFUQSDigJQgaW52ZW50ZWQgd29y
+a3Nob3AgZXhhbXBsZQoKMjAyNi0xMC0xNOKAkzIwMjYtMTAtMjAgdnMgMjAyNi0xMC0wN+KAkzIw
+MjYtMTAtMTMgKEFtZXJpY2EvQ2hpY2FnbykuCgpTZXNzaW9uczogMTIwMDAgdnMgMTAwMDAgKDIw
+LjAlKS4gRW5nYWdlbWVudCByYXRlOiA2MC4wJSB2cyA1NS4wJS4KCiMjIFNvdXJjZXMgLyBtZWRp
+dW1zCnwgc2Vzc2lvblNvdXJjZU1lZGl1bSB8IFNlc3Npb25zIHwgUHJldmlvdXMgfCBDaGFuZ2Ug
+fCBFbmdhZ2VtZW50IHwKfC0tLXwtLS06fC0tLTp8LS0tOnwtLS06fAp8IGdvb2dsZSAvIG9yZ2Fu
+aWMgfCA1MDAwIHwgNDIwMCB8IDE5LjAlIHwgNjUuMCUgfAp8IGdvb2dsZSAvIGNwYyB8IDMwMDAg
+fCAyNjAwIHwgMTUuNCUgfCA1MC4wJSB8CnwgKGRpcmVjdCkgLyAobm9uZSkgfCAyNTAwIHwgMjAw
+MCB8IDI1LjAlIHwgNjAuMCUgfAp8IG5ld3NsZXR0ZXIgLyBlbWFpbCB8IDE1MDAgfCAxMjAwIHwg
+MjUuMCUgfCA2My4zJSB8CgojIyBUb3AgbGFuZGluZyBwYWdlcwp8IGxhbmRpbmdQYWdlIHwgU2Vz
+c2lvbnMgfCBQcmV2aW91cyB8IENoYW5nZSB8IEVuZ2FnZW1lbnQgfAp8LS0tfC0tLTp8LS0tOnwt
+LS06fC0tLTp8CnwgLyB8IDQwMDAgfCAzNTAwIHwgMTQuMyUgfCA2MC4wJSB8CnwgL3Byb2dyYW1z
+L2V4YW1wbGUtY291cnNlIHwgMzAwMCB8IDI0MDAgfCAyNS4wJSB8IDYwLjAlIHwKfCAvd2ViaW5h
+ciB8IDIwMDAgfCAxNTAwIHwgMzMuMyUgfCA2MC4wJSB8CgojIyBUcmFja2VkIGV2ZW50cwotIHB1
+cmNoYXNlOiA4MCB2cyA3MCBldmVudHMKLSBnZW5lcmF0ZV9sZWFkOiAyNDAgdnMgMTYwIGV2ZW50
+cwoKIyMgUmVhZG91dApUcmFmZmljIGluY3JlYXNlZDsgZW5nYWdlbWVudCByYXRlIGNoYW5nZWQg
+YnkgNS4wIHBlcmNlbnRhZ2UgcG9pbnRzLiBSZXZpZXcgdGhlIHNvdXJjZSBtaXggYW5kIGxhbmRp
+bmcgcGFnZXMgYmVmb3JlIGNob29zaW5nIGFuIGFjdGlvbi4gRXZlbnQgY291bnRzIGFyZSBub3Qg
+dW5pcXVlIGJ1eWVycyBvciBwcm9vZiBvZiBpbmNyZW1lbnRhbCBzYWxlcy4gWW91ciBzdG9yZSBv
+ciBDUk0gcmVtYWlucyB0aGUgcmV2ZW51ZSBzb3VyY2UuCgpObyBBUEkgcXVhbGl0eSBmbGFncyBy
+ZXR1cm5lZDsgdGhpcyBkb2VzIG5vdCBndWFyYW50ZWUgY29tcGxldGUgdHJhY2tpbmcuCg==
+-----END FILE-----

@@ -1,0 +1,23 @@
+{
+  "name": "reporting-agent",
+  "version": "0.1.0",
+  "description": "Reporting agent module for the CXL AI Native Marketer cohort: four weekly reviews (executive, marketing sources, products, website traffic) built in n8n from your store or CRM and GA4, delivered by email, a GitHub pull request or Slack, and read in your personal OS. /reporting-agent:build-reporting-agent sets it up in your OS and walks you through n8n step by step; /reporting-agent:get-email-reports saves each run into your OS and reads it with you. Test build for review.",
+  "author": {
+    "name": "CXL",
+    "email": "hesh@cxl.com"
+  },
+  "homepage": "https://github.com/conversionxl/cxl-reporting-agent",
+  "repository": "https://github.com/conversionxl/cxl-reporting-agent",
+  "keywords": [
+    "cxl",
+    "reporting-agent",
+    "n8n",
+    "ga4",
+    "weekly-report",
+    "ai-native-marketer"
+  ],
+  "commands": [
+    "./commands/build-reporting-agent.md",
+    "./commands/get-email-reports.md"
+  ]
+}

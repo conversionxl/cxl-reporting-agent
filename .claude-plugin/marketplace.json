@@ -1,0 +1,9 @@
+{
+  "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
+  "name": "cxl-reporting-agent",
+  "description": "CXL's Reporting agent plugin for the AI Native Marketer cohort.",
+  "owner": { "name": "CXL", "email": "hesh@cxl.com" },
+  "plugins": [
+    { "name": "reporting-agent", "description": "Four weekly business and traffic reviews from n8n, saved into your personal OS and read with Claude.", "source": "./", "category": "productivity" }
+  ]
+}

@@ -1,0 +1,5 @@
+# Reporting agent: reports hold revenue, so the saved reports in
+# raw/performance/ stay on this machine (same rule as the Marketing Brain and
+# Campaign Engine; harmless if already present).
+raw/performance/*
+!raw/performance/README.md
