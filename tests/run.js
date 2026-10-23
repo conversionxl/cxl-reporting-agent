@@ -135,8 +135,10 @@ async function run(path, opts = {}) {
   }
   const trigger = wf.nodes.find(n => n.type === 'n8n-nodes-base.manualTrigger').name;
   await exec(trigger, [{ json: {} }], 0, null);
-  const merged = runData['Collect all four reports'] || runData['Collect all reports'] || [];
-  return { runData, merged, delivered, errors, ran, nodes };
+  // A lane switched off in Settings (the Ads review) sends a skipped item; `merged` is what reaches the reviews.
+  const collected = runData['Collect all four reports'] || runData['Collect all reports'] || [];
+  const merged = collected.filter(i => !i.json.skipped);
+  return { runData, collected, merged, delivered, errors, ran, nodes };
 }
 
 module.exports = { run };

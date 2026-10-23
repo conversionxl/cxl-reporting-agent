@@ -5,11 +5,11 @@ const s = $('Settings').first().json;
 const base = String(s.n8nUrl || '').replace(/\/+$/, '');
 const linked = /^https?:\/\//.test(base) && !base.includes('YOUR-INSTANCE');
 const wfUrl = linked ? base + '/workflow/' + $workflow.id : '';
-const icon = { executive: '📊', marketing: '📣', products: '🛍️', traffic: '🌐', email: '✉️', summary: '🧠' };
-const title = { executive: 'Executive business review', marketing: 'Marketing source review', products: 'Top product review', traffic: 'Website traffic review', email: 'Email review (Customer.io)', summary: 'Weekly summary' };
+const icon = { executive: '📊', marketing: '📣', products: '🛍️', traffic: '🌐', email: '✉️', ads: '🎯', summary: '🧠' };
+const title = { executive: 'Executive business review', marketing: 'Marketing source review', products: 'Top product review', traffic: 'Website traffic review', email: 'Email review (Customer.io)', ads: 'Ads review (Google Ads and Meta)', summary: 'Weekly summary' };
 const rule = '------------------------------';
 const esc = t => String(t).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-const isContext = l => /^(DEMO|PRIVATE LIVE|SYNTHETIC DATA|LIVE GA4|INCOMPLETE \|)/.test(l) || /^\d{4}-\d{2}-\d{2}/.test(l) || /^(Synthetic example data|Live Metorik data|Live data from|Written by an AI model)/.test(l);
+const isContext = l => /^(DEMO|PRIVATE LIVE|SYNTHETIC DATA|SAMPLE DATA|LIVE GA4|INCOMPLETE \|)/.test(l) || /^\d{4}-\d{2}-\d{2}/.test(l) || /^(Synthetic example data|Sample data:|Live Metorik data|Live data from|Written by an AI model)/.test(l);
 const cells = l => l.replace(/^\|/, '').replace(/\|\s*$/, '').split('|').map(c => c.trim());
 
 return $input.all().map(item => {

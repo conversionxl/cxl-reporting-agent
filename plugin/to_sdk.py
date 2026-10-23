@@ -1,4 +1,4 @@
-"""Convert an n8n workflow JSON export into n8n Workflow SDK code, one-to-one, so Claude can create it through the n8n MCP connector (validate_workflow, then create_workflow_from_code). Usage: python3 -I to_sdk.py <workflow.json> <out.ts>"""
+"""Convert an n8n workflow JSON export into n8n Workflow SDK code, one-to-one, so Claude can create it through the n8n MCP connector (validate_workflow, then create_workflow_from_code). Usage: python3 -I to_sdk.py <workflow.json> <out.ts>. When the workflow has collapsible groups, it also writes <out>.groups.json: the update_workflow operation that adds them after the workflow is created."""
 import json, re, sys
 
 wf = json.load(open(sys.argv[1]))
@@ -73,3 +73,12 @@ for src, dst, kind in subnodes:
 lines.append("\n".join(chain) + ";")
 open(out_path, "w").write("\n".join(lines) + "\n")
 print(out_path, len(open(out_path).read()), "chars")
+
+# The SDK code does not carry the collapsible canvas groups. Write them next to it, as the
+# operation Claude applies after creating the workflow: update_workflow with one setNodeGroups
+# operation (group members are node names; trigger nodes cannot be in a group).
+if wf.get("nodeGroups"):
+    groups_path = re.sub(r"\.[^./]+$", "", out_path) + ".groups.json"
+    op = {"type": "setNodeGroups", "nodeGroups": [{k: g[k] for k in ("name", "description", "nodeNames") if k in g} for g in wf["nodeGroups"]]}
+    json.dump([op], open(groups_path, "w"), indent=2, ensure_ascii=False)
+    print(groups_path, len(op["nodeGroups"]), "groups: apply with update_workflow after creating the workflow")

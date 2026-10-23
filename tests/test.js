@@ -237,6 +237,37 @@ const decoded = i => Buffer.from(i.binary.report.data, 'base64').toString('utf8'
   const e11 = r.merged.find(i => i.json.fileName.startsWith('executive-'));
   ok(e11 && !e11.json.incomplete && e11.json.markdown.includes('• Orders: 0 ('), 'an empty week is a true zero, reported as complete');
 
+  console.log('\n== T14 Ads review switched off (as shipped): skipped, never delivered or counted');
+  for (const [label, path, opts] of [['full', full, { fixtures: fullFixtures, settings: fullSettings }], ['metorik', tmpl, { fixtures: { ...mFix, ...mTrends }, settings: fullSettings }]]) {
+    r = await run(path, { deliver: true, history: lastWeek, ai, ...opts });
+    const sk = r.collected.find(i => String(i.json.fileName).startsWith('ads-'));
+    ok(!r.errors.length && r.collected.length === 6 && sk && sk.json.skipped && sk.json.fileName.endsWith('-skipped.md'), `${label}: Collect completes with the ads lane as a skipped sixth item`);
+    const files = r.runData['All reports and summary'].map(i => i.json.fileName);
+    ok(!files.some(f => f.startsWith('ads-')) && r.delivered.slack.length === 6 && r.delivered.email[0].attachments.length === 6 && r.delivered.github.length === 6, `${label}: nothing about ads in Slack, email or GitHub`);
+    const f14 = r.runData['Trends | Facts for the summary'][0].json, h14 = r.delivered.history[0];
+    ok(f14.reviews.total_count === 5 && !f14.reports.some(x => String(x.file).startsWith('ads-')) && f14.sample_data.length === 0 && h14.reviews_total === '5', `${label}: not in the summary facts or the history row`);
+  }
+
+  console.log('\n== T15 Ads review switched on with Nick\'s sample data');
+  for (const [label, path, opts] of [['full', full, { fixtures: fullFixtures }], ['metorik', tmpl, { fixtures: { ...mFix, ...mTrends } }]]) {
+    r = await run(path, { deliver: true, history: lastWeek, ai, ...opts, settings: { ...fullSettings, adsEnabled: true } });
+    const ad = r.merged.find(i => i.json.fileName === 'ads-2026-10-14-to-2026-10-20.md');
+    ok(!r.errors.length && ad && !ad.json.incomplete && ad.json.sample === true, `${label}: ads report collected as the sixth review`);
+    const md = ad ? ad.json.markdown : '';
+    ok(md.startsWith('SAMPLE DATA | Demo Store | Ads review') && md.includes("Sample data: the example campaigns from Nick Christensen's ads workshop"), `${label}: labelled SAMPLE DATA`);
+    ok(md.includes('📊 *Daily Paid Media Digest*') && md.includes('*Needs attention (') && md.includes('Competitor - Search') && md.includes('Campaigns graded: 9; flagged: '), `${label}: Nick's grading runs on his 9 sample campaigns`);
+    const f15 = r.runData['Trends | Facts for the summary'][0].json;
+    ok(f15.reviews.total_count === 6 && f15.sample_data.includes('ads-2026-10-14-to-2026-10-20.md'), `${label}: summary facts mark the ads report as sample data`);
+    ok(r.nodes['AI | Weekly summary'].parameters.options.systemMessage.includes('SAMPLE DATA'), `${label}: the model is told sample data is not the business's`);
+    ok(r.delivered.slack.length === 7 && r.delivered.slack.some(m => m.text.startsWith('🎯 *Ads review (Google Ads and Meta)*')) && r.delivered.email[0].body.startsWith('Weekly reports, run 2026-10-21. 6 of 6 reviews complete.'), `${label}: Slack 7 messages, email counts 6 reviews`);
+    if (label === 'full') fs.writeFileSync(`${SAMPLES}/ads-sample-data-example.md`, md);
+  }
+
+  console.log('\n== T16 Ads review switched on, the grading step fails');
+  r = await run(full, { fixtures: fullFixtures, history: lastWeek, ai, settings: { ...fullSettings, adsEnabled: true }, fail: { 'Ads | Analyze': 'Cannot read properties of undefined' } });
+  const ai16 = r.merged.find(i => String(i.json.fileName).startsWith('ads-'));
+  ok(!r.errors.length && ai16 && ai16.json.incomplete && ai16.json.markdown.includes('Failed step: Ads | Analyze'), 'ads review INCOMPLETE, names the failed step, the other reviews unaffected');
+
   console.log(failures ? `\n${failures} FAILED` : '\nALL PASSED');
   process.exit(failures ? 1 : 0);
 })().catch(e => { console.error(e); process.exit(2); });

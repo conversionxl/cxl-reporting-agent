@@ -347,7 +347,7 @@
     },
     {
       "parameters": {
-        "jsCode": "// Edit these before the first run. Every lane reads its settings from here.\nreturn [{json:{\n  storeName:'YOUR_STORE_NAME',       // printed on the reports\n  storeUrl:'https://YOUR-STORE.com', // your WooCommerce site, no slash at the end\n  currency:'USD',                    // ISO code, for example EUR or GBP\n  timeZone:'America/Chicago',        // reporting timezone, for example Europe/London\n  locale:'en-US',                    // number and money format, for example en-GB or de-DE\n  sourceLabel:'WooCommerce orders',  // where the store figures come from, printed on the reports\n  refundNote:'Refunds count against the order they belong to, so a refund on an older order is not in this week.', // how your source dates refunds\n  ga4PropertyId:'YOUR_GA4_PROPERTY_ID', // numeric GA4 property ID (Traffic lane)\n  ga4Events:['purchase','generate_lead'], // events your GA4 property collects\n  cioApiUrl:'https://api.customer.io', // Customer.io App API; EU workspaces use https://api-eu.customer.io\n  cioCaptureSegmentId:'',            // Customer.io segment whose growth counts as email capture; empty = not set up\n  cioCaptureLabel:'',                // that segment's name, printed on the email review\n  emailTo:'YOU@EXAMPLE.COM',         // Email delivery: where the reports go\n  githubOwner:'YOUR_GITHUB_USERNAME',// GitHub delivery: owner of your personal OS repo\n  githubRepo:'YOUR_PERSONAL_OS_REPO',// GitHub delivery: that repo's name\n  githubFolder:'projects/reporting-agent/reports', // folder in the repo, no slash at either end\n  githubBase:'main',                 // the PR targets this branch; nothing is committed to it\n  n8nUrl:'https://YOUR-INSTANCE.app.n8n.cloud' // your n8n address, for the workflow links in email and Slack\n}}];"
+        "jsCode": "// Edit these before the first run. Every lane reads its settings from here.\nreturn [{json:{\n  storeName:'YOUR_STORE_NAME',       // printed on the reports\n  storeUrl:'https://YOUR-STORE.com', // your WooCommerce site, no slash at the end\n  currency:'USD',                    // ISO code, for example EUR or GBP\n  timeZone:'America/Chicago',        // reporting timezone, for example Europe/London\n  locale:'en-US',                    // number and money format, for example en-GB or de-DE\n  sourceLabel:'WooCommerce orders',  // where the store figures come from, printed on the reports\n  refundNote:'Refunds count against the order they belong to, so a refund on an older order is not in this week.', // how your source dates refunds\n  ga4PropertyId:'YOUR_GA4_PROPERTY_ID', // numeric GA4 property ID (Traffic lane)\n  ga4Events:['purchase','generate_lead'], // events your GA4 property collects\n  cioApiUrl:'https://api.customer.io', // Customer.io App API; EU workspaces use https://api-eu.customer.io\n  cioCaptureSegmentId:'',            // Customer.io segment whose growth counts as email capture; empty = not set up\n  cioCaptureLabel:'',                // that segment's name, printed on the email review\n  adsEnabled:false,                  // Ads review (lane 6): true to include it. Until you connect your ad data it shows Nick Christensen's sample campaigns, labelled SAMPLE DATA\n  emailTo:'YOU@EXAMPLE.COM',         // Email delivery: where the reports go\n  githubOwner:'YOUR_GITHUB_USERNAME',// GitHub delivery: owner of your personal OS repo\n  githubRepo:'YOUR_PERSONAL_OS_REPO',// GitHub delivery: that repo's name\n  githubFolder:'projects/reporting-agent/reports', // folder in the repo, no slash at either end\n  githubBase:'main',                 // the PR targets this branch; nothing is committed to it\n  n8nUrl:'https://YOUR-INSTANCE.app.n8n.cloud' // your n8n address, for the workflow links in email and Slack\n}}];"
       },
       "id": "2393d5c3-9b69-4002-b5fa-970b792a4b42",
       "name": "Settings",
@@ -422,7 +422,7 @@
     },
     {
       "parameters": {
-        "numberInputs": 5
+        "numberInputs": 6
       },
       "id": "05a8ba95-b2e0-4134-a181-248f332c58c1",
       "name": "Collect all reports",
@@ -999,7 +999,7 @@
         1264
       ],
       "parameters": {
-        "jsCode": "// Everything the AI may quote: this run's reports, the comparisons computed above, and saved runs. Numbers come only from here.\nconst p=$('Executive | Reporting period').first().json;\nconst collected=$('Collect all reports').all();\nconst reports=collected.map(i=>({file:i.json.fileName,incomplete:!!i.json.incomplete,markdown:i.json.markdown}));\nconst trends=$('Trends | Revenue by period').first().json;\n// Earlier runs, newest first, one per reporting week (reruns of the same week are dropped), excluding this week.\nconst seen=new Set();\nconst history=$('Trends | Load history').all().map(i=>i.json).filter(r=>r&&r.run_date).filter(r=>{const k=r.period_start+'|'+r.period_end;if(r.period_start===p.start||seen.has(k))return false;seen.add(k);return true;}).map(r=>({run_date:r.run_date,period:r.period_start+' to '+r.period_end,reviews_complete:r.reviews_complete,reviews_total:r.reviews_total,exec_net:r.exec_net,exec_orders:r.exec_orders}));\nconst ex=collected.find(i=>String(i.json.fileName).startsWith('executive-')&&!i.json.incomplete);\nconst exec=ex?.json?.totals??null;\nconst reviews={complete:reports.filter(r=>!r.incomplete).map(r=>r.file),incomplete:reports.filter(r=>r.incomplete).map(r=>r.file),complete_count:reports.filter(r=>!r.incomplete).length,total_count:reports.length};\nreturn [{json:{period:{start:p.start,end:p.end,previousStart:p.previousStart,previousEnd:p.previousEnd},currency:p.currency,source:$('Settings').first().json.sourceLabel,reviews,reports,trends,history,history_weeks:history.length,exec_totals:exec}}];"
+        "jsCode": "// Everything the AI may quote: this run's reports, the comparisons computed above, and saved runs. Numbers come only from here.\nconst p=$('Executive | Reporting period').first().json;\nconst collected=$('Collect all reports').all().filter(i=>!i.json.skipped);\nconst reports=collected.map(i=>({file:i.json.fileName,incomplete:!!i.json.incomplete,markdown:i.json.markdown}));\nconst trends=$('Trends | Revenue by period').first().json;\n// Earlier runs, newest first, one per reporting week (reruns of the same week are dropped), excluding this week.\nconst seen=new Set();\nconst history=$('Trends | Load history').all().map(i=>i.json).filter(r=>r&&r.run_date).filter(r=>{const k=r.period_start+'|'+r.period_end;if(r.period_start===p.start||seen.has(k))return false;seen.add(k);return true;}).map(r=>({run_date:r.run_date,period:r.period_start+' to '+r.period_end,reviews_complete:r.reviews_complete,reviews_total:r.reviews_total,exec_net:r.exec_net,exec_orders:r.exec_orders}));\nconst ex=collected.find(i=>String(i.json.fileName).startsWith('executive-')&&!i.json.incomplete);\nconst exec=ex?.json?.totals??null;\nconst reviews={complete:reports.filter(r=>!r.incomplete).map(r=>r.file),incomplete:reports.filter(r=>r.incomplete).map(r=>r.file),complete_count:reports.filter(r=>!r.incomplete).length,total_count:reports.length};\nreturn [{json:{period:{start:p.start,end:p.end,previousStart:p.previousStart,previousEnd:p.previousEnd},currency:p.currency,source:$('Settings').first().json.sourceLabel,reviews,reports,trends,history,history_weeks:history.length,exec_totals:exec,sample_data:reports.filter(r=>/^SAMPLE DATA/.test(String(r.markdown||''))).map(r=>r.file)}}];"
       }
     },
     {
@@ -1015,7 +1015,7 @@
         "promptType": "define",
         "text": "={{ 'Facts (JSON):\\n' + JSON.stringify($json, null, 1) }}",
         "options": {
-          "systemMessage": "You write the weekly summary for the marketing team from the facts you are given, and nothing else.\n\nRules:\n1. Every number you write must appear in the facts. You may round to whole numbers. Never calculate a new number.\n2. How many reviews ran comes only from reviews.complete_count and reviews.total_count. Name the incomplete ones from reviews.incomplete.\n3. A report marked incomplete, or a value that is missing or null, is missing data, not zero. Say it is missing and name the failed step.\n4. Keep facts, hypotheses and missing data apart. Label every hypothesis as a hypothesis.\n5. Month over month and quarter over quarter come only from trends.mom and trends.qoq. If trends.available is false, say they are unavailable and why.\n6. History holds earlier weeks, one row each. Describe a trend across weeks only when history_weeks is at least 3; otherwise say there is not enough history yet.\n7. Order sources are not incrementality, event counts are not unique people, email counts are messages not people, and non-renewal revenue is not first-time buyer revenue.\n8. Plain US English, short lines, no em dashes, no all caps.\n\nOutput Markdown with exactly these sections:\n## Headline (two lines)\n## Month and quarter\n## Trends\n## Flags\n## Working\n## Not working\n## Missing data\n## Check next (at most three items, each tied to a line in a report)",
+          "systemMessage": "You write the weekly summary for the marketing team from the facts you are given, and nothing else.\n\nRules:\n1. Every number you write must appear in the facts. You may round to whole numbers. Never calculate a new number.\n2. How many reviews ran comes only from reviews.complete_count and reviews.total_count. Name the incomplete ones from reviews.incomplete.\n3. A report marked incomplete, or a value that is missing or null, is missing data, not zero. Say it is missing and name the failed step.\n4. Keep facts, hypotheses and missing data apart. Label every hypothesis as a hypothesis.\n5. Month over month and quarter over quarter come only from trends.mom and trends.qoq. If trends.available is false, say they are unavailable and why.\n6. History holds earlier weeks, one row each. Describe a trend across weeks only when history_weeks is at least 3; otherwise say there is not enough history yet.\n7. Order sources are not incrementality, event counts are not unique people, email counts are messages not people, and non-renewal revenue is not first-time buyer revenue.\n8. A report that starts with SAMPLE DATA, or is listed in sample_data, holds example data, not the business's. Say it is sample data and never present its numbers as the business's results.\n9. Plain US English, short lines, no em dashes, no all caps.\n\nOutput Markdown with exactly these sections:\n## Headline (two lines)\n## Month and quarter\n## Trends\n## Flags\n## Working\n## Not working\n## Missing data\n## Check next (at most three items, each tied to a line in a report)",
           "maxIterations": 3
         }
       },
@@ -1078,8 +1078,8 @@
             "run_date": "={{ $now.setZone($('Settings').first().json.timeZone).toISODate() }}",
             "period_start": "={{ $('Trends | Facts for the summary').first().json.period.start }}",
             "period_end": "={{ $('Trends | Facts for the summary').first().json.period.end }}",
-            "reviews_complete": "={{ $('Collect all reports').all().filter(i => !i.json.incomplete).length }}",
-            "reviews_total": "={{ $('Collect all reports').all().length }}",
+            "reviews_complete": "={{ $('Collect all reports').all().filter(i => !i.json.skipped && !i.json.incomplete).length }}",
+            "reviews_total": "={{ $('Collect all reports').all().filter(i => !i.json.skipped).length }}",
             "exec_net": "={{ $('Trends | Facts for the summary').first().json.exec_totals ? Math.round($('Trends | Facts for the summary').first().json.exec_totals.net) : null }}",
             "exec_orders": "={{ $('Trends | Facts for the summary').first().json.exec_totals ? $('Trends | Facts for the summary').first().json.exec_totals.orders : null }}",
             "facts_json": "={{ JSON.stringify({trends: $('Trends | Facts for the summary').first().json.trends, exec_totals: $('Trends | Facts for the summary').first().json.exec_totals, leads_email_count: ($('Collect all reports').all().find(i => String(i.json.fileName).startsWith('email-')) || { json: {} }).json.capture_count ?? null}) }}"
@@ -1172,7 +1172,7 @@
         1264
       ],
       "parameters": {
-        "jsCode": "// The reports plus the AI summary, so every delivery sends all of them.\nreturn [...$('Collect all reports').all(), $('AI | Summary report').first()];"
+        "jsCode": "// The reports plus the AI summary, so every delivery sends all of them. A lane switched off in Settings is left out.\nreturn [...$('Collect all reports').all().filter(i => !i.json.skipped), $('AI | Summary report').first()];"
       }
     },
     {
@@ -1715,9 +1715,9 @@
     },
     {
       "parameters": {
-        "jsCode": "// Turns each review's Markdown into a Slack message: an emoji title, bold labels,\n// a dashed rule between parts, and table rows as bullet lines (Slack can't show\n// Markdown tables). The Markdown file itself is unchanged; only slackText is rewritten.\nconst s = $('Settings').first().json;\nconst base = String(s.n8nUrl || '').replace(/\\/+$/, '');\nconst linked = /^https?:\\/\\//.test(base) && !base.includes('YOUR-INSTANCE');\nconst wfUrl = linked ? base + '/workflow/' + $workflow.id : '';\nconst icon = { executive: '📊', marketing: '📣', products: '🛍️', traffic: '🌐', email: '✉️', summary: '🧠' };\nconst title = { executive: 'Executive business review', marketing: 'Marketing source review', products: 'Top product review', traffic: 'Website traffic review', email: 'Email review (Customer.io)', summary: 'Weekly summary' };\nconst rule = '------------------------------';\nconst esc = t => String(t).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');\nconst isContext = l => /^(DEMO|PRIVATE LIVE|SYNTHETIC DATA|LIVE GA4|INCOMPLETE \\|)/.test(l) || /^\\d{4}-\\d{2}-\\d{2}/.test(l) || /^(Synthetic example data|Live Metorik data|Live data from|Written by an AI model)/.test(l);\nconst cells = l => l.replace(/^\\|/, '').replace(/\\|\\s*$/, '').split('|').map(c => c.trim());\n\nreturn $input.all().map(item => {\n  const j = item.json;\n  const lane = String(j.fileName || '').split('-')[0];\n  const head = (j.incomplete ? '⚠️' : (icon[lane] || '📄')) + ' *' + (title[lane] || esc(j.fileName || 'Review')) + (j.incomplete ? ': incomplete' : '') + '*';\n  const context = [], body = [];\n  let header = null;\n  for (const raw of String(j.markdown || '').split('\\n')) {\n    const l = raw.trim();\n    if (!l) { if (body.length && body[body.length - 1] !== '') body.push(''); continue; }\n    if (l.startsWith('# ')) continue;\n    if (!body.length && isContext(l)) { context.push('_' + esc(l.replace(/\\s*\\|\\s*/g, ' · ')) + '_'); continue; }\n    if (l.startsWith('## ')) { if (body.length && body[body.length - 1] !== '') body.push(''); body.push('*' + esc(l.slice(3)) + '*'); header = null; continue; }\n    if (l.startsWith('|')) {\n      const c = cells(l);\n      if (c.every(x => /^:?-+:?$/.test(x))) continue;\n      if (!header) { header = c; continue; }\n      body.push('• *' + esc(c[0]) + '*' + c.slice(1).map((v, k) => ' · ' + esc(header[k + 1]) + ' ' + esc(v)).join(''));\n      continue;\n    }\n    header = null;\n    let m;\n    if ((m = l.match(/^Review:\\s*(.*)$/))) { body.push('👉 *Review:* ' + esc(m[1])); continue; }\n    if ((m = l.match(/^([•-])\\s+([^:]{1,45}):\\s+(.*)$/))) { body.push('• *' + esc(m[2]) + ':* ' + esc(m[3]).replace(/\\s*\\|\\s*/g, ' · ')); continue; }\n    if ((m = l.match(/^(\\d+)\\.\\s+(.+?)\\s+—\\s+(.*)$/))) { body.push(m[1] + '. *' + esc(m[2]) + '* · ' + esc(m[3]).replace(/\\s*\\|\\s*/g, ' · ')); continue; }\n    if ((m = l.match(/^(Failed step|Reason):\\s*(.*)$/))) { body.push('*' + m[1] + ':* ' + esc(m[2])); continue; }\n    if (/^[^:]{3,60}:$/.test(l)) { body.push('*' + esc(l) + '*'); continue; }\n    body.push(esc(l).replace(/\\s*\\|\\s*/g, ' · '));\n  }\n  while (body.length && body[body.length - 1] === '') body.pop();\n  const parts = [head, ...context, rule, ...body];\n  if (linked) parts.push(rule, '<' + wfUrl + '|Open the workflow> · <' + wfUrl + '/executions/' + $execution.id + '|This run>');\n  return { json: { ...j, slackText: parts.join('\\n') }, binary: item.binary };\n});\n"
+        "jsCode": "// Turns each review's Markdown into a Slack message: an emoji title, bold labels,\n// a dashed rule between parts, and table rows as bullet lines (Slack can't show\n// Markdown tables). The Markdown file itself is unchanged; only slackText is rewritten.\nconst s = $('Settings').first().json;\nconst base = String(s.n8nUrl || '').replace(/\\/+$/, '');\nconst linked = /^https?:\\/\\//.test(base) && !base.includes('YOUR-INSTANCE');\nconst wfUrl = linked ? base + '/workflow/' + $workflow.id : '';\nconst icon = { executive: '📊', marketing: '📣', products: '🛍️', traffic: '🌐', email: '✉️', ads: '🎯', summary: '🧠' };\nconst title = { executive: 'Executive business review', marketing: 'Marketing source review', products: 'Top product review', traffic: 'Website traffic review', email: 'Email review (Customer.io)', ads: 'Ads review (Google Ads and Meta)', summary: 'Weekly summary' };\nconst rule = '------------------------------';\nconst esc = t => String(t).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');\nconst isContext = l => /^(DEMO|PRIVATE LIVE|SYNTHETIC DATA|SAMPLE DATA|LIVE GA4|INCOMPLETE \\|)/.test(l) || /^\\d{4}-\\d{2}-\\d{2}/.test(l) || /^(Synthetic example data|Sample data:|Live Metorik data|Live data from|Written by an AI model)/.test(l);\nconst cells = l => l.replace(/^\\|/, '').replace(/\\|\\s*$/, '').split('|').map(c => c.trim());\n\nreturn $input.all().map(item => {\n  const j = item.json;\n  const lane = String(j.fileName || '').split('-')[0];\n  const head = (j.incomplete ? '⚠️' : (icon[lane] || '📄')) + ' *' + (title[lane] || esc(j.fileName || 'Review')) + (j.incomplete ? ': incomplete' : '') + '*';\n  const context = [], body = [];\n  let header = null;\n  for (const raw of String(j.markdown || '').split('\\n')) {\n    const l = raw.trim();\n    if (!l) { if (body.length && body[body.length - 1] !== '') body.push(''); continue; }\n    if (l.startsWith('# ')) continue;\n    if (!body.length && isContext(l)) { context.push('_' + esc(l.replace(/\\s*\\|\\s*/g, ' · ')) + '_'); continue; }\n    if (l.startsWith('## ')) { if (body.length && body[body.length - 1] !== '') body.push(''); body.push('*' + esc(l.slice(3)) + '*'); header = null; continue; }\n    if (l.startsWith('|')) {\n      const c = cells(l);\n      if (c.every(x => /^:?-+:?$/.test(x))) continue;\n      if (!header) { header = c; continue; }\n      body.push('• *' + esc(c[0]) + '*' + c.slice(1).map((v, k) => ' · ' + esc(header[k + 1]) + ' ' + esc(v)).join(''));\n      continue;\n    }\n    header = null;\n    let m;\n    if ((m = l.match(/^Review:\\s*(.*)$/))) { body.push('👉 *Review:* ' + esc(m[1])); continue; }\n    if ((m = l.match(/^([•-])\\s+([^:]{1,45}):\\s+(.*)$/))) { body.push('• *' + esc(m[2]) + ':* ' + esc(m[3]).replace(/\\s*\\|\\s*/g, ' · ')); continue; }\n    if ((m = l.match(/^(\\d+)\\.\\s+(.+?)\\s+—\\s+(.*)$/))) { body.push(m[1] + '. *' + esc(m[2]) + '* · ' + esc(m[3]).replace(/\\s*\\|\\s*/g, ' · ')); continue; }\n    if ((m = l.match(/^(Failed step|Reason):\\s*(.*)$/))) { body.push('*' + m[1] + ':* ' + esc(m[2])); continue; }\n    if (/^[^:]{3,60}:$/.test(l)) { body.push('*' + esc(l) + '*'); continue; }\n    body.push(esc(l).replace(/\\s*\\|\\s*/g, ' · '));\n  }\n  while (body.length && body[body.length - 1] === '') body.pop();\n  const parts = [head, ...context, rule, ...body];\n  if (linked) parts.push(rule, '<' + wfUrl + '|Open the workflow> · <' + wfUrl + '/executions/' + $execution.id + '|This run>');\n  return { json: { ...j, slackText: parts.join('\\n') }, binary: item.binary };\n});\n"
       },
-      "id": "14cf262a-4909-421b-8d39-20135945b259",
+      "id": "592454c2-8e0c-4a1b-8c75-470d811e2503",
       "name": "Slack | Format for Slack",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -1735,7 +1735,7 @@
         "height": 230,
         "color": 6
       },
-      "id": "6a39ecce-84a1-4156-9f54-a967cf1491a7",
+      "id": "8d061d88-849d-401f-a449-294e0ad61bc5",
       "name": "Trends and summary explainer",
       "type": "n8n-nodes-base.stickyNote",
       "typeVersion": 1,
@@ -1746,12 +1746,136 @@
     },
     {
       "parameters": {
+        "jsCode": "// Same weeks as the executive review.\nconst p=$('Executive | Reporting period').first().json;\nreturn [{json:{start:p.start,end:p.end,previousStart:p.previousStart,previousEnd:p.previousEnd}}];"
+      },
+      "name": "Ads | Reporting period",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "id": "90ae3869-5b3a-46fe-bab9-001c4e394c84",
+      "position": [
+        704,
+        2704
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// From Nick Christensen's ads reporting starter (MIT), workshop \"Ship ICP-driven ad campaigns and automated monitoring\".\n// Source: https://github.com/nickyc1/ship-icp-ads-automate-monitoring (n8n-ads-reporting/starter-workflow.json).\n// Carried unchanged below this header.\n// Mock Google Ads daily metrics. Swap this node for an HTTP Request / google-ads-mcp call later.\n// Shape stays the same so nothing downstream changes.\nconst campaigns = [\n  { campaign: \"Brand - Search\",        platform: \"google\", spend: 820,  conversions: 41, conversion_value: 3120, cpa: 20.0, historical_cpa: 19.0, ctr: 0.112, clicks: 612, impressions: 5460 },\n  { campaign: \"Competitor - Search\",   platform: \"google\", spend: 1450, conversions: 22, conversion_value: 1980, cpa: 65.9, historical_cpa: 31.0, ctr: 0.041, clicks: 410, impressions: 9900 },\n  { campaign: \"PMax - All Products\",   platform: \"google\", spend: 2100, conversions: 78, conversion_value: 6890, cpa: 26.9, historical_cpa: 28.0, ctr: 0.066, clicks: 880, impressions: 13300 },\n  { campaign: \"Generic - High Intent\", platform: \"google\", spend: 240,  conversions: 14, conversion_value: 1510, cpa: 17.1, historical_cpa: 18.0, ctr: 0.094, clicks: 168, impressions: 1780 },\n  { campaign: \"Display - Remarketing\", platform: \"google\", spend: 560,  conversions: 6,  conversion_value: 430,  cpa: 93.3, historical_cpa: 88.0, ctr: 0.008, clicks: 240, impressions: 30000 }\n];\nreturn campaigns.map(c => ({ json: c }));"
+      },
+      "name": "Ads | Google Ads (sample data)",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        928,
+        2704
+      ],
+      "id": "cdd4ac40-ca52-4fb5-b316-901b8ff021ef"
+    },
+    {
+      "parameters": {
+        "jsCode": "// From Nick Christensen's ads reporting starter (MIT), workshop \"Ship ICP-driven ad campaigns and automated monitoring\".\n// Source: https://github.com/nickyc1/ship-icp-ads-automate-monitoring (n8n-ads-reporting/starter-workflow.json).\n// Carried unchanged below this header.\n// Mock Meta daily metrics. Swap for the Meta Ads CLI/MCP later (one OAuth, no third-party app).\n// frequency is Meta-specific and feeds fatigue checks.\nconst campaigns = [\n  { campaign: \"Prospecting - Broad\",    platform: \"meta\", spend: 1300, conversions: 47, conversion_value: 2010, cpa: 27.7, historical_cpa: 25.0, ctr: 0.014, clicks: 980,  impressions: 70000, frequency: 1.8 },\n  { campaign: \"Retargeting - 7d\",       platform: \"meta\", spend: 430,  conversions: 33, conversion_value: 1890, cpa: 13.0, historical_cpa: 14.0, ctr: 0.022, clicks: 410,  impressions: 18600, frequency: 3.9 },\n  { campaign: \"Lookalike - Buyers 1%\",  platform: \"meta\", spend: 760,  conversions: 18, conversion_value: 720,  cpa: 42.2, historical_cpa: 39.0, ctr: 0.010, clicks: 520,  impressions: 52000, frequency: 2.1 },\n  { campaign: \"Creator - Whitelisting\", platform: \"meta\", spend: 290,  conversions: 16, conversion_value: 1240, cpa: 18.1, historical_cpa: 21.0, ctr: 0.031, clicks: 300,  impressions: 9700,  frequency: 1.4 }\n];\nreturn campaigns.map(c => ({ json: c }));"
+      },
+      "name": "Ads | Meta Ads (sample data)",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1152,
+        2704
+      ],
+      "id": "c5cbe11f-dbec-4834-b4c9-c4e5324a58dd"
+    },
+    {
+      "parameters": {
+        "numberInputs": 2
+      },
+      "name": "Ads | Merge",
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3,
+      "position": [
+        1376,
+        2704
+      ],
+      "id": "e825f9b2-0d77-4bc0-95e8-3f29dab87d31"
+    },
+    {
+      "parameters": {
+        "jsCode": "// From Nick Christensen's ads reporting starter (MIT), workshop \"Ship ICP-driven ad campaigns and automated monitoring\".\n// Source: https://github.com/nickyc1/ship-icp-ads-automate-monitoring (n8n-ads-reporting/starter-workflow.json).\n// Carried unchanged below this header.\n// Grade every campaign on profit-to-spend, flag anomalies, and write a plain-language digest.\n// Profit, not ROAS, is the hero number. Edit the targets to match your business.\nconst TARGET = { google: 1.5, meta: 0.5 };\n\nconst rows = $input.all().map(i => i.json);\nconst totalSpend = rows.reduce((s, r) => s + r.spend, 0);\nconst totalValue = rows.reduce((s, r) => s + r.conversion_value, 0);\nconst avgSpend = totalSpend / rows.length;\n\nconst graded = rows.map(r => {\n  const ptos = r.conversion_value / r.spend;            // profit-to-spend proxy\n  const target = TARGET[r.platform] ?? 1.0;\n  const grade = ptos >= target ? \"green\" : \"red\";\n  const anomaly = r.cpa > 2 * r.historical_cpa;\n  let decision;\n  if (grade === \"red\") decision = \"Investigate or pause\";\n  else if (r.spend < avgSpend && r.conversions > 0) decision = \"Scale (underfunded winner)\";\n  else decision = \"Hold\";\n  return { ...r, ptos: Number(ptos.toFixed(2)), grade, decision, anomaly };\n});\n\nconst attention = graded.filter(g => g.grade === \"red\" || g.anomaly);\nconst blended = (totalValue / totalSpend).toFixed(2);\n\nconst fmt = g => `${g.grade === \"green\" ? \"🟢\" : \"🔴\"} *${g.campaign}* (${g.platform}) — $${g.spend} spend, ${g.ptos}x value/spend → ${g.decision}${g.anomaly ? \"  ⚠️ CPA 2x+ historical\" : \"\"}`;\n\nlet digest = `📊 *Daily Paid Media Digest*\\n`;\ndigest += `Spend $${totalSpend.toLocaleString()} · Value $${totalValue.toLocaleString()} · Blended ${blended}x\\n\\n`;\ndigest += `*Needs attention (${attention.length})*\\n`;\ndigest += attention.length ? attention.map(fmt).join(\"\\n\") : \"Nothing flagged. All campaigns at or above target.\";\ndigest += `\\n\\n*All campaigns*\\n`;\ndigest += graded.sort((a, b) => b.ptos - a.ptos).map(fmt).join(\"\\n\");\ndigest += `\\n\\n_You make the call. This is the analyst, not the boss._`;\n\nreturn [{ json: { digest, campaign_count: graded.length, flagged: attention.length } }];"
+      },
+      "name": "Ads | Analyze",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1600,
+        2704
+      ],
+      "id": "25c0bd7d-699b-4a3d-a481-32790436feac",
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Wraps the ads digest from Ads | Analyze (Nick Christensen's grading) into the report contract.\n// While adsEnabled is false in Settings this lane sends a skipped item: Collect never waits, and every\n// step after it (summary facts, history, Slack, email, GitHub) leaves it out.\nconst p=$('Ads | Reporting period').first().json, s=$('Settings').first().json;\nif(s.adsEnabled!==true)return [{json:{skipped:true,markdown:'',slackText:'',fileName:'ads-'+p.start+'-to-'+p.end+'-skipped.md'}}];\nconst isSample=n=>{try{const j=$(n).first().json;return !!(j&&j.campaign!==undefined&&j.platform!==undefined);}catch(e){return false;}};\nconst sample=isSample('Ads | Google Ads (sample data)')||isSample('Ads | Meta Ads (sample data)');\nconst a=$('Ads | Analyze').first().json;\nif(!a||typeof a.digest!=='string'||!a.campaign_count)throw Error('No ad data: Ads | Analyze returned no campaigns. Connect your ad platforms, or keep the two sample nodes switched on.');\nif(/NaN|undefined/.test(a.digest))throw Error('Ad rows are missing fields: each row needs campaign, platform, spend, conversions, conversion_value, cpa and historical_cpa.');\nconst lines=[(sample?'SAMPLE DATA':'PRIVATE LIVE REVIEW')+' | '+s.storeName+' | Ads review (Google Ads and Meta)',p.start+' to '+p.end+' | '+s.currency,\n  sample?'Sample data: the example campaigns from Nick Christensen\\'s ads workshop, not your ad accounts. Replace the two sample nodes with your Google Ads and Meta data (same fields) to make this review live.':'Live data from your ad platforms.',\n  '',a.digest,'',\n  'Campaigns graded: '+a.campaign_count+'; flagged: '+a.flagged+'.',\n  'Grades use value-to-spend against the targets at the top of Ads | Analyze. Platform-reported conversion value is not profit: set the targets from your margins.',\n  'Review: check the flagged campaigns in the ad platform before changing any budget.'];\nconst markdown=lines.join('\\n')+'\\n';\nreturn [{json:{markdown,slackText:markdown,fileName:'ads-'+p.start+'-to-'+p.end+'.md',period:p,sample}}];"
+      },
+      "name": "Ads | Compose review",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "onError": "continueErrorOutput",
+      "id": "4446a4f8-9d9b-4e41-b811-3c4e9be00b69",
+      "position": [
+        1824,
+        2704
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const p=$('Ads | Reporting period').first().json,s=$('Settings').first().json;if(s.adsEnabled!==true)return [{json:{skipped:true,markdown:'',slackText:'',fileName:'ads-'+p.start+'-to-'+p.end+'-skipped.md'}}];const j=$input.first().json,e=j.error??j;const reason=String(typeof e==='string'?e:(e.message||e.description||JSON.stringify(e))).replace(/[\\r\\n]+/g,' ').slice(0,300);const markdown=['INCOMPLETE | '+s.storeName+' | Ads review (Google Ads and Meta)',p.start+' to '+p.end+' | '+s.currency,'','This review did not run, so it reports no figures this week. Missing figures are not zero.','Failed step: '+$prevNode.name,'Reason: '+reason,'','Review: fix the connection or setting named above, then run the workflow again.'].join('\\n')+'\\n';return [{json:{markdown,slackText:markdown,fileName:'ads-'+p.start+'-to-'+p.end+'-incomplete.md',incomplete:true}}];"
+      },
+      "name": "Ads | Incomplete report",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "notes": "Runs only when a step in this lane fails. Writes an INCOMPLETE report so the other reviews still go out.",
+      "notesInFlow": true,
+      "id": "b39111b8-98b5-4c1f-80c2-6115d65b9560",
+      "position": [
+        1824,
+        2896
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const d=$input.first().json;return [{json:d,binary:{report:{data:Buffer.from(d.markdown,'utf8').toString('base64'),mimeType:'text/markdown',fileExtension:'md',fileName:d.fileName}}}];"
+      },
+      "name": "Ads | Create Markdown BEFORE Slack",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2048,
+        2704
+      ],
+      "id": "fd7d7a0e-c8c5-4562-8828-6c01e1cb63fe"
+    },
+    {
+      "parameters": {
+        "content": "## 6. Ads review (optional)\n**For:** every Google Ads and Meta campaign graded on value-to-spend, flagged when below target or when CPA runs above 2x its usual level, with a plain call: scale, hold, or investigate.\n\n**Source:** Nick Christensen's ads reporting starter (MIT), from his workshop \"Ship ICP-driven ad campaigns and automated monitoring\". It ships with his sample campaigns, labelled SAMPLE DATA.\n\n**Switch on:** set `adsEnabled` to true in Settings. While it is false the lane is skipped and nothing about ads is delivered.\n\n**Make it live:** replace the two sample nodes with your own rows in the same fields. Meta: a Facebook Graph API credential (access token with `ads_read`) on the insights edge of `act_<your ad account id>`, and the conversion `action_type` your funnel uses (purchase, lead...). Google Ads: the Google Ads node, an HTTP request, or your Google Ads MCP. Then set the targets at the top of Ads | Analyze.",
+        "width": 758,
+        "height": 300,
+        "color": 1
+      },
+      "name": "Ads review explainer",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "id": "a9b7e917-6daa-49db-b91a-b05bf5be0471",
+      "position": [
+        -144,
+        2512
+      ]
+    },
+    {
+      "parameters": {
         "content": "## 5. Email review (Customer.io)\n**For:** emails sent and delivered, human opens and clicks, conversions, unsubscribes, bounces and the top sends, this week against last, plus email capture.\n**Connection pattern:** Customer.io App API (running automations, broadcasts and their daily metrics; one segment count for capture) → review → Markdown file → collected with the other reports → delivery.\n**Setup:** a Bearer Auth credential with an App API key on the five request nodes; set cioCaptureSegmentId and cioCaptureLabel in Settings. Days are UTC; counts are messages, not people.",
         "width": 758,
         "height": 240,
         "color": 7
       },
-      "id": "38213986-ff8c-4fbd-b74b-e27bd0449236",
+      "id": "3452e349-5abf-4ca5-b2ba-42f1add19445",
       "name": "Email review explainer",
       "type": "n8n-nodes-base.stickyNote",
       "typeVersion": 1,
@@ -1997,6 +2121,11 @@
           },
           {
             "node": "Customer.io | Reporting period",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Ads | Reporting period",
             "type": "main",
             "index": 0
           }
@@ -2700,6 +2829,113 @@
           }
         ]
       ]
+    },
+    "Ads | Reporting period": {
+      "main": [
+        [
+          {
+            "node": "Ads | Google Ads (sample data)",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Ads | Meta Ads (sample data)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Ads | Google Ads (sample data)": {
+      "main": [
+        [
+          {
+            "node": "Ads | Merge",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Ads | Meta Ads (sample data)": {
+      "main": [
+        [
+          {
+            "node": "Ads | Merge",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Ads | Merge": {
+      "main": [
+        [
+          {
+            "node": "Ads | Analyze",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Ads | Analyze": {
+      "main": [
+        [
+          {
+            "node": "Ads | Compose review",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Ads | Incomplete report",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Ads | Compose review": {
+      "main": [
+        [
+          {
+            "node": "Ads | Create Markdown BEFORE Slack",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Ads | Incomplete report",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Ads | Incomplete report": {
+      "main": [
+        [
+          {
+            "node": "Ads | Create Markdown BEFORE Slack",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Ads | Create Markdown BEFORE Slack": {
+      "main": [
+        [
+          {
+            "node": "Collect all reports",
+            "type": "main",
+            "index": 5
+          }
+        ]
+      ]
     }
   },
   "settings": {
@@ -2788,6 +3024,21 @@
         "Customer.io | Last saved count"
       ],
       "description": "Sends, opens, clicks, conversions, unsubscribes and email capture."
+    },
+    {
+      "id": "7dc7a125-4c34-5340-82f2-550fa0bce5c3",
+      "name": "6. Ads review",
+      "nodeNames": [
+        "Ads | Reporting period",
+        "Ads | Google Ads (sample data)",
+        "Ads | Meta Ads (sample data)",
+        "Ads | Merge",
+        "Ads | Analyze",
+        "Ads | Compose review",
+        "Ads | Incomplete report",
+        "Ads | Create Markdown BEFORE Slack"
+      ],
+      "description": "Google Ads and Meta campaigns graded on value-to-spend (Nick Christensen's starter). Optional: adsEnabled in Settings."
     },
     {
       "id": "2eadc71b-f211-56e4-808d-0aa4dd9ee682",

@@ -8,6 +8,9 @@ def strings(o):
         for v in o: yield from strings(v)
 nick=" ".join(strings(json.load(open("handoff-src/four-reviews-connection-template.json"))))
 nick+=" "+open(os.path.join(HERE,"js","slack-format.js")).read()
+ads=json.load(open(os.path.join(HERE,"fixtures","nick-ads-starter","starter-workflow.json")))
+ads_code={n["name"]:n["parameters"].get("jsCode") for n in ads["nodes"]}
+nick+=" "+" ".join(c for c in ads_code.values() if c)  # Nick's ads starter code is quoted unchanged
 for new in ["out/four-reviews-metorik-template-v1.1.json","out/four-reviews-connection-template-v1.2.json"]:
     b=json.load(open(new))
     ids=[n["id"] for n in b["nodes"]]; names=[n["name"] for n in b["nodes"]]
@@ -43,11 +46,19 @@ check(nodes["AI | Claude model"]["parameters"]["model"]["value"]=="claude-sonnet
 check(nodes["AI | Claude model"]["parameters"]["options"].get("maxTokensToSample")==6000,"full template: summary has room to finish (6000 tokens)")
 
 # Both templates: collapsible groups, hard public-repo checks, notes clear of grouped nodes
+COL="Collect all reports"
 for fn in ["out/four-reviews-metorik-template-v1.1.json","out/four-reviews-connection-template-v1.2.json"]:
     w=json.load(open(fn)); N={n["name"]:n for n in w["nodes"]}; tag=fn.split("/")[-1]+": "
     groups=w.get("nodeGroups") or []
     members=[m for g in groups for m in g["nodeNames"]]
-    check(len(groups)==9 and all(g.get("id") and g.get("name") and g.get("description") for g in groups),tag+"9 named groups with ids and descriptions")
+    check(len(groups)==10 and all(g.get("id") and g.get("name") and g.get("description") for g in groups),tag+"10 named groups with ids and descriptions")
+    check("6. Ads review" in [g["name"] for g in groups],tag+"the Ads review has its own group")
+    for old,new in {"Mock Google Ads":"Ads | Google Ads (sample data)","Mock Meta Ads":"Ads | Meta Ads (sample data)","Analyze":"Ads | Analyze"}.items():
+        js=N[new]["parameters"]["jsCode"]
+        check(js.endswith(ads_code[old]) and "Nick Christensen" in js and "MIT" in js and "nickyc1/ship-icp-ads-automate-monitoring" in js,tag+new+": Nick's code carried unchanged under a credit header")
+    check("adsEnabled:false" in N["Settings"]["parameters"]["jsCode"],tag+"Ads review ships switched off (adsEnabled:false)")
+    check(N[COL]["parameters"]["numberInputs"]==6 and any(t["node"]==COL and t["index"]==5 for o in w["connections"]["Ads | Create Markdown BEFORE Slack"]["main"] for t in o),tag+"Collect takes the Ads review as its sixth input")
+    check(not [n for n in w["nodes"] if n["type"] in ("n8n-nodes-base.scheduleTrigger","n8n-nodes-base.emailSend")] and "hooks.slack.com" not in json.dumps(w),tag+"the starter's own trigger, webhook and email node are left out")
     check(all(m in N for m in members),tag+"every grouped node exists")
     check(not [m for m in members if N[m]["type"]=="n8n-nodes-base.manualTrigger"],tag+"no trigger in a group")
     check(len(members)==len(set(members)),tag+"no node in two groups")
