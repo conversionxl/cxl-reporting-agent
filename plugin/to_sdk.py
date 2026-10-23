@@ -34,7 +34,7 @@ for i, n in enumerate(wf["nodes"]):
         lines.append(f"const {v} = sticky({json.dumps(p['content'])}, [], {js(opts)});")
         continue
     cfg["parameters"] = n["parameters"]
-    for k in ("disabled", "onError", "retryOnFail", "maxTries", "waitBetweenTries", "notes", "notesInFlow"):
+    for k in ("disabled", "onError", "retryOnFail", "maxTries", "waitBetweenTries", "alwaysOutputData", "executeOnce", "notes", "notesInFlow"):
         if k in n:
             cfg[k] = n[k]
     fn = "trigger" if n["type"].endswith("Trigger") else ("merge" if n["type"] == "n8n-nodes-base.merge" else "node")
@@ -46,8 +46,15 @@ for i, n in enumerate(wf["nodes"]):
 wf_id = re.sub(r"[^a-z0-9]+", "-", sys.argv[1].rsplit("/", 1)[-1].rsplit(".", 1)[0].lower()).strip("-")
 chain = [f"export default workflow({json.dumps(wf_id)}, {json.dumps(wf['name'])})"]
 added = set()
+subnodes = []
 for src, c in wf["connections"].items():
-    for out_i, targets in enumerate(c["main"]):
+    for kind, outs in c.items():
+        if kind != "main":  # an AI sub-node (for example the chat model of an AI Agent)
+            for targets in outs:
+                for t in targets:
+                    subnodes.append((src, t["node"], kind))
+                    added |= {src, t["node"]}
+    for out_i, targets in enumerate(c.get("main", [])):
         for t in targets:
             dst = var[t["node"]]
             tn = next(n for n in wf["nodes"] if n["name"] == t["node"])
@@ -61,6 +68,8 @@ for n in wf["nodes"]:
     if n["name"] not in added:
         chain.append(f"  .add({var[n['name']]})")
 lines.append("")
+for src, dst, kind in subnodes:
+    lines.append(f"// After creating the workflow, connect {src!r} to {dst!r} as its {kind} in the editor (or with update_workflow, connectionType {kind!r}).")
 lines.append("\n".join(chain) + ";")
 open(out_path, "w").write("\n".join(lines) + "\n")
 print(out_path, len(open(out_path).read()), "chars")

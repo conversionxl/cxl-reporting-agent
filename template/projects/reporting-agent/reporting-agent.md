@@ -9,7 +9,7 @@ tags: [reporting-agent, n8n, weekly-report]
 
 # Reporting agent
 
-Four weekly reviews built in n8n and read here: executive, marketing sources, products, website traffic.
+Weekly reviews built in n8n and read here: executive, marketing sources, products, website traffic and email, with trends and an AI summary.
 
 ## My setup
 
@@ -31,7 +31,7 @@ Filled in as you go through `/reporting-agent:build-reporting-agent`. No keys, t
 ## Demo progress
 
 - [ ] Demo workflow imported and run (a Markdown report at the end of each of the four rows)
-- [ ] Connection template imported, Settings filled in, first run (four INCOMPLETE reports)
+- [ ] Connection template imported (full, or Metorik), Settings filled in, first run (every review INCOMPLETE)
 - [ ] Reports delivered and saved into this OS (`/reporting-agent:get-email-reports`)
 - [ ] One lane on my own store or CRM data (complete run, or a screenshot of where it failed), reconciled against the old source
 - [ ] GA4 connected (optional)

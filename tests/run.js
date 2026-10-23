@@ -1,5 +1,7 @@
 // Minimal local runner for the four-reviews workflows: Code, Merge, disabled
-// pass-through, error outputs, and the three delivery nodes (recorded, not sent).
+// pass-through, error outputs (both kinds), alwaysOutputData, Data Table rows
+// (from opts.history, inserts recorded), the AI Agent (opts.ai stands in for the
+// model), and the three delivery nodes (recorded, not sent).
 const fs = require('fs');
 const vm = require('vm');
 const { DateTime } = require('luxon');
@@ -20,12 +22,12 @@ async function run(path, opts = {}) {
   const conns = wf.connections;
   for (const [from, c] of Object.entries(conns)) {
     if (!nodes[from]) throw Error('connection from missing node ' + from);
-    for (const out of c.main) for (const t of out) if (!nodes[t.node]) throw Error('connection to missing node ' + t.node);
+    for (const outs of Object.values(c)) for (const out of outs) for (const t of out) if (!nodes[t.node]) throw Error('connection to missing node ' + t.node);
   }
   const fixedNow = opts.now || '2026-10-21T17:00:00Z';
   const FixedDate = makeDate(fixedNow);
   const demoFixtures = opts.fixtures || {};
-  const runData = {}, delivered = { slack: [], github: [], email: [], api: [] }, mergeBuf = {}, errors = [], ran = [];
+  const runData = {}, delivered = { slack: [], github: [], email: [], api: [], history: [] }, mergeBuf = {}, errors = [], ran = [];
 
   const ref = name => {
     if (!runData[name]) throw Error(`Node '${name}' has not run`);
@@ -46,7 +48,7 @@ async function run(path, opts = {}) {
     if (v && typeof v === 'object' && v.__rl) return evalExpr(v.value, item);
     if (typeof v !== 'string' || !v.startsWith('=')) return v;
     return v.slice(1).replace(/\{\{([\s\S]+?)\}\}/g, (_, e) => {
-      const ctx = vm.createContext({ $json: item.json, $binary: item.binary || {}, $: ref, JSON, Object, $execution: { id: '8200' } });
+      const ctx = vm.createContext({ $json: item.json, $binary: item.binary || {}, $: ref, JSON, Object, String, Math, $now: DateTime.fromISO(fixedNow), $execution: { id: '8200' } });
       return String(vm.runInContext(e, ctx));
     });
   }
@@ -86,6 +88,16 @@ async function run(path, opts = {}) {
       if (opts.fail && opts.fail[name]) throw Error(opts.fail[name]);
       if (n.type === 'n8n-nodes-base.manualTrigger') out = [{ json: {} }];
       else if (n.type === 'n8n-nodes-base.httpRequest') throw Error('HTTP node enabled without fixture: ' + name);
+      else if (n.type === 'n8n-nodes-base.dataTable') {
+        if (n.parameters.operation === 'insert') {
+          const row = Object.fromEntries(Object.entries(n.parameters.columns.value).map(([k, v]) => [k, evalExpr(v, items[0])]));
+          delivered.history.push(row);
+          out = [{ json: { ...row, id: delivered.history.length } }];
+        } else out = (opts.history || []).map(h => ({ json: h }));
+      } else if (n.type === '@n8n/n8n-nodes-langchain.agent') {
+        if (!opts.ai) throw Error('No model credential');
+        out = [{ json: { output: opts.ai(items[0].json) } }];
+      }
       else if (n.type === 'n8n-nodes-base.code') {
         out = await runCode(n.parameters.jsCode, items, prev);
         if (name === 'Settings' && opts.settings) out = out.map(i => ({ json: { ...i.json, ...opts.settings } }));
@@ -96,9 +108,11 @@ async function run(path, opts = {}) {
         runData[name] = [];
         return emit(name, [[], [{ json: err }]]);
       }
+      if (n.onError === 'continueRegularOutput') return emit(name, [[{ json: { error: { message: e.message } } }]]);
       errors.push(`${name}: ${e.message}`);
       return;
     }
+    if (!out.length && n.alwaysOutputData) out = [{ json: {} }];
     return emit(name, [out]);
   }
 
@@ -113,6 +127,7 @@ async function run(path, opts = {}) {
   }
 
   // Template runs with enabled sources use the demo's fixture code under the same node name.
+  if (opts.ai) for (const n of wf.nodes) if (n.type === '@n8n/n8n-nodes-langchain.agent') n.disabled = false;
   for (const [name, code] of Object.entries(demoFixtures)) {
     nodes[name].disabled = false;
     nodes[name].type = 'n8n-nodes-base.code';
@@ -120,7 +135,7 @@ async function run(path, opts = {}) {
   }
   const trigger = wf.nodes.find(n => n.type === 'n8n-nodes-base.manualTrigger').name;
   await exec(trigger, [{ json: {} }], 0, null);
-  const merged = runData['Collect all four reports'] || [];
+  const merged = runData['Collect all four reports'] || runData['Collect all reports'] || [];
   return { runData, merged, delivered, errors, ran, nodes };
 }
 

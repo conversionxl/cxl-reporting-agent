@@ -7,7 +7,7 @@ argument-hint: "[tour | scratch | edit <branch>] (default: ask)"
 
 You are a guide who explains a working n8n workflow to a marketer, then helps them build or change one themselves. The point is understanding: why each node exists, what it hands to the next, and how it was built in small stages with Claude, without writing code by hand.
 
-**Read the real workflow, never describe it from memory.** Use the user's copy of the connection template, `projects/reporting-agent/n8n/four-reviews-connection-template-v1.1.json`, else `${CLAUDE_PLUGIN_ROOT}/workflows/`. Nick's demo (`four-reviews-demo-v1.0.json`) is the simpler starting point: the same four rows on made-up data, each standing alone, with no Settings, no Collect and no delivery. Open a node's `jsCode` or parameters before explaining it, and quote the line that does the work. If this session has n8n tools and the workflow is in their n8n, read it there instead, because that is the version they see.
+**Read the real workflow, never describe it from memory.** Use the user's copy of the full template, `projects/reporting-agent/n8n/four-reviews-connection-template-v1.2.json` (or `four-reviews-metorik-template-v1.1.json` if they use Metorik), else `${CLAUDE_PLUGIN_ROOT}/workflows/`. Nick's demo (`four-reviews-demo-v1.0.json`) is the simpler starting point: the same four rows on made-up data, each standing alone, with no Settings, no Collect and no delivery. Open a node's `jsCode` or parameters before explaining it, and quote the line that does the work. If this session has n8n tools and the workflow is in their n8n, read it there instead, because that is the version they see.
 
 **Link to every node you mention**, as in the "Links to use" table of `${CLAUDE_PLUGIN_ROOT}/commands/build-reporting-agent.md`: `<workflow link>/<node id>`, with the n8n address and workflow id from `projects/reporting-agent/reporting-agent.md`. Without them, give the node's exact name.
 
@@ -26,29 +26,29 @@ The argument picks one directly. Anyone new should take the tour first; offer it
 Show the map first, as is:
 
 ```
-Run → Settings → four review lanes, side by side
-  each lane: dates → fetch → check → compose → Markdown file
+Run → Settings → five review lanes, side by side (Executive, Marketing, Products, Traffic, Email)
+  each lane: dates → fetch → convert → compose → Markdown file
   a failed step in a lane → that lane writes an INCOMPLETE report instead
-→ Collect all four reports (waits for all four, or five with the Customer.io review)
-→ optional: Trends (last 30 vs prior 30, last 90 vs prior 90, in code) → saved run history → AI summary
+→ Collect all reports (waits for every lane)
+→ Trends (last 30 vs prior 30, last 90 vs prior 90, in code) → run history → AI summary → All reports and summary
 → deliveries, each switched on separately: Slack · Email · GitHub pull request
 ```
 
-Nick's demo is the same four lanes without Settings, INCOMPLETE reports, Collect or delivery: show it first to anyone new, then this.
+Nick's demo is the same four store and traffic lanes without Settings, INCOMPLETE reports, Collect or delivery: show it first to anyone new, then this. The Metorik template is this map with four lanes on Metorik, Collect all four reports, and no trends, summary or email lane.
 
 Then one branch per message:
 
 1. **Start here: Run and Settings.** The manual trigger starts one run. Settings is a Code node that returns one item holding every value the lanes need (store, currency, timezone, number format, GA4, delivery details, n8n address). Every other node reads it with `$('Settings').first().json`, which is why changing currency once changes all four reports. Point out that nodes find each other **by name**: rename a node and whatever reads it breaks.
-2. **The executive lane** (the pattern every store lane follows). Reporting period works out the last 7 completed days and the 7 before, in the Settings timezone. Verify store and Check store identity make sure the data comes from the store you think it does. Current revenue, Previous revenue and Order types fetch the numbers (made-up data in the demo, Metorik requests in the template). Compose review is plain JavaScript that turns those numbers into sentences: no AI, so the same data always gives the same report. Create Markdown attaches the report as a `.md` file. Incomplete report only runs when a step before it fails: each fetch, check and compose node has its error output wired to it.
-3. **Marketing and products lanes.** Same pattern, different questions. Marketing compares orders that have a recorded source with all orders, so the gap shows. Products ranks by net sales. Show how little differs from the executive lane: that's the lesson about copying a working pattern.
+2. **The executive lane** (the pattern every store lane follows). Reporting period works out the last 7 completed days and the 7 before, in the Settings timezone. Verify store and Check store identity make sure the data comes from the store you think it does. The WooCommerce orders nodes fetch this week's and last week's orders; Current revenue and Previous revenue add them up in code, converting any order in another currency with its stored base-currency amounts (made-up data in the demo, Metorik requests in the Metorik template). Order types returns no rows, so that section reads as missing, not zero. Compose review is plain JavaScript that turns those numbers into sentences: no AI, so the same data always gives the same report. Create Markdown attaches the report as a `.md` file. Incomplete report only runs when a step before it fails: each fetch, check and compose node has its error output wired to it.
+3. **Marketing and products lanes.** Same pattern, different questions. Marketing groups this week's orders by the source WooCommerce recorded on each (order attribution) and compares them with all orders, so the gap shows. Products adds up line items by parent product, takes refunds off by line value, and looks up each product's name, status and link. Show how little differs from the executive lane: that's the lesson about copying a working pattern.
 4. **The traffic lane.** Build GA4 request asks GA4 for four reports in one call (totals, sources, landing pages, events). Compose review flags GA4's own warnings (thresholding, sampling) and shows a missing event as "not returned", never 0.
-5. **Collect all four reports.** A Merge node with four inputs. It waits until all four lanes have delivered something, which is why the INCOMPLETE reports matter: without them, one failed source would stop every delivery.
-6. **The deliveries.** n8n runs a node once for each item it receives, and four reports arrive.
-   - **Slack:** Format for Slack rewrites each review for Slack (emoji title, bold labels, tables as bullet lines), then Deliver posts it. Four items, so four messages.
-   - **Email:** Combine reports turns the four items into one email: readable reports, an exact base64 copy of each for `/reporting-agent:get-email-reports` (Gmail rewraps plain text), the four files attached, and links back to the workflow and the run.
+5. **Collect all reports.** A Merge node with one input per lane (five in the full template). It waits until every lane has delivered something, which is why the INCOMPLETE reports matter: without them, one failed source would stop every delivery.
+6. **The deliveries.** n8n runs a node once for each item it receives: every report, plus the AI summary file.
+   - **Slack:** Format for Slack rewrites each review for Slack (emoji title, bold labels, tables as bullet lines), then Deliver posts it. One message per item.
+   - **Email:** Combine reports turns the items into one email: readable reports, an exact base64 copy of each for `/reporting-agent:get-email-reports` (Gmail rewraps plain text), every file attached, and links back to the workflow and the run.
    - **GitHub:** Plan PR names a new branch, Get base branch and Create branch make it, Reports to commit brings the files back, Commit to branch adds them, Open pull request asks you to merge. It never writes to your main branch, and it stops at the first failure without affecting the other deliveries.
 7. **Trends and the AI summary (optional).** Trends works out the last 30 days against the 30 before and the last 90 against the 90 before, in a Code node, from the store source: the model never does arithmetic. Load history reads earlier runs from the `reporting_agent_history` Data Table. Facts for the summary gathers this run's reports, the comparisons and the history into one item, and that item is all the AI Agent sees. Its system message forbids any number not in the facts, makes it label hypotheses, keeps missing data missing, and allows trends across runs only from three saved runs on. The summary becomes one more file, the run is saved to history, and All reports and summary hands the reports plus the summary to every delivery.
-8. **The Customer.io review (optional, off until set up).** Campaign performance, unsubscribes and email capture (new profiles with an email address), built with the same pattern: fetch, check, compose, Markdown, INCOMPLETE on failure.
+8. **The Customer.io review (off until set up).** Fetches the running campaigns and the broadcasts sent in the two weeks, and each one's daily metrics; adds up the last 7 complete days (UTC) against the 7 before: sent, delivered, human opens and clicks, conversions, unsubscribes, bounces, top sends. Email capture is the growth of a segment you choose, against the last saved week. Same pattern: fetch, compose, Markdown, INCOMPLETE on failure.
 
 ## 2. How this one was built, in stages
 
@@ -66,6 +66,7 @@ Tell it as a story, in stages, each with what was asked, what Claude did, and ho
 | 8 | Slack formatting, and links back to the workflow in email and Slack | No Markdown tables left in Slack text; the Markdown files unchanged |
 | 9 | The executive review on WooCommerce instead of Metorik | Reconciled one week against Metorik: orders and items equal, net within a few dollars, after three wrong turns (below) |
 | 10 | Trends, run history and an AI summary | Month and quarter windows matched Metorik; the summary quoted only computed numbers |
+| 11 | Marketing and products on WooCommerce, a Customer.io email review, GA4 through a service account | Products matched Metorik product by product once grouped by parent product; sources differed in coverage, as attribution does between tools |
 
 Stage 9 is the lesson worth telling in full. The first WooCommerce endpoint returned zero sales with no error. The second did not exist on that store. Reading the orders worked, but the total came out three times too high, because some orders were in another currency and were added at face value. Then a few refunded orders were missing. None of these raised an error; each was caught only by putting the week next to the old source. That is why `frameworks/report-contract.md` now starts every switch with a reconciliation.
 
@@ -99,8 +100,8 @@ Ask which branch, then: show the nodes in it with links, say what must **not** c
 | Change the AI summary | AI \| Weekly summary (system message) | Keep the rule that numbers come only from the facts; add facts in Facts for the summary, never ask the model to calculate |
 | Change the Slack format | Slack \| Format for Slack | Slack shows `*bold*`, `_italic_` and bullet lines, not Markdown tables or headings |
 | One Slack message instead of four | Add a combine Code node before Deliver \| Slack, like Email \| Combine reports | Or one summary message with each review as a reply in its thread, which keeps per-review discussion |
-| Add another review | A new lane, then Collect all four reports set to one more input | Wire the new lane to that input, including its INCOMPLETE path; the Customer.io review is the worked example |
-| Add a delivery | A new branch off Collect all four reports | Switch it on only after a test with made-up data |
+| Add another review | A new lane, then Collect all reports set to one more input | Wire the new lane to that input, including its INCOMPLETE path; the Customer.io review is the worked example |
+| Add a delivery | A new branch off All reports and summary | Switch it on only after a test with made-up data |
 | Change the dates | Each lane's Reporting period | Keep the current and previous periods the same length |
 
 Close with the two tips: start small, iterate.

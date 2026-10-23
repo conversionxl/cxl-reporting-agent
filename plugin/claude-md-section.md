@@ -6,11 +6,11 @@
 
 <!-- Added by /reporting-agent:build-reporting-agent. Edit freely. -->
 
-**Four weekly reviews, read in this OS.** An n8n workflow builds four reports each run: executive (sales, refunds, orders), marketing sources (which recorded sources are tied to sales, and how much has no source), products (what sold), and website traffic (GA4), plus an optional Customer.io review. It writes them as dated Markdown files, collects them, and delivers them by email, a GitHub pull request, or Slack. Claude reads them here and helps decide what to check next. The numbers come from deterministic code in n8n, not from an AI model. The optional AI summary only narrates numbers the workflow computed.
+**Weekly reviews, read in this OS.** An n8n workflow builds a report per review each run: executive (sales, refunds, orders), marketing sources (which recorded sources are tied to sales, and how much has no source), products (what sold), website traffic (GA4) and, in the full template, email (Customer.io), plus trends and an AI summary. It writes them as dated Markdown files, collects them, and delivers them by email, a GitHub pull request, or Slack. Claude reads them here and helps decide what to check next. The numbers come from deterministic code in n8n, not from an AI model. The optional AI summary only narrates numbers the workflow computed.
 
 | Folder | What goes in it |
 |---|---|
-| `projects/reporting-agent/` | The project file (your settings, which delivery you use, your demo progress) and `n8n/`, the two workflows to import: Nick's demo with made-up data, and the connection template for your own data, with Settings, delivery, trends and the AI summary. |
+| `projects/reporting-agent/` | The project file (your settings, which delivery you use, your demo progress) and `n8n/`, the workflows to import: Nick's demo with made-up data, the full template for your own data (WooCommerce, GA4, Customer.io, trends, AI summary, delivery), and a Metorik template for stores on Metorik. |
 | `raw/performance/reporting-agent/` | The saved reports, one file per review per run. Kept out of git, because real reports hold revenue. |
 
 | Command | What it does |

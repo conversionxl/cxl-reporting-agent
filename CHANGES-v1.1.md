@@ -4,26 +4,32 @@
 
 **The demo is back to Nick's v1.0, unchanged.** `workflows/four-reviews-demo-v1.0.json` is his export byte for byte: four rows on made-up data, no Settings, no Collect, no delivery. It is the simpler thing to learn from. Every change below, and every change in the v1.1 list further down, now lives in the connection template only. The build command was reordered to match: demo (steps 3 and 4), then the template with its Settings (step 5), delivery (6), own data (7), GA4 (8), extras (9).
 
-**Connection template, built and tested live on n8n Cloud** (the exported file lands in `workflows/` separately; until then the shipped template is the 0.2.0 build):
+**Full template (`workflows/four-reviews-connection-template-v1.2.json`), built and tested live on n8n Cloud** against a WooCommerce store, Customer.io and GA4, then exported with credentials, ids and store details removed (`tests/fixtures/full-template-source.json`) and rebuilt by `build_full()` in `tests/build.py`. The 0.2.0 template, on Metorik, is kept as `workflows/four-reviews-metorik-template-v1.1.json` and built exactly as before.
 
 | # | Change | Why |
 |---|---|---|
-| 8 | Settings: `sourceLabel` and `refundNote`, printed on the executive review | The review said "Live Metorik data" when the numbers came from WooCommerce, and the AI summary then told the reader the figures would not match Metorik. |
-| 9 | Executive review on WooCommerce, as the worked "own data" example: `wc/v3/orders` summed in Code | `wc/v3/reports/sales` returned zero sales with no error on a store with the new order storage; `wc-analytics` returned 404 with Analytics off. |
+| 8 | Settings: `sourceLabel` and `refundNote`, printed on the reviews; `storeUrl` for every WooCommerce request; `cioApiUrl` (EU workspaces use `api-eu`); `cioCaptureSegmentId` and `cioCaptureLabel`; `n8nUrl` as in 0.2.0 | The review said "Live Metorik data" when the numbers came from WooCommerce, and the AI summary then told the reader the figures would not match Metorik. |
+| 9 | Executive review on WooCommerce: `wc/v3/orders` summed in Code | `wc/v3/reports/sales` returned zero sales with no error on a store with the new order storage; `wc-analytics` returned 404 with Analytics off. |
 | 10 | Multi-currency conversion from the order's base-currency fields; INCOMPLETE when they are missing | Orders in another currency were added at face value and inflated gross about three times. |
 | 11 | Refunded orders included | Without them, orders, gross and refunds drifted from Metorik. With them, one week and 30 days reconciled within a few dollars. |
-| 12 | Trends branch after Collect: last 30 vs prior 30 and last 90 vs prior 90, computed in code | Month and quarter comparisons from the first run, without asking a model to calculate. |
-| 13 | Run history in an n8n Data Table (`reporting_agent_history`) | Trends across runs, once there are three. |
-| 14 | AI summary: AI Agent with an Anthropic model, fed only the reports, the computed comparisons and the history; its file is delivered with the reports through "All reports and summary" | Trends, flags, what is and isn't working, in one read. The system message forbids new numbers, requires labelled hypotheses, and keeps missing data missing. |
-| 15 | Customer.io review lane (campaign performance, unsubscribes, email capture), shipped off | Proposal for Nick, see NOTES-for-Nick.md. |
-| 16 | Slack without n8n's attribution footer (`includeLinkToWorkflow: false`) | The footer linked every message to the workflow. |
-| 17 | Pending in the template export: the INCOMPLETE report's "First run before setup?" line only when the failed node is switched off | It showed on real failures too, where it misleads. |
+| 12 | Trends branch after Collect: last 30 vs prior 30 and last 90 vs prior 90, computed in code from WooCommerce orders | Month and quarter comparisons from the first run, without asking a model to calculate. |
+| 13 | Run history in an n8n Data Table (`reporting_agent_history`, found by name; the learner creates it) | Trends across runs, once there are three. |
+| 14 | AI summary: AI Agent with an Anthropic model (`claude-sonnet-5-5`), fed only the reports, the computed comparisons and the history; given the number of complete reviews directly, and earlier runs of the same week count once; its file is delivered with the reports through "All reports and summary". Shipped off. | Trends, flags, what is and isn't working, in one read. On the live run it first miscounted the reviews and counted three test reruns of one week as three weeks. |
+| 15 | Marketing review on WooCommerce order attribution (`_wc_order_attribution_utm_source` and `_utm_medium`); orders without a `utm_source` are counted as not represented | The same orders fetch as the executive review, no Metorik needed. Coverage differs from Metorik's source report (WooCommerce recorded a source on more orders), which is expected: attribution never reconciles across tools, totals do. |
+| 16 | Products review on order line items, grouped by parent product (`product_id`), net of refunds shared by line value; names, status and links from `wc/v3/products` | Grouped by variation name it did not line up with Metorik; by parent product it matched product by product. |
+| 17 | Customer.io email review (fifth lane, shipped off): App API `/v1/campaigns`, `/v1/campaigns/{id}/metrics` and `/v1/newsletters/{id}/metrics` with `period=days&steps=15`; the last 7 complete UTC days against the 7 before; `human_opened` and `human_clicked`, `unsubscribed`, `topic_unsubscribed`, bounces and spam; top sends | Campaign performance and unsubscribes next to revenue. |
+| 18 | Email capture: net growth of a chosen segment (`/v1/segments/{id}/customer_count`) against the last saved week, stored in the history as `facts_json.leads_email_count` | The App API cannot count people by the date they were created, so a segment does the counting. The first run only takes a reading. |
+| 19 | GA4 through a Google Service Account credential (predefined `googleApi` type) with `analytics.readonly` | A Search Console login returned Forbidden; the service account needs no OAuth sign-in. |
+| 20 | Slack: Format for Slack also titles the email review and the summary; one message per file; no n8n footer (`includeLinkToWorkflow: false`) | As 0.2.0, extended to the new files. |
+| 21 | The INCOMPLETE report's "First run before setup?" line only when the reason says a source is not connected yet (both templates) | It showed on real failures too, where it misleads. |
+| 22 | A switched-off WooCommerce node never reads as zero: the conversion steps throw "No order data: the WooCommerce request node is switched off..." (the lane goes INCOMPLETE) and Trends reports itself unavailable; an empty week from a connected store is a true zero | A switched-off node passes its input through, which a sum would otherwise read as no orders. |
+| 23 | Collect renamed "Collect all reports" (five inputs) in the full template; frames for the email lane and for the Trends and AI row | Five lanes; the canvas stays readable in blocks. |
 
 **Coaching changes from the live test:** credentials must be created in, or shared with, the workflow's n8n project; WooCommerce auth by a Basic header (the `qs` method was refused); a Search Console Google login has no Analytics scope (403), so GA4 needs its own; check that the GitHub delivery repo is private before a live run; check after every import that delivery nodes are switched off (one import came in with Slack on and a login filled in); reconcile one week against the old source before trusting a new one. The general rules are in `frameworks/report-contract.md`, "Switching sources: guardrails".
 
 ---
 
-Proposed edits to Nick's handoff of 22 October 2026, and the plugin built around them, for Nick's review before anything is final. Since 0.3.0 these changes apply to `workflows/four-reviews-connection-template-v1.1.json` (Metorik and GA4) only; the demo ships as Nick's v1.0. The report code and the made-up data are unchanged, apart from the lines listed below.
+Proposed edits to Nick's handoff of 22 October 2026, and the plugin built around them, for Nick's review before anything is final. Since 0.3.0 these changes apply to the templates only (`workflows/four-reviews-metorik-template-v1.1.json`, Metorik and GA4, and through it the full template); the demo ships as Nick's v1.0. The report code and the made-up data are unchanged, apart from the lines listed below.
 
 ## What changed
 
@@ -82,8 +88,8 @@ The workflow was run locally with a small runner that copies n8n's behaviour for
 
 **Not tested yet:**
 - Importing the JSON file through the n8n editor. The workflow was created through the n8n API from the same definition, not by file import.
-- The connection template in n8n
-- A live Metorik or GA4 run
+- The Metorik template in n8n, and a live Metorik run
+- The full template file imported fresh (it is the sanitized export of the tested workflow), and its GA4 lane on a live run
 
 ## Questions for Nick
 

@@ -20,6 +20,9 @@ Every one of these came from a real switch (Metorik to WooCommerce, October 2026
 6. **Page through everything, and flag truncation.** Fetch every page until an empty one. If a page limit is hit, say so on the report instead of reporting a partial total.
 7. **Ask for the fields you need, nothing more.** Limit the response to money fields and identifiers (`_fields` on WooCommerce). It keeps customer names and emails out of n8n's execution history and keeps runs fast.
 8. **The report names the real source.** Set `sourceLabel` (and `refundNote`) in Settings, so no report says "Metorik" when the numbers came from somewhere else. A reader, or the AI summary, will otherwise compare it with the wrong thing.
+9. **Totals reconcile across tools; attribution does not.** Orders, gross, refunds and net should match the old source. Sources by order will not: each tool records attribution its own way and covers a different share of orders (WooCommerce's order attribution recorded a source on far more orders than Metorik's source report for the same week). Compare the rows both tools have; never "fix" one tool's attribution to match the other.
+10. **Compare like with like.** Group products the way the old source does before comparing (Metorik ranks by parent product, so a per-variation list will not line up), and match its definition of net (tax excluded, refunds taken off).
+11. **A switched-off source is not zero.** A disabled request node in n8n passes its input through, which a sum reads as "no orders". Make the conversion step throw when its input is not the source's data, so the review goes INCOMPLETE; keep "Always Output Data" on the request, so a connected store with a genuinely empty week reports a true zero.
 
 ## WooCommerce mapping
 
@@ -36,6 +39,14 @@ Read `wc/v3/orders` with statuses `processing,completed,refunded`, `per_page=100
 | `totals.net` | gross minus taxes, shipping (`shipping_total`) and refunds | the same, with `_order_shipping_base_currency` |
 
 Refunds then count against the order they belong to (order date): say so in `refundNote`. The meta key names come from the store's multi-currency plugin; check one foreign-currency order before relying on them.
+
+The full template (`four-reviews-connection-template-v1.2.json`) has this built in for all three store reviews:
+
+| Review | WooCommerce source | Contract node |
+|---|---|---|
+| Marketing | the week's orders, `_fields` with `meta_data`: `_wc_order_attribution_utm_source` and `_wc_order_attribution_utm_medium` (medium `(not set)` when absent) | `Marketing \| Order sources` rows per source and medium, net per order as above; orders without a `utm_source` are left out, so the review counts them as not represented |
+| Products | the week's orders with `line_items` and `refunds`, then `wc/v3/products?include=<ids>&_fields=id,name,status,type,permalink` | `Products \| Top products`: grouped by parent `product_id`, net sales = line totals (tax excluded) minus each order's refunds shared by line value, converted with the order's exchange rate |
+| Trends | every paid or refunded order in the last 180 days, with `date_created` | windows summed in code: last 30 vs prior 30 and last 90 vs prior 90 |
 
 ## Executive review
 
@@ -63,7 +74,11 @@ Refunds then count against the order they belong to (order date): say so in `ref
 
 ## Website traffic review
 
-The traffic lane uses the GA4 Data API response as it comes (`batchRunReports`, four reports: totals, source and medium, landing pages, events). Connect GA4 in the connection template; no conversion step is needed.
+The traffic lane uses the GA4 Data API response as it comes (`batchRunReports`, four reports: totals, source and medium, landing pages, events). Connect GA4 in the connection template; no conversion step is needed. A Google Service Account credential (predefined type `googleApi`, scope `analytics.readonly`, its email a Viewer on the property) is the simplest login; a Search Console login has no Analytics access.
+
+## Email review (Customer.io, full template)
+
+The Customer.io App API (`cioApiUrl` in Settings) gives each running campaign's and each recent broadcast's daily metrics (`/v1/campaigns/{id}/metrics`, `/v1/newsletters/{id}/metrics`, `period=days&steps=15`). The series end with today, which is partial: the review sums the 7 complete days before it against the 7 before those, in UTC. Fields used: `sent`, `delivered`, `human_opened`, `human_clicked`, `converted`, `unsubscribed`, `topic_unsubscribed`, `bounced`, `spammed`. Counts are messages, not people. Email capture is a segment's size (`/v1/segments/{id}/customer_count`, the segment set in `cioCaptureSegmentId`) against the last saved week in the history table, so it is net growth; the App API cannot count people by the date they were created.
 
 ## Mapping a CRM instead of a store
 

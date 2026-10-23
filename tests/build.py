@@ -1,8 +1,13 @@
-"""Apply the v1.1 edits to Nick's connection template export.
+"""Build both connection templates.
 
 Usage: python3 -I build.py <src_dir> <out_dir>
+build(): the v1.1 edits on Nick's connection template export, written as
+four-reviews-metorik-template-v1.1.json (Metorik and GA4).
+build_full(): the full template, four-reviews-connection-template-v1.2.json, from the
+sanitized export of the workflow tested live on 23 October 2026
+(tests/fixtures/full-template-source.json), plus the plugin edits.
 The demo ships as Nick's v1.0 export, unchanged (workflows/four-reviews-demo-v1.0.json):
-Settings, Collect and delivery belong to the connection template only. The demo
+Settings, Collect and delivery belong to the templates only. The demo
 branches in build() are kept so the template's edits stay in one place.
 Every string replacement asserts the exact number of matches, so a changed
 source fails loudly instead of producing a half-edited workflow.
@@ -152,25 +157,33 @@ return [{{json:{{
 }}}}];"""
 
 
-def incomplete_code(lane, traffic=False):
+# Reasons that mean "this source is not connected yet", as opposed to a real failure.
+SETUP_REASONS = "/switched off|configure the connection first|did not load: no response|got undefined/"
+
+
+def incomplete_code(lane, traffic=False, email=False):
     period = f"$('{lane} | Reporting period').first().json"
     if traffic:
         head = (f"const c={period};const p={{start:c.current.start,end:c.current.end}};"
                 "const s=$('Settings').first().json;")
         title, slug, meta = "Website traffic review", "traffic", "'GA4 | '+c.timeZone"
+    elif email:
+        head = f"const p={period};const s=$('Settings').first().json;"
+        title, slug, meta = "Email review (Customer.io)", "email", "'Customer.io'"
     else:
         head = f"const p={period};"
         title = {"Executive": "Executive business review", "Marketing": "Marketing source review",
                  "Products": "Top product review"}[lane]
         slug, meta = lane.lower(), "p.currency+' | '+p.timeZone"
-    store = "s.storeName" if traffic else "p.storeName"
+    store = "s.storeName" if (traffic or email) else "p.storeName"
     return (head +
             "const j=$input.first().json,e=j.error??j;"
             "const reason=String(typeof e==='string'?e:(e.message||e.description||JSON.stringify(e))).replace(/[\\r\\n]+/g,' ').slice(0,300);"
+            f"const setup={SETUP_REASONS}.test(reason);"
             f"const markdown=['INCOMPLETE | '+{store}+' | {title}',p.start+' to '+p.end+' | '+{meta},'',"
             "'This review did not run, so it reports no figures this week. Missing figures are not zero.',"
             "'Failed step: '+$prevNode.name,'Reason: '+reason,'',"
-            "'First run before setup? The source nodes stay switched off until you connect them, so this is expected.',"
+            "...(setup?['First run before setup? The source nodes stay switched off until you connect them, so this is expected.']:[]),"
             "'Review: fix the connection or setting named above, then run the workflow again.'].join('\\n')+'\\n';"
             f"return [{{json:{{markdown,slackText:markdown,fileName:'{slug}-'+p.start+'-to-'+p.end+'-incomplete.md',incomplete:true}}}}];")
 
@@ -351,9 +364,273 @@ def build(fn, demo):
 
     relayout(wf)
     wf["name"] = wf["name"] + " | v1.1"
-    out = f"{OUT}/{fn.replace('.json', '-v1.1.json')}"
+    out = f"{OUT}/four-reviews-metorik-template-v1.1.json"
     json.dump(wf, open(out, "w"), indent=2, ensure_ascii=False)
     print("wrote", out, len(wf["nodes"]), "nodes")
 
 
+# ---------------------------------------------------------------------------
+# Full template (v1.2): the workflow tested live on a WooCommerce store, Customer.io
+# and GA4 on 23 October 2026, exported with credentials, ids and store details
+# removed (tests/fixtures/full-template-source.json), plus the plugin edits below.
+
+FULL_SRC = os.path.join(os.path.dirname(os.path.abspath(__file__)), "fixtures", "full-template-source.json")
+COLLECT = "Collect all reports"
+
+FULL_SETTINGS = """// Edit these before the first run. Every lane reads its settings from here.
+return [{json:{
+  storeName:'YOUR_STORE_NAME',       // printed on the reports
+  storeUrl:'https://YOUR-STORE.com', // your WooCommerce site, no slash at the end
+  currency:'USD',                    // ISO code, for example EUR or GBP
+  timeZone:'America/Chicago',        // reporting timezone, for example Europe/London
+  locale:'en-US',                    // number and money format, for example en-GB or de-DE
+  sourceLabel:'WooCommerce orders',  // where the store figures come from, printed on the reports
+  refundNote:'Refunds count against the order they belong to, so a refund on an older order is not in this week.', // how your source dates refunds
+  ga4PropertyId:'YOUR_GA4_PROPERTY_ID', // numeric GA4 property ID (Traffic lane)
+  ga4Events:['purchase','generate_lead'], // events your GA4 property collects
+  cioApiUrl:'https://api.customer.io', // Customer.io App API; EU workspaces use https://api-eu.customer.io
+  cioCaptureSegmentId:'',            // Customer.io segment whose growth counts as email capture; empty = not set up
+  cioCaptureLabel:'',                // that segment's name, printed on the email review
+  emailTo:'YOU@EXAMPLE.COM',         // Email delivery: where the reports go
+  githubOwner:'YOUR_GITHUB_USERNAME',// GitHub delivery: owner of your personal OS repo
+  githubRepo:'YOUR_PERSONAL_OS_REPO',// GitHub delivery: that repo's name
+  githubFolder:'projects/reporting-agent/reports', // folder in the repo, no slash at either end
+  githubBase:'main',                 // the PR targets this branch; nothing is committed to it
+  n8nUrl:'https://YOUR-INSTANCE.app.n8n.cloud' // your n8n address, for the workflow links in email and Slack
+}}];"""
+
+# A switched-off request node passes its input through, so the next step sees something that is not orders.
+WOO_OFF = ("if({src}.some(i=>i.json&&Object.keys(i.json).length&&i.json.id===undefined&&!i.json.error))"
+           "throw Error('No order data: the WooCommerce request node is switched off, or returned something that is not orders. Connect your store and switch it on.');\n")
+
+LANE_CHAINS = {
+    "Executive": ["Reporting period", "Verify store", "Check store identity", "WooCommerce orders (current)", "Current revenue",
+                  "WooCommerce orders (previous)", "Previous revenue", "Order types", "Compose review", "Create Markdown BEFORE Slack"],
+    "Marketing": ["Reporting period", "Verify store", "Check store identity", "WooCommerce orders (current)", "Order sources",
+                  "All orders", "Compose review", "Create Markdown BEFORE Slack"],
+    "Products": ["Reporting period", "Verify store", "Check store identity", "WooCommerce orders (current)", "Sales by product",
+                 "WooCommerce product details", "Top products", "Compose review", "Create Markdown BEFORE Slack"],
+    "Traffic": ["Reporting period", "Build GA4 request", "Connect GA4 - enable after setup", "Compose review", "Create Markdown BEFORE Slack"],
+    "Customer.io": ["Reporting period", "Campaigns", "Running campaigns", "Campaign metrics", "Broadcasts", "Sent broadcasts",
+                    "Broadcast metrics", "Capture count", "Last saved count", "Compose review", "Create Markdown BEFORE Slack"],
+}
+TRENDS_CHAIN = ["Trends | Periods", "Trends | WooCommerce orders (180 days)", "Trends | Revenue by period", "Trends | Load history",
+                "Trends | Facts for the summary", "AI | Weekly summary", "AI | Summary report", "History | Save this run",
+                "All reports and summary"]
+SOURCES_OFF = ["Executive | WooCommerce orders (current)", "Executive | WooCommerce orders (previous)",
+               "Marketing | WooCommerce orders (current)", "Products | WooCommerce orders (current)",
+               "Products | WooCommerce product details", "Trends | WooCommerce orders (180 days)",
+               "Traffic | Connect GA4 - enable after setup", "Customer.io | Campaigns", "Customer.io | Campaign metrics",
+               "Customer.io | Broadcasts", "Customer.io | Broadcast metrics", "Customer.io | Capture count", "AI | Weekly summary"]
+
+FULL_NOTES = {
+    "Executive explainer": """## 1. Business performance
+**For:** net and gross sales, refunds, orders and items, against the week before.
+
+**Source:** WooCommerce orders (`wc/v3/orders`: processing, completed and refunded), summed in code. Orders in another currency use the order's stored base-currency amounts. Switch on the two WooCommerce nodes once your store login exists.
+
+Last 7 completed days • timezone and currency from Settings""",
+    "Marketing explainer": """## 2. Where sales come from
+**For:** net sales and orders by the source recorded on each order, and how many orders have none.
+
+**Source:** WooCommerce order attribution (`_wc_order_attribution_utm_source` and `_utm_medium`). Orders without a recorded source are counted as not represented, never as Direct. Store attribution, not GA4 channels or ad ROAS.
+
+Last 7 completed days • timezone and currency from Settings""",
+    "Products explainer": """## 3. What is selling
+**For:** the top products by net sales (tax excluded, refunds shared by line value), with orders, units, status and link.
+
+**Source:** line items on WooCommerce orders, grouped by parent product, plus `wc/v3/products` for names, status and links. Published status does not prove checkout works.
+
+Last 7 completed days • timezone and currency from Settings""",
+    "Website traffic explainer": """## 4. Website traffic (GA4)
+**For:** sessions, engagement, sources, landing pages and your key events. Last 7 completed days against the 7 before.
+
+**Source:** GA4 Data API (`batchRunReports`). Easiest login: a Google Service Account credential with the scope `https://www.googleapis.com/auth/analytics.readonly`, its email added as a Viewer on the property. A Search Console login does not include Analytics. Set `ga4PropertyId` in Settings, then switch on the GA4 node.""",
+}
+EXTRA_NOTES = [
+    ("Customer.io explainer", """## 5. Email (Customer.io)
+**For:** emails sent and delivered, human opens and clicks, conversions, unsubscribes, bounces, the top sends, and email capture.
+
+**Source:** Customer.io App API (`cioApiUrl` in Settings). Create a Bearer Auth credential with an App API key, select it on the five Customer.io request nodes, switch them on. Metrics are daily in UTC: the last 7 complete days against the 7 before. Email capture is the growth of the segment you set in `cioCaptureSegmentId`, against the last saved week.""", 5),
+    ("Trends and summary explainer", """## Trends and AI summary
+**Trends:** last 30 against the prior 30 days and last 90 against the prior 90, computed in code from WooCommerce orders.
+
+**History:** every run is saved to the n8n Data Table `reporting_agent_history`. Create it first, with columns run_date, period_start, period_end (string), reviews_complete, reviews_total, exec_net, exec_orders (number) and facts_json (string).
+
+**AI summary:** switched off until you add an Anthropic credential to AI | Claude model. It only explains numbers the workflow computed, labels hypotheses, and keeps missing data missing. Its file goes out with the reports.""", 6),
+]
+FULL_DEMO_NOTE = """## PRIVATE CONNECTION TEMPLATE
+Every source, the AI summary and every delivery are switched off, and there are no credentials. Fill in **Settings**, create your logins, then switch on one lane at a time. Until a source is connected, its lane writes an INCOMPLETE report instead of stopping the run.
+
+Real requests put real data in the execution history. Do not run this on a shared screen; use the demo for the workshop.
+
+Switch on a delivery node only after choosing your own destination and reviewing the reports."""
+SLACK_NOTE = """## Slack setup, before delivery
+1. Create and install a Slack app with the bot scope `chat:write`.
+2. Save its token as an n8n Slack credential.
+3. Invite the bot to a private test channel. Live reports hold revenue.
+4. Select the credential and the channel By ID on Deliver | Slack.
+5. Review the reports, then switch on Deliver | Slack. It posts one formatted message per report and one for the summary.
+
+App installation may need workspace approval."""
+
+
+def full_delivery_note():
+    s = DELIVERY_NOTE
+    s = rep(s, "All four reports are collected first", "All the reports and the AI summary are collected first")
+    s = rep(s, "with the four reports as dated .md files", "with the reports as dated .md files")
+    s = rep(s, "one email with all four reports in the body", "one email with all the reports in the body")
+    return s
+
+
+def count_reviews(js):
+    """Email and the pull request count the reviews, not the summary file."""
+    js = rep(js, "const done=items.filter(i=>!i.json.incomplete).length;",
+             "const reviews=items.filter(i=>!String(i.json.fileName).startsWith('summary-')),done=reviews.filter(i=>!i.json.incomplete).length;")
+    js = rep(js, "done<items.length", "done<reviews.length")
+    js = rep(js, "done+' of '+items.length+' reviews complete.", "done+' of '+reviews.length+' reviews complete.")
+    return js
+
+
+def build_full():
+    wf = json.load(open(FULL_SRC))
+    txt = json.dumps(wf, ensure_ascii=False)
+    txt = rep(txt, "Collect all four reports", COLLECT, txt.count("Collect all four reports"))
+    wf = json.loads(txt)
+    nodes = {n["name"]: n for n in wf["nodes"]}
+    conns = wf["connections"]
+    code = lambda name: nodes[name]["parameters"]["jsCode"]
+
+    def set_code(name, value):
+        nodes[name]["parameters"]["jsCode"] = value
+
+    # Settings: store address, Customer.io region, n8n address
+    set_code("Settings", FULL_SETTINGS)
+
+    # Request addresses come from Settings
+    for n in wf["nodes"]:
+        p = n.get("parameters", {})
+        url = p.get("url")
+        if isinstance(url, str) and url.startswith("https://YOUR-STORE.com"):
+            p["url"] = "={{ $('Settings').first().json.storeUrl }}" + url[len("https://YOUR-STORE.com"):]
+        elif isinstance(url, str) and "https://api.customer.io" in url:
+            p["url"] = "={{ $('Settings').first().json.cioApiUrl }}" + url.lstrip("=")[len("https://api.customer.io"):]
+
+    # Source nodes and the AI summary ship switched off; a switched-off source must never read as zero
+    for name in SOURCES_OFF:
+        nodes[name]["disabled"] = True
+    for name in ["Executive | Current revenue", "Executive | Previous revenue"]:
+        js = rep(code(name), "(wc/v3/orders, processing and completed)", "(wc/v3/orders: processing, completed and refunded)")
+        set_code(name, rep(js, "const orders=$input.all()", WOO_OFF.format(src="$input.all()") + "const orders=$input.all()"))
+    set_code("Marketing | Order sources", rep(code("Marketing | Order sources"), "const orders=$('Marketing | WooCommerce orders (current)')",
+             WOO_OFF.format(src="$('Marketing | WooCommerce orders (current)').all()") + "const orders=$('Marketing | WooCommerce orders (current)')"))
+    set_code("Products | Sales by product", rep(code("Products | Sales by product"), "const orders=$input.all()",
+             WOO_OFF.format(src="$input.all()") + "const orders=$input.all()"))
+    set_code("Trends | Revenue by period", rep(code("Trends | Revenue by period"), "const num=v=>Number(v)||0;",
+             "if(raw.some(o=>o&&Object.keys(o).length&&o.id===undefined))return [{json:{available:false,reason:'the WooCommerce request node is switched off, or returned something that is not orders'}}];\nconst num=v=>Number(v)||0;"))
+
+    # History: no "}}" inside an expression, which would end it early
+    hv = nodes["History | Save this run"]["parameters"]["columns"]["value"]
+    hv["facts_json"] = rep(hv["facts_json"], "|| {json:{}}).json", "|| { json: {} }).json")
+
+    # AI summary: no em dash in code, clearer reason when the model is off
+    js = code("AI | Summary report")
+    js = rep(js, "// Wraps the AI text as a fifth report file,", "// Wraps the AI text as one more report file,")
+    js = rep(js, "replace(/\\s*—\\s*/g,', ')", "replace(/\\s*\\u2014\\s*/g,', ')")
+    js = rep(js, "The four reports are unaffected.", "The reviews are unaffected.")
+    js = rep(js, "String(j.error?.message||j.error||'no output')", "String(j.error?.message||j.error||'the AI node is switched off or returned nothing')")
+    set_code("AI | Summary report", js)
+
+    # INCOMPLETE reports: the setup hint only when a source is not connected yet
+    for lane in ["Executive", "Marketing", "Products"]:
+        set_code(f"{lane} | Incomplete report", incomplete_code(lane))
+    set_code("Traffic | Incomplete report", incomplete_code("Traffic", traffic=True))
+    set_code("Customer.io | Incomplete report", incomplete_code("Customer.io", email=True))
+
+    # Delivery: the 0.2.0 Slack formatting and workflow links, reviews counted without the summary
+    nodes["Deliver | Slack"]["notes"] = "One message per report and one for the summary. Setup: see the Slack setup note. Select your credential and Channel By ID, then switch on."
+    wf["nodes"].append({"parameters": {"jsCode": SLACK_FORMAT}, "id": nid(), "name": "Slack | Format for Slack",
+                        "type": "n8n-nodes-base.code", "typeVersion": 2, "position": [0, 0],
+                        "notes": "Rewrites each review for Slack: emoji title, bold labels, tables as bullet lines.",
+                        "notesInFlow": True})
+    nodes["Slack | Format for Slack"] = wf["nodes"][-1]
+    conns["All reports and summary"]["main"][0] = [
+        {"node": "Slack | Format for Slack", "type": "main", "index": 0},
+        {"node": "GitHub | Plan PR", "type": "main", "index": 0},
+        {"node": "Email | Combine reports", "type": "main", "index": 0}]
+    conns["Slack | Format for Slack"] = {"main": [[{"node": "Deliver | Slack", "type": "main", "index": 0}]]}
+    set_code("Email | Combine reports", count_reviews(EMAIL_COMBINE))
+    set_code("GitHub | Plan PR", count_reviews(code("GitHub | Plan PR")))
+    for name in ["Deliver | Slack", "Deliver | Email", "GitHub | Get base branch", "GitHub | Create branch",
+                 "GitHub | Commit to branch", "GitHub | Open pull request"]:
+        nodes[name]["disabled"] = True
+    nodes["Deliver | Email"]["notes"] = "One email with all the reports and the summary. Set emailTo in Settings, select a Gmail credential, then switch on."
+
+    # Notes
+    for name, text in FULL_NOTES.items():
+        nodes[name]["parameters"]["content"] = text
+    nodes["How to demonstrate"]["parameters"]["content"] = FULL_DEMO_NOTE
+    nodes["Slack app setup guide"]["parameters"]["content"] = SLACK_NOTE
+    nodes["Delivery explainer"]["parameters"]["content"] = full_delivery_note()
+    for name, text, color in EXTRA_NOTES:
+        wf["nodes"].append({"parameters": {"content": text, "width": 400, "height": 300, "color": color}, "id": nid(),
+                            "name": name, "type": "n8n-nodes-base.stickyNote", "typeVersion": 1, "position": [0, 0]})
+        nodes[name] = wf["nodes"][-1]
+
+    # Layout: one framed row per lane, the trends and summary row after Collect, delivery frames on the right
+    explainer = {"Executive": "Executive explainer", "Marketing": "Marketing explainer", "Products": "Products explainer",
+                 "Traffic": "Website traffic explainer", "Customer.io": "Customer.io explainer"}
+    step, gap = 220, 640
+    for i, (lane, chain) in enumerate(LANE_CHAINS.items()):
+        y = i * gap
+        for k, short in enumerate(chain):
+            nodes[f"{lane} | {short}"]["position"] = [k * step, y]
+        cx = chain.index("Compose review") * step
+        nodes[f"{lane} | Incomplete report"]["position"] = [cx, y + 200]
+        frame = nodes[explainer[lane]]
+        frame["position"] = [-60, y - 300]
+        frame["parameters"].update({"width": len(chain) * step + 100, "height": 620})
+    mid = 2 * gap
+    nodes["Run all four reviews"]["position"] = [-460, mid]
+    nodes["Settings"]["position"] = [-240, mid]
+    nodes[COLLECT]["position"] = [2700, mid]
+    tx = 2960
+    for k, name in enumerate(TRENDS_CHAIN):
+        nodes[name]["position"] = [tx + k * step, mid]
+    nodes["AI | Claude model"]["position"] = [tx + TRENDS_CHAIN.index("AI | Weekly summary") * step, mid + 220]
+    t = nodes["Trends and summary explainer"]
+    t["position"] = [tx - 60, mid - 340]
+    t["parameters"].update({"width": len(TRENDS_CHAIN) * step + 100, "height": 700})
+    dx = tx + len(TRENDS_CHAIN) * step + 200
+    nodes["Delivery explainer"]["position"] = [dx - 120, -680]
+    nodes["Delivery explainer"]["parameters"].update({"width": 760, "height": 600})
+    nodes["Slack app setup guide"]["position"] = [dx + 680, -680]
+    nodes["Slack app setup guide"]["parameters"].update({"width": 640, "height": 600})
+    nodes["How to demonstrate"]["position"] = [-560, -300]
+    nodes["How to demonstrate"]["parameters"].update({"width": 460, "height": 520})
+    nodes["Slack | Format for Slack"]["position"] = [dx, 360]
+    nodes["Deliver | Slack"]["position"] = [dx + 240, 360]
+    nodes["Email | Combine reports"]["position"] = [dx, 760]
+    nodes["Deliver | Email"]["position"] = [dx + 240, 760]
+    for k, name in enumerate(["GitHub | Plan PR", "GitHub | Get base branch", "GitHub | Create branch",
+                              "GitHub | Reports to commit", "GitHub | Commit to branch", "GitHub | Open pull request"]):
+        nodes[name]["position"] = [dx + 240 * k, 1160]
+    frames = [
+        ("Slack frame", "## Slack\nOne formatted message per report and one for the summary. Optional, on top of email or GitHub.", [dx - 120, 200], 600, 320),
+        ("Email frame", "## Email\nOne email per run: readable reports, exact copies for `/get-email-reports`, and every file attached.", [dx - 120, 600], 600, 320),
+        ("GitHub frame", "## GitHub pull request\nNew branch each run, one commit per file, one pull request. Never commits to your main branch: you merge. Use a private repo.", [dx - 120, 1000], 1600, 320),
+        ("Start here", "## Start here\n1. Edit **Settings**.\n2. Click **Execute workflow**: every lane writes an INCOMPLETE report until you connect it.\n3. Connect one lane at a time.", [-560, mid - 200], 500, 400),
+    ]
+    for name, text, pos, w, h in frames:
+        wf["nodes"].append({"parameters": {"content": text, "width": w, "height": h, "color": 6}, "id": nid(),
+                            "name": name, "type": "n8n-nodes-base.stickyNote", "typeVersion": 1, "position": pos})
+
+    wf["name"] = "Workshop | Weekly business reviews | full template | v1.2"
+    out = f"{OUT}/four-reviews-connection-template-v1.2.json"
+    json.dump(wf, open(out, "w"), indent=2, ensure_ascii=False)
+    print("wrote", out, len(wf["nodes"]), "nodes")
+
+
+
 build("four-reviews-connection-template.json", False)
+build_full()
