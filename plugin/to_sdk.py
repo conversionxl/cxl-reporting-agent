@@ -1,4 +1,4 @@
-"""Convert an n8n workflow JSON export into n8n Workflow SDK code, one-to-one, so Claude can create it through the n8n MCP connector (validate_workflow, then create_workflow_from_code). Usage: python3 -I to_sdk.py <workflow.json> <out.ts>"""
+"""Convert an n8n workflow JSON export into n8n Workflow SDK code, one-to-one, so Claude can create it through the n8n MCP connector (validate_workflow, then create_workflow_from_code). Usage: python3 -I to_sdk.py <workflow.json> <out.ts>. When the workflow has collapsible groups, it also writes <out>.groups.json: the update_workflow operation that adds them after the workflow is created."""
 import json, re, sys
 
 wf = json.load(open(sys.argv[1]))
@@ -34,7 +34,7 @@ for i, n in enumerate(wf["nodes"]):
         lines.append(f"const {v} = sticky({json.dumps(p['content'])}, [], {js(opts)});")
         continue
     cfg["parameters"] = n["parameters"]
-    for k in ("disabled", "onError", "retryOnFail", "maxTries", "waitBetweenTries", "notes", "notesInFlow"):
+    for k in ("disabled", "onError", "retryOnFail", "maxTries", "waitBetweenTries", "alwaysOutputData", "executeOnce", "notes", "notesInFlow"):
         if k in n:
             cfg[k] = n[k]
     fn = "trigger" if n["type"].endswith("Trigger") else ("merge" if n["type"] == "n8n-nodes-base.merge" else "node")
@@ -43,10 +43,18 @@ for i, n in enumerate(wf["nodes"]):
     else:
         lines.append(f"const {v} = {fn}({{ type: {json.dumps(n['type'])}, version: {n['typeVersion']}, config: {js(cfg)}, output: [{{}}] }});")
 
-chain = [f"export default workflow('four-reviews-demo-v1-1', {json.dumps(wf['name'])})"]
+wf_id = re.sub(r"[^a-z0-9]+", "-", sys.argv[1].rsplit("/", 1)[-1].rsplit(".", 1)[0].lower()).strip("-")
+chain = [f"export default workflow({json.dumps(wf_id)}, {json.dumps(wf['name'])})"]
 added = set()
+subnodes = []
 for src, c in wf["connections"].items():
-    for out_i, targets in enumerate(c["main"]):
+    for kind, outs in c.items():
+        if kind != "main":  # an AI sub-node (for example the chat model of an AI Agent)
+            for targets in outs:
+                for t in targets:
+                    subnodes.append((src, t["node"], kind))
+                    added |= {src, t["node"]}
+    for out_i, targets in enumerate(c.get("main", [])):
         for t in targets:
             dst = var[t["node"]]
             tn = next(n for n in wf["nodes"] if n["name"] == t["node"])
@@ -60,6 +68,17 @@ for n in wf["nodes"]:
     if n["name"] not in added:
         chain.append(f"  .add({var[n['name']]})")
 lines.append("")
+for src, dst, kind in subnodes:
+    lines.append(f"// After creating the workflow, connect {src!r} to {dst!r} as its {kind} in the editor (or with update_workflow, connectionType {kind!r}).")
 lines.append("\n".join(chain) + ";")
 open(out_path, "w").write("\n".join(lines) + "\n")
 print(out_path, len(open(out_path).read()), "chars")
+
+# The SDK code does not carry the collapsible canvas groups. Write them next to it, as the
+# operation Claude applies after creating the workflow: update_workflow with one setNodeGroups
+# operation (group members are node names; trigger nodes cannot be in a group).
+if wf.get("nodeGroups"):
+    groups_path = re.sub(r"\.[^./]+$", "", out_path) + ".groups.json"
+    op = {"type": "setNodeGroups", "nodeGroups": [{k: g[k] for k in ("name", "description", "nodeNames") if k in g} for g in wf["nodeGroups"]]}
+    json.dump([op], open(groups_path, "w"), indent=2, ensure_ascii=False)
+    print(groups_path, len(op["nodeGroups"]), "groups: apply with update_workflow after creating the workflow")

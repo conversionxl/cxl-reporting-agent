@@ -1,0 +1,3022 @@
+{
+  "name": "Workshop | Four business and traffic reviews | connection-template | v1.1",
+  "nodes": [
+    {
+      "id": "ad104881-c6eb-41ff-be38-baf959eefdae",
+      "name": "Run all four reviews",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        -64,
+        920
+      ],
+      "parameters": {}
+    },
+    {
+      "id": "d0934296-5fd2-4dde-9459-4d9dd53f49ec",
+      "name": "Executive | Reporting period",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        704,
+        304
+      ],
+      "parameters": {
+        "jsCode": "const s=$('Settings').first().json;const end=$now.setZone(s.timeZone).startOf('day').minus({days:1});return [{json:{start:end.minus({days:6}).toISODate(),end:end.toISODate(),previousStart:end.minus({days:13}).toISODate(),previousEnd:end.minus({days:7}).toISODate(),currency:s.currency,timeZone:s.timeZone,locale:s.locale,storeName:s.storeName}}];"
+      }
+    },
+    {
+      "id": "b63b873c-b4d9-4695-9066-a892adc80106",
+      "name": "Executive | Verify store",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        928,
+        304
+      ],
+      "parameters": {
+        "url": "https://app.metorik.com/api/v1/store/",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendQuery": false,
+        "queryParameters": {
+          "parameters": []
+        },
+        "options": {
+          "timeout": 60000
+        }
+      },
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 2000,
+      "disabled": true,
+      "onError": "continueErrorOutput"
+    },
+    {
+      "id": "5b29863e-a562-442a-9aec-354b7ac7b23c",
+      "name": "Executive | Check store identity",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1152,
+        304
+      ],
+      "parameters": {
+        "jsCode": "const s=$input.first().json,p=$('Executive | Reporting period').first().json;if(s.name!==p.storeName||s.currency!==p.currency||s.timezone!==p.timeZone)throw Error('Wrong store/currency/timezone: expected '+p.storeName+', '+p.currency+', '+p.timeZone+'; got '+s.name+', '+s.currency+', '+s.timezone);return [{json:s}];"
+      },
+      "onError": "continueErrorOutput"
+    },
+    {
+      "id": "7e1f1089-684d-4538-9638-75d74c41adb3",
+      "name": "Executive | Current revenue",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1376,
+        304
+      ],
+      "parameters": {
+        "url": "https://app.metorik.com/api/v1/store/reports/revenue-by-date",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "start_date",
+              "value": "={{ $('Executive | Reporting period').first().json.start }}"
+            },
+            {
+              "name": "end_date",
+              "value": "={{ $('Executive | Reporting period').first().json.end }}"
+            },
+            {
+              "name": "group_by",
+              "value": "day"
+            }
+          ]
+        },
+        "options": {
+          "timeout": 60000
+        }
+      },
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 2000,
+      "disabled": true,
+      "onError": "continueErrorOutput"
+    },
+    {
+      "id": "875882c3-90b2-4659-9749-614a699ea10a",
+      "name": "Executive | Previous revenue",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1600,
+        304
+      ],
+      "parameters": {
+        "url": "https://app.metorik.com/api/v1/store/reports/revenue-by-date",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "start_date",
+              "value": "={{ $('Executive | Reporting period').first().json.previousStart }}"
+            },
+            {
+              "name": "end_date",
+              "value": "={{ $('Executive | Reporting period').first().json.previousEnd }}"
+            },
+            {
+              "name": "group_by",
+              "value": "day"
+            }
+          ]
+        },
+        "options": {
+          "timeout": 60000
+        }
+      },
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 2000,
+      "disabled": true,
+      "onError": "continueErrorOutput"
+    },
+    {
+      "id": "b9f0869a-8e43-46a4-b200-f5193e43ea96",
+      "name": "Executive | Order types",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1824,
+        304
+      ],
+      "parameters": {
+        "url": "https://app.metorik.com/api/v1/store/reports/revenue-grouped-by",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "start_date",
+              "value": "={{ $('Executive | Reporting period').first().json.start }}"
+            },
+            {
+              "name": "end_date",
+              "value": "={{ $('Executive | Reporting period').first().json.end }}"
+            },
+            {
+              "name": "group_by",
+              "value": "day"
+            },
+            {
+              "name": "grouped_by",
+              "value": "order_type"
+            }
+          ]
+        },
+        "options": {
+          "timeout": 60000
+        }
+      },
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 2000,
+      "disabled": true,
+      "onError": "continueErrorOutput"
+    },
+    {
+      "id": "cd16ed31-43c6-417b-b5af-84ea79a339f7",
+      "name": "Executive | Compose review",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2048,
+        304
+      ],
+      "parameters": {
+        "jsCode": "const p=$('Executive | Reporting period').first().json;const money=v=>new Intl.NumberFormat(p.locale,{style:'currency',currency:p.currency,maximumFractionDigits:0}).format(Number(v));const pct=(a,b)=>b?((a-b)/b*100).toFixed(1)+'%':'N/A';const safe=v=>String(v??'Unknown').replace(/[<>&|\\r\\n]/g,' ');const lines=['PRIVATE LIVE REVIEW | '+p.storeName+' — Executive business review',p.start+'–'+p.end+' | '+p.currency+' | '+p.timeZone,'Live Metorik data. Previous period: '+p.previousStart+'–'+p.previousEnd,''];const c=$('Executive | Current revenue').first().json.totals,b=$('Executive | Previous revenue').first().json.totals;if(!c||!b||!Number.isFinite(Number(c.net)))throw Error('Revenue totals missing');lines.push('• Net revenue: '+money(c.net)+' ('+pct(c.net,b.net)+' vs prior week).','• Gross revenue: '+money(c.gross)+'; refunds: '+money(c.refunds)+'; sales taxes: '+money(c.taxes)+'.','• Orders: '+c.orders+' ('+pct(c.orders,b.orders)+'); items: '+c.items+'.','• Discounts recorded: '+money(c.discounts)+' (already reflected in gross; not subtracted again).','','Order-type revenue (Metorik grouped report):');const grouped=$('Executive | Order types').first().json.data;if(!Array.isArray(grouped))throw Error('Order-type response missing');for(const r of grouped)lines.push('• '+safe(r.grouped_by===null?'Non-renewal orders':r.grouped_by)+': '+money(r.net));lines.push('','COGS, gross profit, operating income, net profit, marketing spend and MER: unavailable with this connection. Missing costs are not zero.','Includes subscription renewals. Non-renewal orders are not the same as first-time buyers.','Net revenue uses refund-date reporting; order/product reports can differ because refunds follow the original order cohort.','Review: check renewal timing and product mix before explaining the revenue change.');const markdown=lines.join('\\n')+'\\n';return [{json:{markdown,slackText:markdown,fileName:'executive-'+p.start+'-to-'+p.end+'.md',period:p,totals:c,previousTotals:b}}];"
+      },
+      "onError": "continueErrorOutput"
+    },
+    {
+      "id": "0f4ae6ce-8058-4ced-a0ec-f9e411ed1233",
+      "name": "Executive | Create Markdown BEFORE Slack",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2272,
+        304
+      ],
+      "parameters": {
+        "jsCode": "const d=$input.first().json;return [{json:d,binary:{report:{data:Buffer.from(d.markdown,'utf8').toString('base64'),mimeType:'text/markdown',fileExtension:'md',fileName:d.fileName}}}];"
+      }
+    },
+    {
+      "id": "3aece466-1411-4597-b9b7-08a5b68ebcba",
+      "name": "Executive explainer",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -144,
+        112
+      ],
+      "parameters": {
+        "content": "## 1. Business performance\n**For:** Net and gross sales, refunds, orders, renewal versus non-renewal revenue, and comparison with the previous week.\n\n**Connection pattern:** Metorik revenue + order-type reports → Markdown → collected with the other reports → delivery. Costs, profit and ad spend are not connected.\n\nLast 7 completed days • timezone and currency from Settings",
+        "height": 230,
+        "width": 760,
+        "color": 3
+      }
+    },
+    {
+      "id": "386df4fc-4b3c-445c-9521-758c4e16fd6f",
+      "name": "Marketing | Reporting period",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        704,
+        784
+      ],
+      "parameters": {
+        "jsCode": "const s=$('Settings').first().json;const end=$now.setZone(s.timeZone).startOf('day').minus({days:1});return [{json:{start:end.minus({days:6}).toISODate(),end:end.toISODate(),previousStart:end.minus({days:13}).toISODate(),previousEnd:end.minus({days:7}).toISODate(),currency:s.currency,timeZone:s.timeZone,locale:s.locale,storeName:s.storeName}}];"
+      }
+    },
+    {
+      "id": "78e93203-7240-4fc0-b372-a1d62e737ab5",
+      "name": "Marketing | Verify store",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        928,
+        784
+      ],
+      "parameters": {
+        "url": "https://app.metorik.com/api/v1/store/",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendQuery": false,
+        "queryParameters": {
+          "parameters": []
+        },
+        "options": {
+          "timeout": 60000
+        }
+      },
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 2000,
+      "disabled": true,
+      "onError": "continueErrorOutput"
+    },
+    {
+      "id": "68386527-81f4-4623-9e49-de3a54263c20",
+      "name": "Marketing | Check store identity",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1152,
+        784
+      ],
+      "parameters": {
+        "jsCode": "const s=$input.first().json,p=$('Marketing | Reporting period').first().json;if(s.name!==p.storeName||s.currency!==p.currency||s.timezone!==p.timeZone)throw Error('Wrong store/currency/timezone: expected '+p.storeName+', '+p.currency+', '+p.timeZone+'; got '+s.name+', '+s.currency+', '+s.timezone);return [{json:s}];"
+      },
+      "onError": "continueErrorOutput"
+    },
+    {
+      "id": "5d8dac8b-1eb3-40b4-ac03-644bca3834b6",
+      "name": "Marketing | Order sources",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1376,
+        784
+      ],
+      "parameters": {
+        "url": "https://app.metorik.com/api/v1/store/reports/sources-utms",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "start_date",
+              "value": "={{ $('Marketing | Reporting period').first().json.start }}"
+            },
+            {
+              "name": "end_date",
+              "value": "={{ $('Marketing | Reporting period').first().json.end }}"
+            },
+            {
+              "name": "group_by",
+              "value": "day"
+            },
+            {
+              "name": "source_type",
+              "value": "utm_source,utm_medium"
+            }
+          ]
+        },
+        "options": {
+          "timeout": 60000
+        }
+      },
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 2000,
+      "disabled": true,
+      "onError": "continueErrorOutput"
+    },
+    {
+      "id": "a0424d12-a023-4a8f-8d0e-197cbfcad148",
+      "name": "Marketing | All orders",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1600,
+        784
+      ],
+      "parameters": {
+        "url": "https://app.metorik.com/api/v1/store/reports/orders-by-date",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "start_date",
+              "value": "={{ $('Marketing | Reporting period').first().json.start }}"
+            },
+            {
+              "name": "end_date",
+              "value": "={{ $('Marketing | Reporting period').first().json.end }}"
+            },
+            {
+              "name": "group_by",
+              "value": "day"
+            }
+          ]
+        },
+        "options": {
+          "timeout": 60000
+        }
+      },
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 2000,
+      "disabled": true,
+      "onError": "continueErrorOutput"
+    },
+    {
+      "id": "5ea003d3-fe07-47e0-81c4-eb15a29cb73e",
+      "name": "Marketing | Compose review",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1824,
+        784
+      ],
+      "parameters": {
+        "jsCode": "const p=$('Marketing | Reporting period').first().json;const money=v=>new Intl.NumberFormat(p.locale,{style:'currency',currency:p.currency,maximumFractionDigits:0}).format(Number(v));const pct=(a,b)=>b?((a-b)/b*100).toFixed(1)+'%':'N/A';const safe=v=>String(v??'Unknown').replace(/[<>&|\\r\\n]/g,' ');const lines=['PRIVATE LIVE REVIEW | '+p.storeName+' — Marketing source review',p.start+'–'+p.end+' | '+p.currency+' | '+p.timeZone,'Live Metorik data. Previous period: '+p.previousStart+'–'+p.previousEnd,''];const rows=$('Marketing | Order sources').first().json.data,t=$('Marketing | All orders').first().json.totals;if(!Array.isArray(rows)||!t)throw Error('Source report missing');const count=rows.reduce((s,r)=>s+Number(r.count),0),net=rows.reduce((s,r)=>s+Number(r.net),0);lines.push('• Total store orders: '+t.orders+'; order-cohort net sales: '+money(t.net)+'.','• Source report represents '+count+' orders ('+(100*count/t.orders).toFixed(1)+'%) and '+money(net)+' net sales.','• '+(t.orders-count)+' orders are not represented in these source rows; do not classify them as Direct.','','Recorded source / medium → orders → net sales');for(const r of [...rows].sort((a,b)=>b.net-a.net).slice(0,10))lines.push('• '+safe(r.utm_source)+' / '+safe(r.utm_medium)+' → '+r.count+' → '+money(r.net));lines.push('','These are sources stored on orders, not GA4 session channels or proof of incremental sales. Google without a paid medium is not Google Ads.','Ad spend, ROAS, sessions and email-capture rate: unavailable from this connection.','Review: investigate missing attribution and separate paid vs organic before shifting spend.');const markdown=lines.join('\\n')+'\\n';return [{json:{markdown,slackText:markdown,fileName:'marketing-'+p.start+'-to-'+p.end+'.md',period:p}}];"
+      },
+      "onError": "continueErrorOutput"
+    },
+    {
+      "id": "b7d88275-744d-44be-8cae-436317cee27d",
+      "name": "Marketing | Create Markdown BEFORE Slack",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2048,
+        784
+      ],
+      "parameters": {
+        "jsCode": "const d=$input.first().json;return [{json:d,binary:{report:{data:Buffer.from(d.markdown,'utf8').toString('base64'),mimeType:'text/markdown',fileExtension:'md',fileName:d.fileName}}}];"
+      }
+    },
+    {
+      "id": "89010960-fd55-44b2-962b-949710320056",
+      "name": "Marketing explainer",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -144,
+        592
+      ],
+      "parameters": {
+        "content": "## 2. Where sales come from\n**For:** Revenue and orders by recorded marketing source, plus how much of the store is covered by source attribution.\n\n**Connection pattern:** Metorik order-source + order reports → Markdown → collected with the other reports → delivery. This is store attribution, not GA4 or ad-platform ROAS.\n\nLast 7 completed days • timezone and currency from Settings",
+        "height": 230,
+        "width": 760,
+        "color": 4
+      }
+    },
+    {
+      "id": "5f304129-2375-42c9-ab1c-35346e5f5570",
+      "name": "Products | Reporting period",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        704,
+        1264
+      ],
+      "parameters": {
+        "jsCode": "const s=$('Settings').first().json;const end=$now.setZone(s.timeZone).startOf('day').minus({days:1});return [{json:{start:end.minus({days:6}).toISODate(),end:end.toISODate(),previousStart:end.minus({days:13}).toISODate(),previousEnd:end.minus({days:7}).toISODate(),currency:s.currency,timeZone:s.timeZone,locale:s.locale,storeName:s.storeName}}];"
+      }
+    },
+    {
+      "id": "c801dcc9-3b13-4414-853e-18c42a0623e9",
+      "name": "Products | Verify store",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        928,
+        1264
+      ],
+      "parameters": {
+        "url": "https://app.metorik.com/api/v1/store/",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendQuery": false,
+        "queryParameters": {
+          "parameters": []
+        },
+        "options": {
+          "timeout": 60000
+        }
+      },
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 2000,
+      "disabled": true,
+      "onError": "continueErrorOutput"
+    },
+    {
+      "id": "3af38efe-6a7a-40b6-8c2e-4122836c6088",
+      "name": "Products | Check store identity",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1152,
+        1264
+      ],
+      "parameters": {
+        "jsCode": "const s=$input.first().json,p=$('Products | Reporting period').first().json;if(s.name!==p.storeName||s.currency!==p.currency||s.timezone!==p.timeZone)throw Error('Wrong store/currency/timezone: expected '+p.storeName+', '+p.currency+', '+p.timeZone+'; got '+s.name+', '+s.currency+', '+s.timezone);return [{json:s}];"
+      },
+      "onError": "continueErrorOutput"
+    },
+    {
+      "id": "77d22fb8-4d45-43b6-89d6-46caad001c6c",
+      "name": "Products | Top products",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1376,
+        1264
+      ],
+      "parameters": {
+        "url": "https://app.metorik.com/api/v1/store/products",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "start_date",
+              "value": "={{ $('Products | Reporting period').first().json.start }}"
+            },
+            {
+              "name": "end_date",
+              "value": "={{ $('Products | Reporting period').first().json.end }}"
+            },
+            {
+              "name": "group_by",
+              "value": "day"
+            },
+            {
+              "name": "order_by",
+              "value": "net_sales"
+            },
+            {
+              "name": "order_dir",
+              "value": "desc"
+            },
+            {
+              "name": "per_page",
+              "value": "10"
+            }
+          ]
+        },
+        "options": {
+          "timeout": 60000
+        }
+      },
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 2000,
+      "disabled": true,
+      "onError": "continueErrorOutput"
+    },
+    {
+      "id": "f80901df-cf65-48e2-b696-7a7c2afecd42",
+      "name": "Products | Compose review",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1600,
+        1264
+      ],
+      "parameters": {
+        "jsCode": "const p=$('Products | Reporting period').first().json;const money=v=>new Intl.NumberFormat(p.locale,{style:'currency',currency:p.currency,maximumFractionDigits:0}).format(Number(v));const pct=(a,b)=>b?((a-b)/b*100).toFixed(1)+'%':'N/A';const safe=v=>String(v??'Unknown').replace(/[<>&|\\r\\n]/g,' ');const lines=['PRIVATE LIVE REVIEW | '+p.storeName+' — Top product review',p.start+'–'+p.end+' | '+p.currency+' | '+p.timeZone,'Live Metorik data. Previous period: '+p.previousStart+'–'+p.previousEnd,''];const d=$('Products | Top products').first().json;if(!Array.isArray(d.data))throw Error('Product response missing');lines.push('Products ranked by net sales (subscription renewals included):','');for(const [i,r] of d.data.entries()){if(!Number.isFinite(Number(r.net_sales)))throw Error('Product net sales missing');lines.push((i+1)+'. '+safe(r.title)+' — '+money(r.net_sales)+' | '+r.net_orders+' orders | '+r.net_items_sold+' units','   Catalog status: '+safe(r.status)+' | '+safe(r.type),r.permalink||'No product URL');}lines.push('','Ranking is sales, not conversion rate. Units can include seats; product order counts can overlap.','Subscription product names do not identify the course that persuaded someone to subscribe.','Catalog status and links come from WooCommerce via Metorik; checkout availability has not been independently tested.','Review: inspect the linked pages and distinguish subscription plans from one-off course demand.');const markdown=lines.join('\\n')+'\\n';return [{json:{markdown,slackText:markdown,fileName:'products-'+p.start+'-to-'+p.end+'.md',period:p}}];"
+      },
+      "onError": "continueErrorOutput"
+    },
+    {
+      "id": "9c19e2d3-d52d-4f72-8844-f9af1cbd6834",
+      "name": "Products | Create Markdown BEFORE Slack",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1824,
+        1264
+      ],
+      "parameters": {
+        "jsCode": "const d=$input.first().json;return [{json:d,binary:{report:{data:Buffer.from(d.markdown,'utf8').toString('base64'),mimeType:'text/markdown',fileExtension:'md',fileName:d.fileName}}}];"
+      }
+    },
+    {
+      "id": "367319d4-807b-4840-aa17-2be1de3f05ba",
+      "name": "Products explainer",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -144,
+        1072
+      ],
+      "parameters": {
+        "content": "## 3. What is selling\n**For:** Rank products and plans by sales, units and orders; include available product links and publication status.\n\n**Connection pattern:** Metorik product report → Markdown → collected with the other reports → delivery. Published status does not verify the live checkout.\n\nLast 7 completed days • timezone and currency from Settings",
+        "height": 230,
+        "width": 760,
+        "color": 5
+      }
+    },
+    {
+      "id": "435cd685-b77f-4084-94c3-630319199667",
+      "name": "How to demonstrate",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -816,
+        -128
+      ],
+      "parameters": {
+        "content": "## PRIVATE CONNECTION TEMPLATE\nAll HTTP and delivery nodes are disabled; credentials removed. Fill in the Settings node and credentials before enabling HTTP nodes. Until a source is connected, its lane writes an INCOMPLETE report instead of stopping the run.\n\nReal requests expose real data in execution outputs. Do not execute on a public screen. Use the demo for the workshop.\n\nSwitch on a delivery node only after choosing your own destination and reviewing the reports.",
+        "height": 400,
+        "width": 480,
+        "color": 2
+      }
+    },
+    {
+      "id": "3979757e-ca68-475d-8d20-8f685863d1c1",
+      "name": "Traffic | Reporting period",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        704,
+        1744
+      ],
+      "parameters": {
+        "jsCode": "const s=$('Settings').first().json,timeZone=s.timeZone;\nconst today=new Intl.DateTimeFormat('en-CA',{timeZone,year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date());\nconst day=n=>{const d=new Date(today+'T12:00:00Z');d.setUTCDate(d.getUTCDate()-n);return d.toISOString().slice(0,10)};\nreturn [{json:{propertyId:s.ga4PropertyId,timeZone,current:{start:day(7),end:day(1)},previous:{start:day(14),end:day(8)},events:s.ga4Events}}];"
+      }
+    },
+    {
+      "id": "da3f7974-b6bc-4f36-a52e-c4c2508a3450",
+      "name": "Traffic | Build GA4 request",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        928,
+        1744
+      ],
+      "parameters": {
+        "jsCode": "const c=$input.first().json;\nconst dateRanges=[{startDate:c.current.start,endDate:c.current.end,name:'current'},{startDate:c.previous.start,endDate:c.previous.end,name:'previous'}];\nconst req=(dims,metrics,extra={})=>({dateRanges,dimensions:dims.map(name=>({name})),metrics:metrics.map(name=>({name})),...extra});\nconst requests=[req([],['sessions','engagedSessions','engagementRate']),req(['sessionSourceMedium'],['sessions','engagedSessions','engagementRate'],{limit:'100',orderBys:[{metric:{metricName:'sessions'},desc:true}]}),req(['landingPage'],['sessions','engagedSessions','engagementRate'],{limit:'20',orderBys:[{metric:{metricName:'sessions'},desc:true}]}),req(['eventName'],['eventCount'],{dimensionFilter:{filter:{fieldName:'eventName',inListFilter:{values:c.events}}}})];\nreturn [{json:{...c,body:{requests}}}];"
+      }
+    },
+    {
+      "id": "2fb6a3fc-d638-4ecc-b9dc-8b404fa97e08",
+      "name": "Traffic | Connect GA4 - enable after setup",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1152,
+        1744
+      ],
+      "parameters": {
+        "method": "POST",
+        "url": "=https://analyticsdata.googleapis.com/v1beta/properties/{{ $json.propertyId }}:batchRunReports",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "oAuth2Api",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($json.body) }}",
+        "options": {}
+      },
+      "disabled": true,
+      "onError": "continueErrorOutput"
+    },
+    {
+      "id": "bc351a1e-fa48-4de3-922b-6d3825af862e",
+      "name": "Traffic | Compose review",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1376,
+        1744
+      ],
+      "parameters": {
+        "jsCode": "const data=$input.first().json,c=$('Traffic | Reporting period').first().json;\nif(!Array.isArray(data.reports)||data.reports.length!==4)throw Error('Expected four GA4 reports; configure the connection first.');\nconst warnings=[];\nconst tables=data.reports.map((r,i)=>{\n if(r.metadata?.subjectToThresholding||r.metadata?.samplingMetadatas?.length||r.metadata?.dataLossFromOtherRow)warnings.push('Report '+(i+1)+': thresholding, sampling or aggregated rows may affect results.');\n if(r.rowCount>(r.rows||[]).length)warnings.push('Report '+(i+1)+': limited rows; this is not a complete breakdown.');\n return (r.rows||[]).map(row=>{const o={};(r.dimensionHeaders||[]).forEach((h,j)=>o[h.name]=row.dimensionValues[j].value);(r.metricHeaders||[]).forEach((h,j)=>o[h.name]=Number(row.metricValues[j].value));return o;});\n});\nconst current=tables[0].find(r=>r.dateRange==='current'),prior=tables[0].find(r=>r.dateRange==='previous');\nif(!current||!prior)throw Error('Missing current/prior totals; do not interpret missing GA4 data as zero.');\nconst delta=(a,b)=>b?((a-b)/b*100).toFixed(1)+'%':'n/a (prior zero)';\nconst pct=x=>(100*x).toFixed(1)+'%';\nconst sections=[];\nfor(const [index,key,title] of [[1,'sessionSourceMedium','Sources / mediums'],[2,'landingPage','Top landing pages']]){\n const now=tables[index].filter(r=>r.dateRange==='current').sort((a,b)=>b.sessions-a.sessions).slice(0,10);\n sections.push('## '+title+'\\n| '+key+' | Sessions | Previous | Change | Engagement |\\n|---|---:|---:|---:|---:|\\n'+now.map(r=>{const old=tables[index].find(v=>v.dateRange==='previous'&&v[key]===r[key]);return '| '+String(r[key]).replaceAll('|',' / ')+' | '+r.sessions+' | '+(old?.sessions??'unavailable')+' | '+(old?delta(r.sessions,old.sessions):'n/a')+' | '+pct(r.engagementRate)+' |';}).join('\\n'));\n}\nconst events=c.events.map(name=>{const a=tables[3].find(r=>r.dateRange==='current'&&r.eventName===name),b=tables[3].find(r=>r.dateRange==='previous'&&r.eventName===name);return '- '+name+': '+(a?.eventCount??'not returned')+' vs '+(b?.eventCount??'not returned')+' events';}).join('\\n');\nconst label=data.synthetic?'SYNTHETIC DATA — invented workshop example':'LIVE GA4 — private data';\nconst markdown='# Website traffic review\\n\\n'+label+'\\n\\n'+c.current.start+'–'+c.current.end+' vs '+c.previous.start+'–'+c.previous.end+' ('+c.timeZone+').\\n\\nSessions: '+current.sessions+' vs '+prior.sessions+' ('+delta(current.sessions,prior.sessions)+'). Engagement rate: '+pct(current.engagementRate)+' vs '+pct(prior.engagementRate)+'.\\n\\n'+sections.join('\\n\\n')+'\\n\\n## Tracked events\\n'+events+'\\n\\n## Readout\\nTraffic '+(current.sessions>=prior.sessions?'increased':'decreased')+'; engagement rate changed by '+((current.engagementRate-prior.engagementRate)*100).toFixed(1)+' percentage points. Review the source mix and landing pages before choosing an action. Event counts are not unique buyers or proof of incremental sales. Your store or CRM remains the revenue source.\\n\\n'+(warnings.length?'Warnings: '+warnings.join(' '):'No API quality flags returned; this does not guarantee complete tracking.')+'\\n';\nreturn [{json:{markdown,slackText:markdown,fileName:'traffic-'+c.current.start+'-to-'+c.current.end+'.md'}}];"
+      },
+      "onError": "continueErrorOutput"
+    },
+    {
+      "id": "25a88f30-325a-4c4b-ad05-3736d49f1ba1",
+      "name": "Traffic | Create Markdown BEFORE Slack",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1600,
+        1744
+      ],
+      "parameters": {
+        "jsCode": "const d=$input.first().json;return [{json:d,binary:{report:{data:Buffer.from(d.markdown,'utf8').toString('base64'),mimeType:'text/markdown',fileExtension:'md',fileName:d.fileName}}}];"
+      }
+    },
+    {
+      "id": "4c45b0f0-3d2a-473d-bf72-790e196f5e99",
+      "name": "Website traffic explainer",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -144,
+        1552
+      ],
+      "parameters": {
+        "content": "## 4. Website traffic review (GA4)\n**For:** traffic quality, channel mix, landing pages and purchase/lead events. Last 7 completed days vs prior 7.\n**Demo:** fictional GA4 response → review → Markdown file → collected with the other reports → delivery (switched off).\n**Real connection:** select GA4 OAuth and property ID in Settings (connection template). Revenue stays in your store or CRM.",
+        "height": 224,
+        "width": 758,
+        "color": 5
+      }
+    },
+    {
+      "id": "workshop-slack-setup-guide",
+      "name": "Slack app setup guide",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        4128,
+        -400
+      ],
+      "parameters": {
+        "content": "## Slack setup — before delivery\nFollow SLACK-SETUP.md (10–15 min pre-work).\n\n1. Create/install a Slack app with bot scope chat:write.\n2. Save its token privately in n8n Credentials.\n3. Invite the bot to a test channel.\n4. Select credential + channel By ID on the Deliver | Slack node.\n5. Review the Markdown, then switch on Deliver | Slack. It posts one formatted message per report.\n\nUse the SYNTHETIC demo for screen-sharing. No credentials are included. App installation may require workspace approval.",
+        "width": 550,
+        "height": 420,
+        "color": 4
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Edit these before the first run. Every lane reads its settings from here.\nreturn [{json:{\n  storeName:'YOUR_STORE_NAME',          // must match the store name your source returns\n  currency:'USD',                    // ISO code, for example EUR or GBP\n  timeZone:'America/Chicago',        // reporting timezone, for example Europe/London\n  locale:'en-US',                    // number and money format, for example en-GB or de-DE\n  sourceLabel:'Metorik',             // where the store figures come from, printed in the summary facts\n  refundNote:'Net revenue uses refund-date reporting: a refund counts in the week it happens, even on an older order.', // how your source dates refunds\n  ga4PropertyId:'YOUR_GA4_PROPERTY_ID', // numeric GA4 property ID (Traffic lane)\n  ga4Events:['purchase','generate_lead'], // events your GA4 property collects\n  cioApiUrl:'https://api.customer.io', // Customer.io App API; EU workspaces use https://api-eu.customer.io\n  cioCaptureSegmentId:'',            // Customer.io segment whose growth counts as email capture; empty = not set up\n  cioCaptureLabel:'',                // that segment's name, printed on the email review\n  adsEnabled:false,                  // Ads review (lane 6): true to include it. Until you connect your ad data it shows Nick Christensen's sample campaigns, labelled SAMPLE DATA\n  emailTo:'YOU@EXAMPLE.COM',         // Email delivery: where the reports go\n  githubOwner:'YOUR_GITHUB_USERNAME',// GitHub delivery: owner of your personal OS repo\n  githubRepo:'YOUR_PERSONAL_OS_REPO',// GitHub delivery: that repo's name\n  githubFolder:'projects/reporting-agent/reports', // folder in the repo, no slash at either end\n  githubBase:'main',                 // the PR targets this branch; nothing is committed to it\n  n8nUrl:'https://YOUR-INSTANCE.app.n8n.cloud' // your n8n address, for the workflow links in email and Slack\n}}];"
+      },
+      "id": "f0c171a0-71ff-4c5e-8075-d499e45aeee8",
+      "name": "Settings",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        160,
+        920
+      ],
+      "notes": "Edit before the first run: store, currency, timezone, GA4 and delivery settings.",
+      "notesInFlow": true
+    },
+    {
+      "parameters": {
+        "jsCode": "const p=$('Executive | Reporting period').first().json;const j=$input.first().json,e=j.error??j;const reason=String(typeof e==='string'?e:(e.message||e.description||JSON.stringify(e))).replace(/[\\r\\n]+/g,' ').slice(0,300);const setup=/switched off|configure the connection first|did not load: no response|got undefined/.test(reason);const markdown=['INCOMPLETE | '+p.storeName+' | Executive business review',p.start+' to '+p.end+' | '+p.currency+' | '+p.timeZone,'','This review did not run, so it reports no figures this week. Missing figures are not zero.','Failed step: '+$prevNode.name,'Reason: '+reason,'',...(setup?['First run before setup? The source nodes stay switched off until you connect them, so this is expected.']:[]),'Review: fix the connection or setting named above, then run the workflow again.'].join('\\n')+'\\n';return [{json:{markdown,slackText:markdown,fileName:'executive-'+p.start+'-to-'+p.end+'-incomplete.md',incomplete:true}}];"
+      },
+      "id": "4b6a3627-6787-4706-9290-8c593916963b",
+      "name": "Executive | Incomplete report",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2048,
+        496
+      ],
+      "notes": "Runs only when a step in this lane fails. Writes an INCOMPLETE report so the other reviews still go out.",
+      "notesInFlow": true
+    },
+    {
+      "parameters": {
+        "jsCode": "const p=$('Marketing | Reporting period').first().json;const j=$input.first().json,e=j.error??j;const reason=String(typeof e==='string'?e:(e.message||e.description||JSON.stringify(e))).replace(/[\\r\\n]+/g,' ').slice(0,300);const setup=/switched off|configure the connection first|did not load: no response|got undefined/.test(reason);const markdown=['INCOMPLETE | '+p.storeName+' | Marketing source review',p.start+' to '+p.end+' | '+p.currency+' | '+p.timeZone,'','This review did not run, so it reports no figures this week. Missing figures are not zero.','Failed step: '+$prevNode.name,'Reason: '+reason,'',...(setup?['First run before setup? The source nodes stay switched off until you connect them, so this is expected.']:[]),'Review: fix the connection or setting named above, then run the workflow again.'].join('\\n')+'\\n';return [{json:{markdown,slackText:markdown,fileName:'marketing-'+p.start+'-to-'+p.end+'-incomplete.md',incomplete:true}}];"
+      },
+      "id": "8a1bd724-dd74-4c97-a1ab-c167c0bf1927",
+      "name": "Marketing | Incomplete report",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1824,
+        976
+      ],
+      "notes": "Runs only when a step in this lane fails. Writes an INCOMPLETE report so the other reviews still go out.",
+      "notesInFlow": true
+    },
+    {
+      "parameters": {
+        "jsCode": "const p=$('Products | Reporting period').first().json;const j=$input.first().json,e=j.error??j;const reason=String(typeof e==='string'?e:(e.message||e.description||JSON.stringify(e))).replace(/[\\r\\n]+/g,' ').slice(0,300);const setup=/switched off|configure the connection first|did not load: no response|got undefined/.test(reason);const markdown=['INCOMPLETE | '+p.storeName+' | Top product review',p.start+' to '+p.end+' | '+p.currency+' | '+p.timeZone,'','This review did not run, so it reports no figures this week. Missing figures are not zero.','Failed step: '+$prevNode.name,'Reason: '+reason,'',...(setup?['First run before setup? The source nodes stay switched off until you connect them, so this is expected.']:[]),'Review: fix the connection or setting named above, then run the workflow again.'].join('\\n')+'\\n';return [{json:{markdown,slackText:markdown,fileName:'products-'+p.start+'-to-'+p.end+'-incomplete.md',incomplete:true}}];"
+      },
+      "id": "39090a6b-73ec-435f-a067-ebb40facae52",
+      "name": "Products | Incomplete report",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1600,
+        1456
+      ],
+      "notes": "Runs only when a step in this lane fails. Writes an INCOMPLETE report so the other reviews still go out.",
+      "notesInFlow": true
+    },
+    {
+      "parameters": {
+        "jsCode": "const c=$('Traffic | Reporting period').first().json;const p={start:c.current.start,end:c.current.end};const s=$('Settings').first().json;const j=$input.first().json,e=j.error??j;const reason=String(typeof e==='string'?e:(e.message||e.description||JSON.stringify(e))).replace(/[\\r\\n]+/g,' ').slice(0,300);const setup=/switched off|configure the connection first|did not load: no response|got undefined/.test(reason);const markdown=['INCOMPLETE | '+s.storeName+' | Website traffic review',p.start+' to '+p.end+' | '+'GA4 | '+c.timeZone,'','This review did not run, so it reports no figures this week. Missing figures are not zero.','Failed step: '+$prevNode.name,'Reason: '+reason,'',...(setup?['First run before setup? The source nodes stay switched off until you connect them, so this is expected.']:[]),'Review: fix the connection or setting named above, then run the workflow again.'].join('\\n')+'\\n';return [{json:{markdown,slackText:markdown,fileName:'traffic-'+p.start+'-to-'+p.end+'-incomplete.md',incomplete:true}}];"
+      },
+      "id": "e44058dc-3fcb-42d1-98fd-800c6bdb1403",
+      "name": "Traffic | Incomplete report",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1376,
+        1936
+      ],
+      "notes": "Runs only when a step in this lane fails. Writes an INCOMPLETE report so the other reviews still go out.",
+      "notesInFlow": true
+    },
+    {
+      "parameters": {
+        "numberInputs": 6
+      },
+      "id": "072cf625-1b35-481c-a35f-a2d1f05c30ba",
+      "name": "Collect all reports",
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        3424,
+        1264
+      ]
+    },
+    {
+      "id": "a21afc3b-beb6-43ea-9dc3-497676e82a27",
+      "name": "Deliver | Slack",
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 2.3,
+      "position": [
+        3872,
+        304
+      ],
+      "parameters": {
+        "select": "channel",
+        "channelId": {
+          "__rl": true,
+          "value": "SELECT_YOUR_TEST_CHANNEL",
+          "mode": "id"
+        },
+        "text": "={{ $json.slackText }}",
+        "otherOptions": {
+          "unfurl_links": false,
+          "unfurl_media": false,
+          "includeLinkToWorkflow": false
+        }
+      },
+      "disabled": true,
+      "notes": "One message per report and one for the summary. Setup: see the Slack setup note. Select your credential and Channel By ID, then switch on.",
+      "notesInFlow": true
+    },
+    {
+      "parameters": {
+        "jsCode": "// Turns each review's Markdown into a Slack message: an emoji title, bold labels,\n// a dashed rule between parts, and table rows as bullet lines (Slack can't show\n// Markdown tables). The Markdown file itself is unchanged; only slackText is rewritten.\nconst s = $('Settings').first().json;\nconst base = String(s.n8nUrl || '').replace(/\\/+$/, '');\nconst linked = /^https?:\\/\\//.test(base) && !base.includes('YOUR-INSTANCE');\nconst wfUrl = linked ? base + '/workflow/' + $workflow.id : '';\nconst icon = { executive: '📊', marketing: '📣', products: '🛍️', traffic: '🌐', email: '✉️', ads: '🎯', summary: '🧠' };\nconst title = { executive: 'Executive business review', marketing: 'Marketing source review', products: 'Top product review', traffic: 'Website traffic review', email: 'Email review (Customer.io)', ads: 'Ads review (Google Ads and Meta)', summary: 'Weekly summary' };\nconst rule = '------------------------------';\nconst esc = t => String(t).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');\nconst isContext = l => /^(DEMO|PRIVATE LIVE|SYNTHETIC DATA|SAMPLE DATA|LIVE GA4|INCOMPLETE \\|)/.test(l) || /^\\d{4}-\\d{2}-\\d{2}/.test(l) || /^(Synthetic example data|Sample data:|Live Metorik data|Live data from|Written by an AI model)/.test(l);\nconst cells = l => l.replace(/^\\|/, '').replace(/\\|\\s*$/, '').split('|').map(c => c.trim());\n\nreturn $input.all().map(item => {\n  const j = item.json;\n  const lane = String(j.fileName || '').split('-')[0];\n  const head = (j.incomplete ? '⚠️' : (icon[lane] || '📄')) + ' *' + (title[lane] || esc(j.fileName || 'Review')) + (j.incomplete ? ': incomplete' : '') + '*';\n  const context = [], body = [];\n  let header = null;\n  for (const raw of String(j.markdown || '').split('\\n')) {\n    const l = raw.trim();\n    if (!l) { if (body.length && body[body.length - 1] !== '') body.push(''); continue; }\n    if (l.startsWith('# ')) continue;\n    if (!body.length && isContext(l)) { context.push('_' + esc(l.replace(/\\s*\\|\\s*/g, ' · ')) + '_'); continue; }\n    if (l.startsWith('## ')) { if (body.length && body[body.length - 1] !== '') body.push(''); body.push('*' + esc(l.slice(3)) + '*'); header = null; continue; }\n    if (l.startsWith('|')) {\n      const c = cells(l);\n      if (c.every(x => /^:?-+:?$/.test(x))) continue;\n      if (!header) { header = c; continue; }\n      body.push('• *' + esc(c[0]) + '*' + c.slice(1).map((v, k) => ' · ' + esc(header[k + 1]) + ' ' + esc(v)).join(''));\n      continue;\n    }\n    header = null;\n    let m;\n    if ((m = l.match(/^Review:\\s*(.*)$/))) { body.push('👉 *Review:* ' + esc(m[1])); continue; }\n    if ((m = l.match(/^([•-])\\s+([^:]{1,45}):\\s+(.*)$/))) { body.push('• *' + esc(m[2]) + ':* ' + esc(m[3]).replace(/\\s*\\|\\s*/g, ' · ')); continue; }\n    if ((m = l.match(/^(\\d+)\\.\\s+(.+?)\\s+—\\s+(.*)$/))) { body.push(m[1] + '. *' + esc(m[2]) + '* · ' + esc(m[3]).replace(/\\s*\\|\\s*/g, ' · ')); continue; }\n    if ((m = l.match(/^(Failed step|Reason):\\s*(.*)$/))) { body.push('*' + m[1] + ':* ' + esc(m[2])); continue; }\n    if (/^[^:]{3,60}:$/.test(l)) { body.push('*' + esc(l) + '*'); continue; }\n    body.push(esc(l).replace(/\\s*\\|\\s*/g, ' · '));\n  }\n  while (body.length && body[body.length - 1] === '') body.pop();\n  const parts = [head, ...context, rule, ...body];\n  if (linked) parts.push(rule, '<' + wfUrl + '|Open the workflow> · <' + wfUrl + '/executions/' + $execution.id + '|This run>');\n  return { json: { ...j, slackText: parts.join('\\n') }, binary: item.binary };\n});\n"
+      },
+      "id": "7e7af313-40ed-4f31-ac4f-bc3a74dbd759",
+      "name": "Slack | Format for Slack",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        3648,
+        304
+      ],
+      "notes": "Rewrites each review for Slack: emoji title, bold labels, tables as bullet lines.",
+      "notesInFlow": true
+    },
+    {
+      "parameters": {
+        "jsCode": "const s=$('Settings').first().json,items=$input.all();\nconst runDate=$now.setZone(s.timeZone).toISODate();\nconst reviews=items.filter(i=>!String(i.json.fileName).startsWith('summary-')),done=reviews.filter(i=>!i.json.incomplete).length;\nconst branch='reports/'+runDate+'-run-'+$execution.id;\nconst files=items.map(i=>'- '+s.githubFolder+'/'+i.json.fileName+(i.json.incomplete?' (INCOMPLETE)':'')).join('\\n');\nreturn [{json:{owner:s.githubOwner,repo:s.githubRepo,base:s.githubBase,branch,\n title:'Weekly reports '+runDate+(done<reviews.length?' (incomplete)':''),\n body:'Weekly reports from the n8n reporting workflow, run '+runDate+'. '+done+' of '+reviews.length+' reviews complete.\\n\\n'+files+'\\n\\nMerge this pull request to add the reports. Nothing was committed to '+s.githubBase+'.'}}];"
+      },
+      "id": "15380008-9dea-48cf-8ce4-c401366c823d",
+      "name": "GitHub | Plan PR",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        3648,
+        816
+      ]
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "=https://api.github.com/repos/{{ $('GitHub | Plan PR').first().json.owner }}/{{ $('GitHub | Plan PR').first().json.repo }}/git/ref/heads/{{ $('GitHub | Plan PR').first().json.base }}",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "githubApi",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Accept",
+              "value": "application/vnd.github+json"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "0ca5f869-7f58-48a4-9f81-e23e7f027d96",
+      "name": "GitHub | Get base branch",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        3872,
+        816
+      ],
+      "disabled": true,
+      "onError": "continueErrorOutput",
+      "notes": "Reads the latest commit on the base branch, so the new branch starts from it.",
+      "notesInFlow": true
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://api.github.com/repos/{{ $('GitHub | Plan PR').first().json.owner }}/{{ $('GitHub | Plan PR').first().json.repo }}/git/refs",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "githubApi",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Accept",
+              "value": "application/vnd.github+json"
+            }
+          ]
+        },
+        "options": {},
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ref:'refs/heads/'+$('GitHub | Plan PR').first().json.branch, sha:$json.object.sha}) }}"
+      },
+      "id": "c0186284-d50c-481a-97e3-e366fbab98ef",
+      "name": "GitHub | Create branch",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        4096,
+        816
+      ],
+      "disabled": true,
+      "onError": "continueErrorOutput",
+      "notes": "Creates a new branch for this run, for example reports/2026-10-22-run-123.",
+      "notesInFlow": true
+    },
+    {
+      "parameters": {
+        "jsCode": "return $('All reports and summary').all();"
+      },
+      "id": "7942a524-343a-4ee7-8950-19d585d619e5",
+      "name": "GitHub | Reports to commit",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        4320,
+        816
+      ]
+    },
+    {
+      "parameters": {
+        "resource": "file",
+        "operation": "create",
+        "owner": {
+          "__rl": true,
+          "mode": "name",
+          "value": "={{ $('Settings').first().json.githubOwner }}"
+        },
+        "repository": {
+          "__rl": true,
+          "mode": "name",
+          "value": "={{ $('Settings').first().json.githubRepo }}"
+        },
+        "filePath": "={{ $('Settings').first().json.githubFolder }}/{{ $json.fileName }}",
+        "binaryData": true,
+        "binaryPropertyName": "report",
+        "commitMessage": "=Add report {{ $json.fileName }}",
+        "additionalParameters": {
+          "branch": {
+            "branch": "={{ $('GitHub | Plan PR').first().json.branch }}"
+          }
+        }
+      },
+      "id": "c8ce7710-7360-4c86-9963-badb86e18256",
+      "name": "GitHub | Commit to branch",
+      "type": "n8n-nodes-base.github",
+      "typeVersion": 1.1,
+      "position": [
+        4544,
+        816
+      ],
+      "disabled": true,
+      "onError": "continueRegularOutput",
+      "notes": "Commits each report to the new branch only.",
+      "notesInFlow": true
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=https://api.github.com/repos/{{ $('GitHub | Plan PR').first().json.owner }}/{{ $('GitHub | Plan PR').first().json.repo }}/pulls",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "githubApi",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Accept",
+              "value": "application/vnd.github+json"
+            }
+          ]
+        },
+        "options": {},
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({title:$('GitHub | Plan PR').first().json.title, head:$('GitHub | Plan PR').first().json.branch, base:$('GitHub | Plan PR').first().json.base, body:$('GitHub | Plan PR').first().json.body}) }}"
+      },
+      "id": "2b9807c1-60c2-4732-8bdd-c727fc3ef783",
+      "name": "GitHub | Open pull request",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        4768,
+        816
+      ],
+      "disabled": true,
+      "onError": "continueRegularOutput",
+      "notes": "Opens the pull request. You review and merge it.",
+      "notesInFlow": true,
+      "executeOnce": true
+    },
+    {
+      "parameters": {
+        "jsCode": "const items=$input.all(),s=$('Settings').first().json;\nconst runDate=$now.setZone(s.timeZone).toISODate();\nconst reviews=items.filter(i=>!String(i.json.fileName).startsWith('summary-')),done=reviews.filter(i=>!i.json.incomplete).length;\nconst base=String(s.n8nUrl||'').replace(/\\/+$/,''),linked=/^https?:\\/\\//.test(base)&&!base.includes('YOUR-INSTANCE'),wfUrl=linked?base+'/workflow/'+$workflow.id:'';\nconst body=['Weekly reports, run '+runDate+'. '+done+' of '+reviews.length+' reviews complete.',...(linked?['Workflow: '+wfUrl,'This run: '+wfUrl+'/executions/'+$execution.id]:[]),'',\n ...items.map(i=>'-----BEGIN REPORT '+i.json.fileName+'-----\\n'+i.json.markdown+'-----END REPORT-----\\n')].join('\\n');\nconst exact=items.map(i=>'-----BEGIN FILE '+i.json.fileName+'-----\\n'+Buffer.from(i.json.markdown,'utf8').toString('base64').match(/.{1,76}/g).join('\\n')+'\\n-----END FILE-----').join('\\n');\nconst binary={};items.forEach((i,k)=>{if(i.binary?.report)binary['report_'+k]=i.binary.report;});\nreturn [{json:{subject:'Weekly reports '+runDate+(done<reviews.length?' (incomplete)':''),body:body+'\\n\\nExact copies for /get-email-reports (base64, do not edit):\\n'+exact+'\\n',attachmentNames:Object.keys(binary).join(',')},binary}];"
+      },
+      "id": "ba1d6c5e-ab4f-4239-b0ee-9e9821d664b1",
+      "name": "Email | Combine reports",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        3648,
+        560
+      ]
+    },
+    {
+      "parameters": {
+        "resource": "message",
+        "operation": "send",
+        "sendTo": "={{ $('Settings').first().json.emailTo }}",
+        "subject": "={{ $json.subject }}",
+        "emailType": "text",
+        "message": "={{ $json.body }}",
+        "options": {
+          "appendAttribution": false,
+          "attachmentsUi": {
+            "attachmentsBinary": [
+              {
+                "property": "={{ $json.attachmentNames }}"
+              }
+            ]
+          }
+        }
+      },
+      "id": "90c5308f-d6d2-4d5b-9303-e878c1b7103a",
+      "name": "Deliver | Email",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        3872,
+        560
+      ],
+      "disabled": true,
+      "notes": "One email with all the reports and the summary. Set emailTo in Settings, select a Gmail credential, then switch on.",
+      "notesInFlow": true
+    },
+    {
+      "parameters": {
+        "content": "## Delivery: choose one or more\nAll the reports and the AI summary are collected first, then sent to every delivery node you switch on. Leave the others off, or delete them.\n\n- **Slack:** one formatted message per report (emoji title, bold labels, tables as bullet lines). See the Slack setup note.\n- **GitHub:** opens a pull request to your personal OS repo with the reports as dated .md files (Settings: githubOwner, githubRepo, githubFolder, githubBase). It creates a new branch each run and never commits to your main branch: you merge the PR. Use a private repo, because reports hold revenue. Needs a GitHub API credential with Contents and Pull requests set to read and write, on the four GitHub nodes.\n- **Email:** one email with all the reports in the body and attached (Settings: emailTo).\n\nSet `n8nUrl` in Settings to your n8n address and both email and Slack link back to this workflow and the run.\n\nIncomplete reports are delivered too, so a failed source shows up instead of going quiet.",
+        "height": 430,
+        "width": 520,
+        "color": 6
+      },
+      "id": "baaf37cf-d4fc-4e00-8a32-d928d34d96c3",
+      "name": "Delivery explainer",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        3584,
+        -400
+      ]
+    },
+    {
+      "id": "e0bc8bf1-0dbd-427f-85b0-6a7e86c0a133",
+      "name": "Trends | Periods",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        3648,
+        1264
+      ],
+      "parameters": {
+        "jsCode": "// Last 30 vs prior 30 and last 90 vs prior 90 completed days, in the Settings timezone.\nconst s=$('Settings').first().json;\nconst end=$now.setZone(s.timeZone).startOf('day').minus({days:1});\nconst w=(days,offset)=>({start:end.minus({days:offset+days-1}).toISODate(),end:end.minus({days:offset}).toISODate()});\nreturn [{json:{timeZone:s.timeZone,currency:s.currency,windows:{last30:w(30,0),prev30:w(30,30),last90:w(90,0),prev90:w(90,90)}}}];"
+      }
+    },
+    {
+      "id": "c1d00386-bf71-4f59-b3cd-a0cfc33351af",
+      "name": "Trends | Load history",
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "position": [
+        4992,
+        1264
+      ],
+      "parameters": {
+        "resource": "row",
+        "operation": "get",
+        "dataTableId": {
+          "__rl": true,
+          "mode": "name",
+          "value": "reporting_agent_history"
+        },
+        "returnAll": false,
+        "limit": 26,
+        "orderBy": true,
+        "orderByColumn": "createdAt",
+        "orderByDirection": "DESC"
+      },
+      "onError": "continueRegularOutput",
+      "alwaysOutputData": true
+    },
+    {
+      "id": "338df5ea-3c7d-4c67-95d7-c768993a9691",
+      "name": "Trends | Facts for the summary",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        5216,
+        1264
+      ],
+      "parameters": {
+        "jsCode": "// Everything the AI may quote: this run's reports, the comparisons computed above, and saved runs. Numbers come only from here.\nconst p=$('Executive | Reporting period').first().json;\nconst collected=$('Collect all reports').all().filter(i=>!i.json.skipped);\nconst reports=collected.map(i=>({file:i.json.fileName,incomplete:!!i.json.incomplete,markdown:i.json.markdown}));\nconst trends=$('Trends | Revenue by period').first().json;\n// Earlier runs, newest first, one per reporting week (reruns of the same week are dropped), excluding this week.\nconst seen=new Set();\nconst history=$('Trends | Load history').all().map(i=>i.json).filter(r=>r&&r.run_date).filter(r=>{const k=r.period_start+'|'+r.period_end;if(r.period_start===p.start||seen.has(k))return false;seen.add(k);return true;}).map(r=>({run_date:r.run_date,period:r.period_start+' to '+r.period_end,reviews_complete:r.reviews_complete,reviews_total:r.reviews_total,exec_net:r.exec_net,exec_orders:r.exec_orders}));\nconst ex=collected.find(i=>String(i.json.fileName).startsWith('executive-')&&!i.json.incomplete);\nconst exec=ex?.json?.totals??null;\nconst reviews={complete:reports.filter(r=>!r.incomplete).map(r=>r.file),incomplete:reports.filter(r=>r.incomplete).map(r=>r.file),complete_count:reports.filter(r=>!r.incomplete).length,total_count:reports.length};\nreturn [{json:{period:{start:p.start,end:p.end,previousStart:p.previousStart,previousEnd:p.previousEnd},currency:p.currency,source:$('Settings').first().json.sourceLabel,reviews,reports,trends,history,history_weeks:history.length,exec_totals:exec,sample_data:reports.filter(r=>/^SAMPLE DATA/.test(String(r.markdown||''))).map(r=>r.file)}}];"
+      }
+    },
+    {
+      "id": "fd640ba2-8075-485e-892f-6019b097d6b7",
+      "name": "AI | Weekly summary",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        5440,
+        1264
+      ],
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ 'Facts (JSON):\\n' + JSON.stringify($json, null, 1) }}",
+        "options": {
+          "systemMessage": "You write the weekly summary for the marketing team from the facts you are given, and nothing else.\n\nRules:\n1. Every number you write must appear in the facts. You may round to whole numbers. Never calculate a new number.\n2. How many reviews ran comes only from reviews.complete_count and reviews.total_count. Name the incomplete ones from reviews.incomplete.\n3. A report marked incomplete, or a value that is missing or null, is missing data, not zero. Say it is missing and name the failed step.\n4. Keep facts, hypotheses and missing data apart. Label every hypothesis as a hypothesis.\n5. Month over month and quarter over quarter come only from trends.mom and trends.qoq. If trends.available is false, say they are unavailable and why.\n6. History holds earlier weeks, one row each. Describe a trend across weeks only when history_weeks is at least 3; otherwise say there is not enough history yet.\n7. Order sources are not incrementality, event counts are not unique people, email counts are messages not people, and non-renewal revenue is not first-time buyer revenue.\n8. A report that starts with SAMPLE DATA, or is listed in sample_data, holds example data, not the business's. Say it is sample data and never present its numbers as the business's results.\n9. Plain US English, short lines, no em dashes, no all caps.\n\nOutput Markdown with exactly these sections:\n## Headline (two lines)\n## Month and quarter\n## Trends\n## Flags\n## Working\n## Not working\n## Missing data\n## Check next (at most three items, each tied to a line in a report)",
+          "maxIterations": 3
+        }
+      },
+      "onError": "continueRegularOutput",
+      "disabled": true
+    },
+    {
+      "id": "e054be4f-9352-4c38-a119-25773078be83",
+      "name": "AI | Claude model",
+      "type": "@n8n/n8n-nodes-langchain.lmChatAnthropic",
+      "typeVersion": 1.6,
+      "position": [
+        5440,
+        1488
+      ],
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "id",
+          "value": "claude-sonnet-5-5"
+        },
+        "options": {
+          "maxTokensToSample": 6000
+        }
+      }
+    },
+    {
+      "id": "5cdc90d1-3c22-4b38-9a9f-0c20065aeb4c",
+      "name": "AI | Summary report",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        5664,
+        1264
+      ],
+      "parameters": {
+        "jsCode": "// Wraps the AI text as one more report file, or an INCOMPLETE note when the model did not answer.\nconst p=$('Trends | Facts for the summary').first().json.period;\nconst j=$input.first().json;\nconst ok=!j.error&&j.output;\nconst body=ok?String(j.output).replace(/\\s*\\u2014\\s*/g,', '):'INCOMPLETE: the AI summary did not run, so there is no summary this week. The reviews are unaffected.\\nReason: '+String(j.error?.message||j.error||'the AI node is switched off or returned nothing').slice(0,300);\nconst fileName='summary-'+p.start+'-to-'+p.end+(ok?'':'-incomplete')+'.md';\nconst markdown='# Weekly summary | '+$('Settings').first().json.storeName+'\\n'+p.start+' to '+p.end+'\\nWritten by an AI model from this run\\'s reports and the comparisons computed in the workflow. Check a number against its report before acting on it.\\n\\n'+body+'\\n';\nreturn [{json:{markdown,slackText:markdown,fileName,incomplete:!ok},binary:{report:{data:Buffer.from(markdown,'utf8').toString('base64'),mimeType:'text/markdown',fileExtension:'md',fileName}}}];"
+      }
+    },
+    {
+      "id": "b300100d-430f-46f6-86c8-6c66633096d5",
+      "name": "History | Save this run",
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "position": [
+        5888,
+        1264
+      ],
+      "parameters": {
+        "resource": "row",
+        "operation": "insert",
+        "dataTableId": {
+          "__rl": true,
+          "mode": "name",
+          "value": "reporting_agent_history"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "run_date": "={{ $now.setZone($('Settings').first().json.timeZone).toISODate() }}",
+            "period_start": "={{ $('Trends | Facts for the summary').first().json.period.start }}",
+            "period_end": "={{ $('Trends | Facts for the summary').first().json.period.end }}",
+            "reviews_complete": "={{ $('Collect all reports').all().filter(i => !i.json.skipped && !i.json.incomplete).length }}",
+            "reviews_total": "={{ $('Collect all reports').all().filter(i => !i.json.skipped).length }}",
+            "exec_net": "={{ $('Trends | Facts for the summary').first().json.exec_totals ? Math.round($('Trends | Facts for the summary').first().json.exec_totals.net) : null }}",
+            "exec_orders": "={{ $('Trends | Facts for the summary').first().json.exec_totals ? $('Trends | Facts for the summary').first().json.exec_totals.orders : null }}",
+            "facts_json": "={{ JSON.stringify({trends: $('Trends | Facts for the summary').first().json.trends, exec_totals: $('Trends | Facts for the summary').first().json.exec_totals, leads_email_count: ($('Collect all reports').all().find(i => String(i.json.fileName).startsWith('email-')) || { json: {} }).json.capture_count ?? null}) }}"
+          },
+          "schema": [
+            {
+              "id": "run_date",
+              "displayName": "run_date",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "period_start",
+              "displayName": "period_start",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "period_end",
+              "displayName": "period_end",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "reviews_complete",
+              "displayName": "reviews_complete",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "reviews_total",
+              "displayName": "reviews_total",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "exec_net",
+              "displayName": "exec_net",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "exec_orders",
+              "displayName": "exec_orders",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "facts_json",
+              "displayName": "facts_json",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ]
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "id": "be86b8c7-a36a-4558-b3bd-fc747eb4fbce",
+      "name": "All reports and summary",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        6112,
+        1264
+      ],
+      "parameters": {
+        "jsCode": "// The reports plus the AI summary, so every delivery sends all of them. A lane switched off in Settings is left out.\nreturn [...$('Collect all reports').all().filter(i => !i.json.skipped), $('AI | Summary report').first()];"
+      }
+    },
+    {
+      "id": "9668fb19-276e-42c1-92c3-7408cbbe6389",
+      "name": "Customer.io | Reporting period",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        704,
+        2224
+      ],
+      "parameters": {
+        "jsCode": "// Same weeks as the executive review. Customer.io metrics come in whole days (UTC), so the last 7 complete days are used.\nconst p=$('Executive | Reporting period').first().json;\nreturn [{json:{start:p.start,end:p.end,previousStart:p.previousStart,previousEnd:p.previousEnd,timeZone:p.timeZone,storeName:p.storeName}}];"
+      }
+    },
+    {
+      "id": "51c872de-5d7f-4fbf-8fb7-8029805f92f0",
+      "name": "Customer.io | Campaigns",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        928,
+        2224
+      ],
+      "parameters": {
+        "url": "={{ $('Settings').first().json.cioApiUrl }}/v1/campaigns",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpBearerAuth",
+        "options": {
+          "timeout": 60000
+        }
+      },
+      "notes": "Read-only. Customer.io App API: every campaign (automation).",
+      "onError": "continueRegularOutput",
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 2000,
+      "disabled": true
+    },
+    {
+      "id": "6aeb246e-e861-49b9-bff0-857f777a6c03",
+      "name": "Customer.io | Running campaigns",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1152,
+        2224
+      ],
+      "parameters": {
+        "jsCode": "// One item per running campaign, so the next node fetches each campaign's metrics.\nconst list=$input.first().json.campaigns||[];\nreturn list.filter(c=>c.active===true||c.state==='running').map(c=>({json:{id:c.id,name:c.name,type:c.type,state:c.state}}));"
+      },
+      "alwaysOutputData": true
+    },
+    {
+      "id": "b8577b65-f93e-4235-acdc-8bc2909059d1",
+      "name": "Customer.io | Campaign metrics",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1376,
+        2224
+      ],
+      "parameters": {
+        "url": "={{ $('Settings').first().json.cioApiUrl }}/v1/campaigns/{{ $json.id }}/metrics",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpBearerAuth",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "period",
+              "value": "days"
+            },
+            {
+              "name": "steps",
+              "value": "15"
+            },
+            {
+              "name": "type",
+              "value": "email"
+            }
+          ]
+        },
+        "options": {
+          "timeout": 60000,
+          "batching": {
+            "batch": {
+              "batchSize": 5,
+              "batchInterval": 600
+            }
+          }
+        }
+      },
+      "notes": "Read-only. Daily email metrics for the last 15 days, one request per running campaign.",
+      "onError": "continueRegularOutput",
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 2000,
+      "alwaysOutputData": true,
+      "disabled": true
+    },
+    {
+      "id": "ab61971d-d073-40c2-847e-912f7204e6ed",
+      "name": "Customer.io | Broadcasts",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1600,
+        2224
+      ],
+      "parameters": {
+        "url": "={{ $('Settings').first().json.cioApiUrl }}/v1/newsletters",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpBearerAuth",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "limit",
+              "value": "50"
+            },
+            {
+              "name": "sort",
+              "value": "desc"
+            }
+          ]
+        },
+        "options": {
+          "timeout": 60000
+        }
+      },
+      "notes": "Read-only. Customer.io App API: newsletters (broadcasts).",
+      "onError": "continueRegularOutput",
+      "alwaysOutputData": true,
+      "disabled": true
+    },
+    {
+      "id": "e0da40b7-9f3d-4681-affc-9f558a511f6d",
+      "name": "Customer.io | Sent broadcasts",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1824,
+        2224
+      ],
+      "parameters": {
+        "jsCode": "// Broadcasts sent in this week or the one before, one item each.\nconst p=$('Customer.io | Reporting period').first().json;\nconst from=Date.parse(p.previousStart+'T00:00:00Z')/1000, to=Date.parse(p.end+'T23:59:59Z')/1000;\nconst list=$input.first().json.newsletters||[];\nreturn list.filter(n=>n.sent_at&&n.sent_at>=from&&n.sent_at<=to).map(n=>({json:{id:n.id,name:n.name,sent_at:n.sent_at}}));"
+      },
+      "alwaysOutputData": true
+    },
+    {
+      "id": "564cb418-8016-4f7b-89ba-eb3552607ae7",
+      "name": "Customer.io | Broadcast metrics",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        2048,
+        2224
+      ],
+      "parameters": {
+        "url": "={{ $('Settings').first().json.cioApiUrl }}/v1/newsletters/{{ $json.id }}/metrics",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpBearerAuth",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "period",
+              "value": "days"
+            },
+            {
+              "name": "steps",
+              "value": "15"
+            }
+          ]
+        },
+        "options": {
+          "timeout": 60000,
+          "batching": {
+            "batch": {
+              "batchSize": 5,
+              "batchInterval": 600
+            }
+          }
+        }
+      },
+      "notes": "Read-only. Daily metrics for each broadcast sent in the two weeks.",
+      "onError": "continueRegularOutput",
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 2000,
+      "alwaysOutputData": true,
+      "disabled": true
+    },
+    {
+      "id": "54d68a19-0e16-4312-b8bf-c2b68aad5ca8",
+      "name": "Customer.io | Capture count",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        2272,
+        2224
+      ],
+      "parameters": {
+        "url": "={{ $('Settings').first().json.cioApiUrl }}/v1/segments/{{ $('Settings').first().json.cioCaptureSegmentId || 'not-set' }}/customer_count",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpBearerAuth",
+        "options": {
+          "timeout": 60000
+        }
+      },
+      "notes": "Read-only. Size of the capture segment set in Settings. Fails harmlessly when no segment is set.",
+      "onError": "continueRegularOutput",
+      "alwaysOutputData": true,
+      "disabled": true
+    },
+    {
+      "id": "0eb1b56f-b4b3-47af-8423-6edf887aef8a",
+      "name": "Customer.io | Compose review",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2720,
+        2224
+      ],
+      "parameters": {
+        "jsCode": "// Email review from Customer.io: this week vs last, in Customer.io's daily (UTC) buckets.\nconst p=$('Customer.io | Reporting period').first().json, s=$('Settings').first().json;\nconst all=n=>{try{return $(n).all().map(i=>i.json)}catch(e){return []}};\nconst list=all('Customer.io | Campaigns')[0];\nif(!list||!Array.isArray(list.campaigns))throw Error('Customer.io campaigns did not load: '+String(list?.error?.message||list?.error||'no response').slice(0,200));\nconst keys=['sent','delivered','human_opened','human_clicked','converted','unsubscribed','topic_unsubscribed','bounced','spammed'];\n// Series hold one bucket per day ending today (partial). This week = the 7 complete days before today, prior = the 7 before that.\nconst roll=series=>{const out={cur:{},prev:{}};for(const k of keys){const a=(series&&series[k])||[],L=a.length;out.cur[k]=a.slice(Math.max(0,L-8),L-1).reduce((x,y)=>x+Number(y||0),0);out.prev[k]=a.slice(Math.max(0,L-15),Math.max(0,L-8)).reduce((x,y)=>x+Number(y||0),0);}return out;};\nconst rows=[];\nconst add=(kind,meta,metric)=>{if(!metric||!metric.metric||!metric.metric.series)return;const r=roll(metric.metric.series);rows.push({kind,name:meta.name,...r});};\nconst camps=all('Customer.io | Running campaigns').filter(c=>c&&c.id!==undefined), cm=all('Customer.io | Campaign metrics');\ncamps.forEach((c,i)=>add('Automation',c,cm[i]));\nconst bcs=all('Customer.io | Sent broadcasts').filter(b=>b&&b.id!==undefined), bm=all('Customer.io | Broadcast metrics');\nbcs.forEach((b,i)=>add('Broadcast',b,bm[i]));\nconst tot={cur:{},prev:{}};for(const k of keys){tot.cur[k]=rows.reduce((x,r)=>x+r.cur[k],0);tot.prev[k]=rows.reduce((x,r)=>x+r.prev[k],0);}\nconst n=v=>new Intl.NumberFormat(p.locale||s.locale).format(v);\nconst pct=(a,b)=>b?((a-b)/b*100).toFixed(1)+'%':'N/A';\nconst rate=(a,b)=>b?(a/b*100).toFixed(1)+'%':'N/A';\nconst signed=v=>(v>0?'+':'')+n(v);\nconst safe=v=>String(v??'Unknown').replace(/[<>&|\\r\\n]/g,' ');\nconst c=tot.cur,b=tot.prev;\nconst lines=['PRIVATE LIVE REVIEW | '+s.storeName+' | Email review (Customer.io)',p.start+' to '+p.end+' | Customer.io days are UTC | prior week '+p.previousStart+' to '+p.previousEnd,''];\nlines.push('• Emails sent: '+n(c.sent)+' ('+pct(c.sent,b.sent)+' vs prior week); delivered: '+n(c.delivered)+'.','• Human opens: '+n(c.human_opened)+' ('+rate(c.human_opened,c.delivered)+' of delivered, prior '+rate(b.human_opened,b.delivered)+'); human clicks: '+n(c.human_clicked)+' ('+rate(c.human_clicked,c.delivered)+', prior '+rate(b.human_clicked,b.delivered)+').','• Conversions: '+n(c.converted)+' (prior '+n(b.converted)+').','• Unsubscribes: '+n(c.unsubscribed)+' ('+rate(c.unsubscribed,c.delivered)+' of delivered) vs '+n(b.unsubscribed)+' ('+rate(b.unsubscribed,b.delivered)+'); topic unsubscribes: '+n(c.topic_unsubscribed)+'.','• Bounces: '+n(c.bounced)+'; spam complaints: '+n(c.spammed)+'.','');\nconst top=[...rows].filter(r=>r.cur.sent>0).sort((x,y)=>y.cur.sent-x.cur.sent).slice(0,8);\nlines.push('Top sends this week (sent, open rate, click rate, unsubscribes):');\nif(!top.length)lines.push('• Nothing sent this week.');\nfor(const r of top)lines.push('• '+r.kind+': '+safe(r.name)+' → '+n(r.cur.sent)+' → '+rate(r.cur.human_opened,r.cur.delivered)+' → '+rate(r.cur.human_clicked,r.cur.delivered)+' → '+n(r.cur.unsubscribed));\n// Email capture: growth of the capture segment against the last saved week.\nconst cap=all('Customer.io | Capture count')[0];\nconst label=s.cioCaptureLabel||('segment '+s.cioCaptureSegmentId);\nlet captureCount=null;\nlines.push('');\nif(!s.cioCaptureSegmentId)lines.push('Email capture: not set up yet. Set cioCaptureSegmentId in Settings. Missing, not zero.');\nelse if(cap&&Number.isFinite(Number(cap.count))){\n  captureCount=Number(cap.count);\n  let prev=null;\n  for(const r of all('Customer.io | Last saved count')){if(!r||!r.facts_json||r.period_start===p.start)continue;try{const f=JSON.parse(r.facts_json);if(Number.isFinite(f.leads_email_count)){prev={count:f.leads_email_count,week:r.period_start+' to '+r.period_end};break;}}catch(e){}}\n  lines.push('Email capture ('+label+' segment, net growth): '+n(captureCount)+' people now'+(prev?', '+signed(captureCount-prev.count)+' since the run for '+prev.week:'; first reading, so growth shows from next week')+'. Net growth is new people minus people who left the segment.');\n}\nelse lines.push('Email capture: the '+label+' count did not load ('+String(cap?.error?.message||'no response').slice(0,120)+'). Missing, not zero.');\nlines.push('','Covers '+camps.length+' running automations and '+bcs.length+' broadcasts sent in the two weeks. Counts are messages, not unique people. Opens and clicks are human-only. Conversions follow each campaign\\'s own goal.','Review: check the sends with the highest unsubscribe rate before their next send.');\nconst markdown=lines.join('\\n')+'\\n';\nreturn [{json:{markdown,slackText:markdown,fileName:'email-'+p.start+'-to-'+p.end+'.md',period:p,totals:tot,capture_count:captureCount}}];"
+      },
+      "onError": "continueErrorOutput"
+    },
+    {
+      "id": "6c110661-57b7-407b-b5d3-8c3f8e8018f6",
+      "name": "Customer.io | Incomplete report",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2720,
+        2416
+      ],
+      "parameters": {
+        "jsCode": "const p=$('Customer.io | Reporting period').first().json;const s=$('Settings').first().json;const j=$input.first().json,e=j.error??j;const reason=String(typeof e==='string'?e:(e.message||e.description||JSON.stringify(e))).replace(/[\\r\\n]+/g,' ').slice(0,300);const setup=/switched off|configure the connection first|did not load: no response|got undefined/.test(reason);const markdown=['INCOMPLETE | '+s.storeName+' | Email review (Customer.io)',p.start+' to '+p.end+' | '+'Customer.io','','This review did not run, so it reports no figures this week. Missing figures are not zero.','Failed step: '+$prevNode.name,'Reason: '+reason,'',...(setup?['First run before setup? The source nodes stay switched off until you connect them, so this is expected.']:[]),'Review: fix the connection or setting named above, then run the workflow again.'].join('\\n')+'\\n';return [{json:{markdown,slackText:markdown,fileName:'email-'+p.start+'-to-'+p.end+'-incomplete.md',incomplete:true}}];"
+      },
+      "notes": "Runs only when a step in this lane fails. Writes an INCOMPLETE report so the other reviews still go out."
+    },
+    {
+      "id": "e1a68791-8c6b-44f4-b8ca-6d6ec52966a2",
+      "name": "Customer.io | Create Markdown BEFORE Slack",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2944,
+        2224
+      ],
+      "parameters": {
+        "jsCode": "const d=$input.first().json;return [{json:d,binary:{report:{data:Buffer.from(d.markdown,'utf8').toString('base64'),mimeType:'text/markdown',fileExtension:'md',fileName:d.fileName}}}];"
+      }
+    },
+    {
+      "id": "89e1023f-d408-4f6c-9894-567723af7540",
+      "name": "Customer.io | Last saved count",
+      "type": "n8n-nodes-base.dataTable",
+      "typeVersion": 1.1,
+      "position": [
+        2496,
+        2224
+      ],
+      "parameters": {
+        "resource": "row",
+        "operation": "get",
+        "dataTableId": {
+          "__rl": true,
+          "mode": "name",
+          "value": "reporting_agent_history"
+        },
+        "returnAll": false,
+        "limit": 20,
+        "orderBy": true,
+        "orderByColumn": "createdAt",
+        "orderByDirection": "DESC"
+      },
+      "onError": "continueRegularOutput",
+      "alwaysOutputData": true
+    },
+    {
+      "id": "51b78c2b-2784-4486-ae14-2d1978e20a1d",
+      "name": "Trends | Metorik revenue (last 30 days)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        3872,
+        1264
+      ],
+      "parameters": {
+        "url": "https://app.metorik.com/api/v1/store/reports/revenue-by-date",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "start_date",
+              "value": "={{ $('Trends | Periods').first().json.windows.last30.start }}"
+            },
+            {
+              "name": "end_date",
+              "value": "={{ $('Trends | Periods').first().json.windows.last30.end }}"
+            },
+            {
+              "name": "group_by",
+              "value": "day"
+            }
+          ]
+        },
+        "options": {
+          "timeout": 60000
+        }
+      },
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 2000,
+      "disabled": true,
+      "onError": "continueRegularOutput",
+      "alwaysOutputData": true,
+      "notes": "Read-only. Metorik revenue totals for the last 30 days.",
+      "notesInFlow": true
+    },
+    {
+      "id": "52812a28-18c1-437f-bb93-835a381bf76c",
+      "name": "Trends | Metorik revenue (prior 30 days)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        4096,
+        1264
+      ],
+      "parameters": {
+        "url": "https://app.metorik.com/api/v1/store/reports/revenue-by-date",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "start_date",
+              "value": "={{ $('Trends | Periods').first().json.windows.prev30.start }}"
+            },
+            {
+              "name": "end_date",
+              "value": "={{ $('Trends | Periods').first().json.windows.prev30.end }}"
+            },
+            {
+              "name": "group_by",
+              "value": "day"
+            }
+          ]
+        },
+        "options": {
+          "timeout": 60000
+        }
+      },
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 2000,
+      "disabled": true,
+      "onError": "continueRegularOutput",
+      "alwaysOutputData": true,
+      "notes": "Read-only. Metorik revenue totals for the prior 30 days.",
+      "notesInFlow": true
+    },
+    {
+      "id": "4a78b9b6-41d9-4a96-a356-060cfca809a2",
+      "name": "Trends | Metorik revenue (last 90 days)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        4320,
+        1264
+      ],
+      "parameters": {
+        "url": "https://app.metorik.com/api/v1/store/reports/revenue-by-date",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "start_date",
+              "value": "={{ $('Trends | Periods').first().json.windows.last90.start }}"
+            },
+            {
+              "name": "end_date",
+              "value": "={{ $('Trends | Periods').first().json.windows.last90.end }}"
+            },
+            {
+              "name": "group_by",
+              "value": "day"
+            }
+          ]
+        },
+        "options": {
+          "timeout": 60000
+        }
+      },
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 2000,
+      "disabled": true,
+      "onError": "continueRegularOutput",
+      "alwaysOutputData": true,
+      "notes": "Read-only. Metorik revenue totals for the last 90 days.",
+      "notesInFlow": true
+    },
+    {
+      "id": "f0496dea-23a1-4b80-974f-24a7568e42c6",
+      "name": "Trends | Metorik revenue (prior 90 days)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        4544,
+        1264
+      ],
+      "parameters": {
+        "url": "https://app.metorik.com/api/v1/store/reports/revenue-by-date",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "start_date",
+              "value": "={{ $('Trends | Periods').first().json.windows.prev90.start }}"
+            },
+            {
+              "name": "end_date",
+              "value": "={{ $('Trends | Periods').first().json.windows.prev90.end }}"
+            },
+            {
+              "name": "group_by",
+              "value": "day"
+            }
+          ]
+        },
+        "options": {
+          "timeout": 60000
+        }
+      },
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 2000,
+      "disabled": true,
+      "onError": "continueRegularOutput",
+      "alwaysOutputData": true,
+      "notes": "Read-only. Metorik revenue totals for the prior 90 days.",
+      "notesInFlow": true
+    },
+    {
+      "parameters": {
+        "jsCode": "// Last 30 vs prior 30 and last 90 vs prior 90 days, from the totals of four Metorik revenue reports, computed in code.\n// A switched-off or failed request has no totals, so trends report themselves unavailable, never zero.\nconst p=$('Trends | Periods').first().json;\nconst names={\"last30\": \"Trends | Metorik revenue (last 30 days)\", \"prev30\": \"Trends | Metorik revenue (prior 30 days)\", \"last90\": \"Trends | Metorik revenue (last 90 days)\", \"prev90\": \"Trends | Metorik revenue (prior 90 days)\"};\nconst read=n=>{try{const j=$(n).first().json;return j&&j.totals&&Number.isFinite(Number(j.totals.net))?j.totals:null;}catch(e){return null;}};\nconst windows={},missing=[];\nfor(const [k,n] of Object.entries(names)){const t=read(n);if(!t){missing.push(n);continue;}windows[k]={...p.windows[k],orders:Number(t.orders),gross:Math.round(Number(t.gross)),net:Math.round(Number(t.net))};}\nif(missing.length)return [{json:{available:false,reason:'no Metorik totals from '+missing.join(', ')+' (switched off, or the request failed)'}}];\nconst pct=(a,b)=>b?Math.round((a-b)/b*1000)/10:null;\nreturn [{json:{available:true,source:'Metorik revenue report',truncated:false,windows,\n  mom:{net_pct:pct(windows.last30.net,windows.prev30.net),orders_pct:pct(windows.last30.orders,windows.prev30.orders)},\n  qoq:{net_pct:pct(windows.last90.net,windows.prev90.net),orders_pct:pct(windows.last90.orders,windows.prev90.orders)}}}];"
+      },
+      "id": "4db7ec06-e071-4385-9584-47289614d82d",
+      "name": "Trends | Revenue by period",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        4768,
+        1264
+      ],
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "content": "## Trends and AI summary\n**Trends:** last 30 against the prior 30 days and last 90 against the prior 90, computed in code from the totals of four Metorik revenue reports. Switch the four Metorik trend requests on with your Metorik login.\n\n**History:** every run is saved to the n8n Data Table `reporting_agent_history`. Create it first, with columns run_date, period_start, period_end (string), reviews_complete, reviews_total, exec_net, exec_orders (number) and facts_json (string).\n\n**AI summary:** switched off until you add an Anthropic credential to AI | Claude model. It only explains numbers the workflow computed, labels hypotheses, and keeps missing data missing. Its file goes out with the reports.",
+        "width": 2752,
+        "height": 230,
+        "color": 6
+      },
+      "id": "993ce627-ed1e-46c5-8132-bfef61346abc",
+      "name": "Trends and summary explainer",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        3584,
+        964
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Same weeks as the executive review.\nconst p=$('Executive | Reporting period').first().json;\nreturn [{json:{start:p.start,end:p.end,previousStart:p.previousStart,previousEnd:p.previousEnd}}];"
+      },
+      "name": "Ads | Reporting period",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "id": "c42ab749-3b96-450c-895e-1ac6f080f6b7",
+      "position": [
+        704,
+        2704
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// From Nick Christensen's ads reporting starter (MIT), workshop \"Ship ICP-driven ad campaigns and automated monitoring\".\n// Source: https://github.com/nickyc1/ship-icp-ads-automate-monitoring (n8n-ads-reporting/starter-workflow.json).\n// Carried unchanged below this header.\n// Mock Google Ads daily metrics. Swap this node for an HTTP Request / google-ads-mcp call later.\n// Shape stays the same so nothing downstream changes.\nconst campaigns = [\n  { campaign: \"Brand - Search\",        platform: \"google\", spend: 820,  conversions: 41, conversion_value: 3120, cpa: 20.0, historical_cpa: 19.0, ctr: 0.112, clicks: 612, impressions: 5460 },\n  { campaign: \"Competitor - Search\",   platform: \"google\", spend: 1450, conversions: 22, conversion_value: 1980, cpa: 65.9, historical_cpa: 31.0, ctr: 0.041, clicks: 410, impressions: 9900 },\n  { campaign: \"PMax - All Products\",   platform: \"google\", spend: 2100, conversions: 78, conversion_value: 6890, cpa: 26.9, historical_cpa: 28.0, ctr: 0.066, clicks: 880, impressions: 13300 },\n  { campaign: \"Generic - High Intent\", platform: \"google\", spend: 240,  conversions: 14, conversion_value: 1510, cpa: 17.1, historical_cpa: 18.0, ctr: 0.094, clicks: 168, impressions: 1780 },\n  { campaign: \"Display - Remarketing\", platform: \"google\", spend: 560,  conversions: 6,  conversion_value: 430,  cpa: 93.3, historical_cpa: 88.0, ctr: 0.008, clicks: 240, impressions: 30000 }\n];\nreturn campaigns.map(c => ({ json: c }));"
+      },
+      "name": "Ads | Google Ads (sample data)",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        928,
+        2704
+      ],
+      "id": "3e2a6994-3b92-4d78-89bd-0e73932ac889"
+    },
+    {
+      "parameters": {
+        "jsCode": "// From Nick Christensen's ads reporting starter (MIT), workshop \"Ship ICP-driven ad campaigns and automated monitoring\".\n// Source: https://github.com/nickyc1/ship-icp-ads-automate-monitoring (n8n-ads-reporting/starter-workflow.json).\n// Carried unchanged below this header.\n// Mock Meta daily metrics. Swap for the Meta Ads CLI/MCP later (one OAuth, no third-party app).\n// frequency is Meta-specific and feeds fatigue checks.\nconst campaigns = [\n  { campaign: \"Prospecting - Broad\",    platform: \"meta\", spend: 1300, conversions: 47, conversion_value: 2010, cpa: 27.7, historical_cpa: 25.0, ctr: 0.014, clicks: 980,  impressions: 70000, frequency: 1.8 },\n  { campaign: \"Retargeting - 7d\",       platform: \"meta\", spend: 430,  conversions: 33, conversion_value: 1890, cpa: 13.0, historical_cpa: 14.0, ctr: 0.022, clicks: 410,  impressions: 18600, frequency: 3.9 },\n  { campaign: \"Lookalike - Buyers 1%\",  platform: \"meta\", spend: 760,  conversions: 18, conversion_value: 720,  cpa: 42.2, historical_cpa: 39.0, ctr: 0.010, clicks: 520,  impressions: 52000, frequency: 2.1 },\n  { campaign: \"Creator - Whitelisting\", platform: \"meta\", spend: 290,  conversions: 16, conversion_value: 1240, cpa: 18.1, historical_cpa: 21.0, ctr: 0.031, clicks: 300,  impressions: 9700,  frequency: 1.4 }\n];\nreturn campaigns.map(c => ({ json: c }));"
+      },
+      "name": "Ads | Meta Ads (sample data)",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1152,
+        2704
+      ],
+      "id": "17d35894-ccf1-43b4-894f-d6c454def8d7"
+    },
+    {
+      "parameters": {
+        "numberInputs": 2
+      },
+      "name": "Ads | Merge",
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3,
+      "position": [
+        1376,
+        2704
+      ],
+      "id": "b76197d1-c79f-460c-a237-6d8de6ab9c33"
+    },
+    {
+      "parameters": {
+        "jsCode": "// From Nick Christensen's ads reporting starter (MIT), workshop \"Ship ICP-driven ad campaigns and automated monitoring\".\n// Source: https://github.com/nickyc1/ship-icp-ads-automate-monitoring (n8n-ads-reporting/starter-workflow.json).\n// Carried unchanged below this header.\n// Grade every campaign on profit-to-spend, flag anomalies, and write a plain-language digest.\n// Profit, not ROAS, is the hero number. Edit the targets to match your business.\nconst TARGET = { google: 1.5, meta: 0.5 };\n\nconst rows = $input.all().map(i => i.json);\nconst totalSpend = rows.reduce((s, r) => s + r.spend, 0);\nconst totalValue = rows.reduce((s, r) => s + r.conversion_value, 0);\nconst avgSpend = totalSpend / rows.length;\n\nconst graded = rows.map(r => {\n  const ptos = r.conversion_value / r.spend;            // profit-to-spend proxy\n  const target = TARGET[r.platform] ?? 1.0;\n  const grade = ptos >= target ? \"green\" : \"red\";\n  const anomaly = r.cpa > 2 * r.historical_cpa;\n  let decision;\n  if (grade === \"red\") decision = \"Investigate or pause\";\n  else if (r.spend < avgSpend && r.conversions > 0) decision = \"Scale (underfunded winner)\";\n  else decision = \"Hold\";\n  return { ...r, ptos: Number(ptos.toFixed(2)), grade, decision, anomaly };\n});\n\nconst attention = graded.filter(g => g.grade === \"red\" || g.anomaly);\nconst blended = (totalValue / totalSpend).toFixed(2);\n\nconst fmt = g => `${g.grade === \"green\" ? \"🟢\" : \"🔴\"} *${g.campaign}* (${g.platform}) — $${g.spend} spend, ${g.ptos}x value/spend → ${g.decision}${g.anomaly ? \"  ⚠️ CPA 2x+ historical\" : \"\"}`;\n\nlet digest = `📊 *Daily Paid Media Digest*\\n`;\ndigest += `Spend $${totalSpend.toLocaleString()} · Value $${totalValue.toLocaleString()} · Blended ${blended}x\\n\\n`;\ndigest += `*Needs attention (${attention.length})*\\n`;\ndigest += attention.length ? attention.map(fmt).join(\"\\n\") : \"Nothing flagged. All campaigns at or above target.\";\ndigest += `\\n\\n*All campaigns*\\n`;\ndigest += graded.sort((a, b) => b.ptos - a.ptos).map(fmt).join(\"\\n\");\ndigest += `\\n\\n_You make the call. This is the analyst, not the boss._`;\n\nreturn [{ json: { digest, campaign_count: graded.length, flagged: attention.length } }];"
+      },
+      "name": "Ads | Analyze",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1600,
+        2704
+      ],
+      "id": "524d9874-268f-4d87-84c2-87d7249ed6f6",
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Wraps the ads digest from Ads | Analyze (Nick Christensen's grading) into the report contract.\n// While adsEnabled is false in Settings this lane sends a skipped item: Collect never waits, and every\n// step after it (summary facts, history, Slack, email, GitHub) leaves it out.\nconst p=$('Ads | Reporting period').first().json, s=$('Settings').first().json;\nif(s.adsEnabled!==true)return [{json:{skipped:true,markdown:'',slackText:'',fileName:'ads-'+p.start+'-to-'+p.end+'-skipped.md'}}];\nconst isSample=n=>{try{const j=$(n).first().json;return !!(j&&j.campaign!==undefined&&j.platform!==undefined);}catch(e){return false;}};\nconst sample=isSample('Ads | Google Ads (sample data)')||isSample('Ads | Meta Ads (sample data)');\nconst a=$('Ads | Analyze').first().json;\nif(!a||typeof a.digest!=='string'||!a.campaign_count)throw Error('No ad data: Ads | Analyze returned no campaigns. Connect your ad platforms, or keep the two sample nodes switched on.');\nif(/NaN|undefined/.test(a.digest))throw Error('Ad rows are missing fields: each row needs campaign, platform, spend, conversions, conversion_value, cpa and historical_cpa.');\nconst lines=[(sample?'SAMPLE DATA':'PRIVATE LIVE REVIEW')+' | '+s.storeName+' | Ads review (Google Ads and Meta)',p.start+' to '+p.end+' | '+s.currency,\n  sample?'Sample data: the example campaigns from Nick Christensen\\'s ads workshop, not your ad accounts. Replace the two sample nodes with your Google Ads and Meta data (same fields) to make this review live.':'Live data from your ad platforms.',\n  '',a.digest,'',\n  'Campaigns graded: '+a.campaign_count+'; flagged: '+a.flagged+'.',\n  'Grades use value-to-spend against the targets at the top of Ads | Analyze. Platform-reported conversion value is not profit: set the targets from your margins.',\n  'Review: check the flagged campaigns in the ad platform before changing any budget.'];\nconst markdown=lines.join('\\n')+'\\n';\nreturn [{json:{markdown,slackText:markdown,fileName:'ads-'+p.start+'-to-'+p.end+'.md',period:p,sample}}];"
+      },
+      "name": "Ads | Compose review",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "onError": "continueErrorOutput",
+      "id": "9b48a410-3f15-4e45-8946-e989239f2728",
+      "position": [
+        1824,
+        2704
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const p=$('Ads | Reporting period').first().json,s=$('Settings').first().json;if(s.adsEnabled!==true)return [{json:{skipped:true,markdown:'',slackText:'',fileName:'ads-'+p.start+'-to-'+p.end+'-skipped.md'}}];const j=$input.first().json,e=j.error??j;const reason=String(typeof e==='string'?e:(e.message||e.description||JSON.stringify(e))).replace(/[\\r\\n]+/g,' ').slice(0,300);const markdown=['INCOMPLETE | '+s.storeName+' | Ads review (Google Ads and Meta)',p.start+' to '+p.end+' | '+s.currency,'','This review did not run, so it reports no figures this week. Missing figures are not zero.','Failed step: '+$prevNode.name,'Reason: '+reason,'','Review: fix the connection or setting named above, then run the workflow again.'].join('\\n')+'\\n';return [{json:{markdown,slackText:markdown,fileName:'ads-'+p.start+'-to-'+p.end+'-incomplete.md',incomplete:true}}];"
+      },
+      "name": "Ads | Incomplete report",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "notes": "Runs only when a step in this lane fails. Writes an INCOMPLETE report so the other reviews still go out.",
+      "notesInFlow": true,
+      "id": "43fbffd9-7c77-4bac-8ada-ac9a77f12a07",
+      "position": [
+        1824,
+        2896
+      ]
+    },
+    {
+      "name": "Ads | Create Markdown BEFORE Slack",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2048,
+        2704
+      ],
+      "parameters": {
+        "jsCode": "const d=$input.first().json;return [{json:d,binary:{report:{data:Buffer.from(d.markdown,'utf8').toString('base64'),mimeType:'text/markdown',fileExtension:'md',fileName:d.fileName}}}];"
+      },
+      "id": "5c2d12f7-4e40-46ec-8b8f-682a85869442"
+    },
+    {
+      "parameters": {
+        "content": "## 6. Ads review (optional)\n**For:** every Google Ads and Meta campaign graded on value-to-spend, flagged when below target or when CPA runs above 2x its usual level, with a plain call: scale, hold, or investigate.\n\n**Source:** Nick Christensen's ads reporting starter (MIT), from his workshop \"Ship ICP-driven ad campaigns and automated monitoring\". It ships with his sample campaigns, labelled SAMPLE DATA.\n\n**Switch on:** set `adsEnabled` to true in Settings. While it is false the lane is skipped and nothing about ads is delivered.\n\n**Make it live:** replace the two sample nodes with your own rows in the same fields. Meta: a Facebook Graph API credential (access token with `ads_read`) on the insights edge of `act_<your ad account id>`, and the conversion `action_type` your funnel uses (purchase, lead...). Google Ads: the Google Ads node, an HTTP request, or your Google Ads MCP. Then set the targets at the top of Ads | Analyze.",
+        "width": 758,
+        "height": 300,
+        "color": 1
+      },
+      "name": "Ads review explainer",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "id": "a0554577-105e-44c6-8bf6-046c0eded7c7",
+      "position": [
+        -144,
+        2512
+      ]
+    },
+    {
+      "parameters": {
+        "content": "## 5. Email review (Customer.io)\n**For:** emails sent and delivered, human opens and clicks, conversions, unsubscribes, bounces and the top sends, this week against last, plus email capture.\n**Connection pattern:** Customer.io App API (running automations, broadcasts and their daily metrics; one segment count for capture) → review → Markdown file → collected with the other reports → delivery.\n**Setup:** a Bearer Auth credential with an App API key on the five request nodes; set cioCaptureSegmentId and cioCaptureLabel in Settings. Days are UTC; counts are messages, not people.",
+        "width": 758,
+        "height": 240,
+        "color": 7
+      },
+      "id": "393b45a9-a01d-444e-995c-bf614bd37116",
+      "name": "Email review explainer",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -144,
+        2032
+      ]
+    }
+  ],
+  "connections": {
+    "Executive | Reporting period": {
+      "main": [
+        [
+          {
+            "node": "Executive | Verify store",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Executive | Verify store": {
+      "main": [
+        [
+          {
+            "node": "Executive | Check store identity",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Executive | Incomplete report",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Executive | Check store identity": {
+      "main": [
+        [
+          {
+            "node": "Executive | Current revenue",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Executive | Incomplete report",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Executive | Current revenue": {
+      "main": [
+        [
+          {
+            "node": "Executive | Previous revenue",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Executive | Incomplete report",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Executive | Previous revenue": {
+      "main": [
+        [
+          {
+            "node": "Executive | Order types",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Executive | Incomplete report",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Executive | Order types": {
+      "main": [
+        [
+          {
+            "node": "Executive | Compose review",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Executive | Incomplete report",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Executive | Compose review": {
+      "main": [
+        [
+          {
+            "node": "Executive | Create Markdown BEFORE Slack",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Executive | Incomplete report",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Executive | Create Markdown BEFORE Slack": {
+      "main": [
+        [
+          {
+            "node": "Collect all reports",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Marketing | Reporting period": {
+      "main": [
+        [
+          {
+            "node": "Marketing | Verify store",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Marketing | Verify store": {
+      "main": [
+        [
+          {
+            "node": "Marketing | Check store identity",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Marketing | Incomplete report",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Marketing | Check store identity": {
+      "main": [
+        [
+          {
+            "node": "Marketing | Order sources",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Marketing | Incomplete report",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Marketing | Order sources": {
+      "main": [
+        [
+          {
+            "node": "Marketing | All orders",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Marketing | Incomplete report",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Marketing | All orders": {
+      "main": [
+        [
+          {
+            "node": "Marketing | Compose review",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Marketing | Incomplete report",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Marketing | Compose review": {
+      "main": [
+        [
+          {
+            "node": "Marketing | Create Markdown BEFORE Slack",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Marketing | Incomplete report",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Marketing | Create Markdown BEFORE Slack": {
+      "main": [
+        [
+          {
+            "node": "Collect all reports",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Products | Reporting period": {
+      "main": [
+        [
+          {
+            "node": "Products | Verify store",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Products | Verify store": {
+      "main": [
+        [
+          {
+            "node": "Products | Check store identity",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Products | Incomplete report",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Products | Check store identity": {
+      "main": [
+        [
+          {
+            "node": "Products | Top products",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Products | Incomplete report",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Products | Top products": {
+      "main": [
+        [
+          {
+            "node": "Products | Compose review",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Products | Incomplete report",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Products | Compose review": {
+      "main": [
+        [
+          {
+            "node": "Products | Create Markdown BEFORE Slack",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Products | Incomplete report",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Products | Create Markdown BEFORE Slack": {
+      "main": [
+        [
+          {
+            "node": "Collect all reports",
+            "type": "main",
+            "index": 2
+          }
+        ]
+      ]
+    },
+    "Traffic | Reporting period": {
+      "main": [
+        [
+          {
+            "node": "Traffic | Build GA4 request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Traffic | Build GA4 request": {
+      "main": [
+        [
+          {
+            "node": "Traffic | Connect GA4 - enable after setup",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Traffic | Connect GA4 - enable after setup": {
+      "main": [
+        [
+          {
+            "node": "Traffic | Compose review",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Traffic | Incomplete report",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Traffic | Compose review": {
+      "main": [
+        [
+          {
+            "node": "Traffic | Create Markdown BEFORE Slack",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Traffic | Incomplete report",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Traffic | Create Markdown BEFORE Slack": {
+      "main": [
+        [
+          {
+            "node": "Collect all reports",
+            "type": "main",
+            "index": 3
+          }
+        ]
+      ]
+    },
+    "Settings": {
+      "main": [
+        [
+          {
+            "node": "Executive | Reporting period",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Marketing | Reporting period",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Products | Reporting period",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Traffic | Reporting period",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Customer.io | Reporting period",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Ads | Reporting period",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Run all four reviews": {
+      "main": [
+        [
+          {
+            "node": "Settings",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Executive | Incomplete report": {
+      "main": [
+        [
+          {
+            "node": "Executive | Create Markdown BEFORE Slack",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Marketing | Incomplete report": {
+      "main": [
+        [
+          {
+            "node": "Marketing | Create Markdown BEFORE Slack",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Products | Incomplete report": {
+      "main": [
+        [
+          {
+            "node": "Products | Create Markdown BEFORE Slack",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Traffic | Incomplete report": {
+      "main": [
+        [
+          {
+            "node": "Traffic | Create Markdown BEFORE Slack",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Slack | Format for Slack": {
+      "main": [
+        [
+          {
+            "node": "Deliver | Slack",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "GitHub | Plan PR": {
+      "main": [
+        [
+          {
+            "node": "GitHub | Get base branch",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "GitHub | Get base branch": {
+      "main": [
+        [
+          {
+            "node": "GitHub | Create branch",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "GitHub | Create branch": {
+      "main": [
+        [
+          {
+            "node": "GitHub | Reports to commit",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "GitHub | Reports to commit": {
+      "main": [
+        [
+          {
+            "node": "GitHub | Commit to branch",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "GitHub | Commit to branch": {
+      "main": [
+        [
+          {
+            "node": "GitHub | Open pull request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Collect all reports": {
+      "main": [
+        [
+          {
+            "node": "Trends | Periods",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Email | Combine reports": {
+      "main": [
+        [
+          {
+            "node": "Deliver | Email",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Trends | Periods": {
+      "main": [
+        [
+          {
+            "node": "Trends | Metorik revenue (last 30 days)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Trends | Load history": {
+      "main": [
+        [
+          {
+            "node": "Trends | Facts for the summary",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Trends | Facts for the summary": {
+      "main": [
+        [
+          {
+            "node": "AI | Weekly summary",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI | Weekly summary": {
+      "main": [
+        [
+          {
+            "node": "AI | Summary report",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI | Claude model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI | Weekly summary",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI | Summary report": {
+      "main": [
+        [
+          {
+            "node": "History | Save this run",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "History | Save this run": {
+      "main": [
+        [
+          {
+            "node": "All reports and summary",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "All reports and summary": {
+      "main": [
+        [
+          {
+            "node": "Slack | Format for Slack",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "GitHub | Plan PR",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Email | Combine reports",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Customer.io | Reporting period": {
+      "main": [
+        [
+          {
+            "node": "Customer.io | Campaigns",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Customer.io | Campaigns": {
+      "main": [
+        [
+          {
+            "node": "Customer.io | Running campaigns",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Customer.io | Running campaigns": {
+      "main": [
+        [
+          {
+            "node": "Customer.io | Campaign metrics",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Customer.io | Campaign metrics": {
+      "main": [
+        [
+          {
+            "node": "Customer.io | Broadcasts",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Customer.io | Broadcasts": {
+      "main": [
+        [
+          {
+            "node": "Customer.io | Sent broadcasts",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Customer.io | Sent broadcasts": {
+      "main": [
+        [
+          {
+            "node": "Customer.io | Broadcast metrics",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Customer.io | Broadcast metrics": {
+      "main": [
+        [
+          {
+            "node": "Customer.io | Capture count",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Customer.io | Capture count": {
+      "main": [
+        [
+          {
+            "node": "Customer.io | Last saved count",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Customer.io | Compose review": {
+      "main": [
+        [
+          {
+            "node": "Customer.io | Create Markdown BEFORE Slack",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Customer.io | Incomplete report",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Customer.io | Incomplete report": {
+      "main": [
+        [
+          {
+            "node": "Customer.io | Create Markdown BEFORE Slack",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Customer.io | Create Markdown BEFORE Slack": {
+      "main": [
+        [
+          {
+            "node": "Collect all reports",
+            "type": "main",
+            "index": 4
+          }
+        ]
+      ]
+    },
+    "Customer.io | Last saved count": {
+      "main": [
+        [
+          {
+            "node": "Customer.io | Compose review",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Trends | Metorik revenue (last 30 days)": {
+      "main": [
+        [
+          {
+            "node": "Trends | Metorik revenue (prior 30 days)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Trends | Metorik revenue (prior 30 days)": {
+      "main": [
+        [
+          {
+            "node": "Trends | Metorik revenue (last 90 days)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Trends | Metorik revenue (last 90 days)": {
+      "main": [
+        [
+          {
+            "node": "Trends | Metorik revenue (prior 90 days)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Trends | Metorik revenue (prior 90 days)": {
+      "main": [
+        [
+          {
+            "node": "Trends | Revenue by period",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Trends | Revenue by period": {
+      "main": [
+        [
+          {
+            "node": "Trends | Load history",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Ads | Reporting period": {
+      "main": [
+        [
+          {
+            "node": "Ads | Google Ads (sample data)",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Ads | Meta Ads (sample data)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Ads | Google Ads (sample data)": {
+      "main": [
+        [
+          {
+            "node": "Ads | Merge",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Ads | Meta Ads (sample data)": {
+      "main": [
+        [
+          {
+            "node": "Ads | Merge",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Ads | Merge": {
+      "main": [
+        [
+          {
+            "node": "Ads | Analyze",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Ads | Analyze": {
+      "main": [
+        [
+          {
+            "node": "Ads | Compose review",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Ads | Incomplete report",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Ads | Compose review": {
+      "main": [
+        [
+          {
+            "node": "Ads | Create Markdown BEFORE Slack",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Ads | Incomplete report",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Ads | Incomplete report": {
+      "main": [
+        [
+          {
+            "node": "Ads | Create Markdown BEFORE Slack",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Ads | Create Markdown BEFORE Slack": {
+      "main": [
+        [
+          {
+            "node": "Collect all reports",
+            "type": "main",
+            "index": 5
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "active": false,
+  "nodeGroups": [
+    {
+      "id": "826abc85-4e08-5961-a64d-30e0166a4da4",
+      "name": "1. Executive review",
+      "nodeNames": [
+        "Executive | Reporting period",
+        "Executive | Verify store",
+        "Executive | Check store identity",
+        "Executive | Current revenue",
+        "Executive | Previous revenue",
+        "Executive | Order types",
+        "Executive | Compose review",
+        "Executive | Create Markdown BEFORE Slack",
+        "Executive | Incomplete report"
+      ],
+      "description": "Sales, refunds and orders this week vs last, from Metorik."
+    },
+    {
+      "id": "ab769f05-6d80-53c5-b86e-038cbbb721ad",
+      "name": "2. Marketing source review",
+      "nodeNames": [
+        "Marketing | Reporting period",
+        "Marketing | Verify store",
+        "Marketing | Check store identity",
+        "Marketing | Order sources",
+        "Marketing | All orders",
+        "Marketing | Compose review",
+        "Marketing | Create Markdown BEFORE Slack",
+        "Marketing | Incomplete report"
+      ],
+      "description": "Orders and net sales by recorded UTM source, from Metorik."
+    },
+    {
+      "id": "228d91f5-fe7a-5da5-85ed-966c57b426d9",
+      "name": "3. Top product review",
+      "nodeNames": [
+        "Products | Reporting period",
+        "Products | Verify store",
+        "Products | Check store identity",
+        "Products | Top products",
+        "Products | Compose review",
+        "Products | Create Markdown BEFORE Slack",
+        "Products | Incomplete report"
+      ],
+      "description": "Top products and plans by net sales, from Metorik."
+    },
+    {
+      "id": "f7173934-2413-5c9f-8033-17088b302e17",
+      "name": "4. Website traffic review",
+      "nodeNames": [
+        "Traffic | Reporting period",
+        "Traffic | Build GA4 request",
+        "Traffic | Connect GA4 - enable after setup",
+        "Traffic | Compose review",
+        "Traffic | Create Markdown BEFORE Slack",
+        "Traffic | Incomplete report"
+      ],
+      "description": "GA4 sessions, sources, landing pages and events, last 7 days vs prior 7."
+    },
+    {
+      "id": "19467068-f5ed-58cf-9e65-d5029d7750bc",
+      "name": "5. Email review (Customer.io)",
+      "nodeNames": [
+        "Customer.io | Reporting period",
+        "Customer.io | Campaigns",
+        "Customer.io | Running campaigns",
+        "Customer.io | Campaign metrics",
+        "Customer.io | Broadcasts",
+        "Customer.io | Sent broadcasts",
+        "Customer.io | Broadcast metrics",
+        "Customer.io | Capture count",
+        "Customer.io | Compose review",
+        "Customer.io | Incomplete report",
+        "Customer.io | Create Markdown BEFORE Slack",
+        "Customer.io | Last saved count"
+      ],
+      "description": "Sends, opens, clicks, conversions, unsubscribes and email capture."
+    },
+    {
+      "id": "a512b6fa-9289-5388-a823-735a9f219676",
+      "name": "6. Ads review",
+      "nodeNames": [
+        "Ads | Reporting period",
+        "Ads | Google Ads (sample data)",
+        "Ads | Meta Ads (sample data)",
+        "Ads | Merge",
+        "Ads | Analyze",
+        "Ads | Compose review",
+        "Ads | Incomplete report",
+        "Ads | Create Markdown BEFORE Slack"
+      ],
+      "description": "Google Ads and Meta campaigns graded on value-to-spend (Nick Christensen's starter). Optional: adsEnabled in Settings."
+    },
+    {
+      "id": "efb941a9-b8c8-54e9-9081-502187ce2631",
+      "name": "Trends and AI summary",
+      "nodeNames": [
+        "Trends | Periods",
+        "Trends | Load history",
+        "Trends | Facts for the summary",
+        "AI | Weekly summary",
+        "AI | Claude model",
+        "AI | Summary report",
+        "History | Save this run",
+        "All reports and summary",
+        "Trends | Metorik revenue (last 30 days)",
+        "Trends | Metorik revenue (prior 30 days)",
+        "Trends | Metorik revenue (last 90 days)",
+        "Trends | Metorik revenue (prior 90 days)",
+        "Trends | Revenue by period"
+      ],
+      "description": "MoM and QoQ computed in code, run history, and the AI summary of all reviews."
+    },
+    {
+      "id": "5657eda3-a16a-5373-8f38-b9ede124fc60",
+      "name": "Deliver: Slack",
+      "nodeNames": [
+        "Deliver | Slack",
+        "Slack | Format for Slack"
+      ],
+      "description": "One formatted message per report and one for the summary."
+    },
+    {
+      "id": "00dd083b-3f70-5fab-9bc9-2f7d21b2ebf6",
+      "name": "Deliver: GitHub pull request",
+      "nodeNames": [
+        "GitHub | Plan PR",
+        "GitHub | Get base branch",
+        "GitHub | Create branch",
+        "GitHub | Reports to commit",
+        "GitHub | Commit to branch",
+        "GitHub | Open pull request"
+      ],
+      "description": "A branch and a pull request with every report; never commits to main."
+    },
+    {
+      "id": "dec6c65d-0b56-50c0-a86b-b1b930a0cd8e",
+      "name": "Deliver: Email",
+      "nodeNames": [
+        "Email | Combine reports",
+        "Deliver | Email"
+      ],
+      "description": "One email with every report in the body and attached."
+    }
+  ]
+}

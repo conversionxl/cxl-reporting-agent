@@ -1,11 +1,11 @@
 Subject: Weekly reports 2026-10-21
 
-Weekly reports, run 2026-10-21. 4 of 4 reviews complete.
+Weekly reports, run 2026-10-21. 5 of 5 reviews complete.
 
 -----BEGIN REPORT executive-2026-10-14-to-2026-10-20.md-----
-DEMO — SYNTHETIC DATA | Example Store — Executive business review
+PRIVATE LIVE REVIEW | Demo Store — Executive business review
 2026-10-14–2026-10-20 | USD | America/Chicago
-Synthetic example data; no real business figures. Previous period: 2026-10-07–2026-10-13
+Live Metorik data. Previous period: 2026-10-07–2026-10-13
 
 • Net revenue: $24,000 (20.0% vs prior week).
 • Gross revenue: $26,000; refunds: $1,000; sales taxes: $1,000.
@@ -23,9 +23,9 @@ Review: check renewal timing and product mix before explaining the revenue chang
 -----END REPORT-----
 
 -----BEGIN REPORT marketing-2026-10-14-to-2026-10-20.md-----
-DEMO — SYNTHETIC DATA | Example Store — Marketing source review
+PRIVATE LIVE REVIEW | Demo Store — Marketing source review
 2026-10-14–2026-10-20 | USD | America/Chicago
-Synthetic example data; no real business figures. Previous period: 2026-10-07–2026-10-13
+Live Metorik data. Previous period: 2026-10-07–2026-10-13
 
 • Total store orders: 80; order-cohort net sales: $24,000.
 • Source report represents 60 orders (75.0%) and $18,000 net sales.
@@ -42,9 +42,9 @@ Review: investigate missing attribution and separate paid vs organic before shif
 -----END REPORT-----
 
 -----BEGIN REPORT products-2026-10-14-to-2026-10-20.md-----
-DEMO — SYNTHETIC DATA | Example Store — Top product review
+PRIVATE LIVE REVIEW | Demo Store — Top product review
 2026-10-14–2026-10-20 | USD | America/Chicago
-Synthetic example data; no real business figures. Previous period: 2026-10-07–2026-10-13
+Live Metorik data. Previous period: 2026-10-07–2026-10-13
 
 Products ranked by net sales (subscription renewals included):
 
@@ -101,69 +101,96 @@ Traffic increased; engagement rate changed by 5.0 percentage points. Review the 
 No API quality flags returned; this does not guarantee complete tracking.
 -----END REPORT-----
 
+-----BEGIN REPORT email-2026-10-14-to-2026-10-20.md-----
+PRIVATE LIVE REVIEW | Demo Store | Email review (Customer.io)
+2026-10-14 to 2026-10-20 | Customer.io days are UTC | prior week 2026-10-07 to 2026-10-13
+
+• Emails sent: 240 (242.9% vs prior week); delivered: 240.
+• Human opens: 44 (18.3% of delivered, prior 10.0%); human clicks: 0 (0.0%, prior 0.0%).
+• Conversions: 0 (prior 0).
+• Unsubscribes: 2 (0.8% of delivered) vs 1 (1.4%); topic unsubscribes: 0.
+• Bounces: 0; spam complaints: 0.
+
+Top sends this week (sent, open rate, click rate, unsubscribes):
+• Automation: Welcome series → 140 → 10.0% → 0.0% → 2
+• Broadcast: October newsletter → 100 → 30.0% → 0.0% → 0
+
+Email capture: not set up yet. Set cioCaptureSegmentId in Settings. Missing, not zero.
+
+Covers 1 running automations and 1 broadcasts sent in the two weeks. Counts are messages, not unique people. Opens and clicks are human-only. Conversions follow each campaign's own goal.
+Review: check the sends with the highest unsubscribe rate before their next send.
+-----END REPORT-----
+
+-----BEGIN REPORT summary-2026-10-14-to-2026-10-20.md-----
+# Weekly summary | Demo Store
+2026-10-14 to 2026-10-20
+Written by an AI model from this run's reports and the comparisons computed in the workflow. Check a number against its report before acting on it.
+
+## Headline
+Test summary: 5 of 5 reviews ran; history weeks 1.
+-----END REPORT-----
+
 
 Exact copies for /get-email-reports (base64, do not edit):
 -----BEGIN FILE executive-2026-10-14-to-2026-10-20.md-----
-REVNTyDigJQgU1lOVEhFVElDIERBVEEgfCBFeGFtcGxlIFN0b3JlIOKAlCBFeGVjdXRpdmUgYnVz
-aW5lc3MgcmV2aWV3CjIwMjYtMTAtMTTigJMyMDI2LTEwLTIwIHwgVVNEIHwgQW1lcmljYS9DaGlj
-YWdvClN5bnRoZXRpYyBleGFtcGxlIGRhdGE7IG5vIHJlYWwgYnVzaW5lc3MgZmlndXJlcy4gUHJl
-dmlvdXMgcGVyaW9kOiAyMDI2LTEwLTA34oCTMjAyNi0xMC0xMwoK4oCiIE5ldCByZXZlbnVlOiAk
-MjQsMDAwICgyMC4wJSB2cyBwcmlvciB3ZWVrKS4K4oCiIEdyb3NzIHJldmVudWU6ICQyNiwwMDA7
-IHJlZnVuZHM6ICQxLDAwMDsgc2FsZXMgdGF4ZXM6ICQxLDAwMC4K4oCiIE9yZGVyczogODAgKDE0
-LjMlKTsgaXRlbXM6IDkwLgrigKIgRGlzY291bnRzIHJlY29yZGVkOiAkMiwwMDAgKGFscmVhZHkg
-cmVmbGVjdGVkIGluIGdyb3NzOyBub3Qgc3VidHJhY3RlZCBhZ2FpbikuCgpPcmRlci10eXBlIHJl
-dmVudWUgKE1ldG9yaWsgZ3JvdXBlZCByZXBvcnQpOgrigKIgTm9uLXJlbmV3YWwgb3JkZXJzOiAk
-MTgsMDAwCuKAoiBSZW5ld2FsczogJDYsMDAwCgpDT0dTLCBncm9zcyBwcm9maXQsIG9wZXJhdGlu
-ZyBpbmNvbWUsIG5ldCBwcm9maXQsIG1hcmtldGluZyBzcGVuZCBhbmQgTUVSOiB1bmF2YWlsYWJs
-ZSB3aXRoIHRoaXMgY29ubmVjdGlvbi4gTWlzc2luZyBjb3N0cyBhcmUgbm90IHplcm8uCkluY2x1
-ZGVzIHN1YnNjcmlwdGlvbiByZW5ld2Fscy4gTm9uLXJlbmV3YWwgb3JkZXJzIGFyZSBub3QgdGhl
-IHNhbWUgYXMgZmlyc3QtdGltZSBidXllcnMuCk5ldCByZXZlbnVlIHVzZXMgcmVmdW5kLWRhdGUg
-cmVwb3J0aW5nOyBvcmRlci9wcm9kdWN0IHJlcG9ydHMgY2FuIGRpZmZlciBiZWNhdXNlIHJlZnVu
-ZHMgZm9sbG93IHRoZSBvcmlnaW5hbCBvcmRlciBjb2hvcnQuClJldmlldzogY2hlY2sgcmVuZXdh
-bCB0aW1pbmcgYW5kIHByb2R1Y3QgbWl4IGJlZm9yZSBleHBsYWluaW5nIHRoZSByZXZlbnVlIGNo
-YW5nZS4K
+UFJJVkFURSBMSVZFIFJFVklFVyB8IERlbW8gU3RvcmUg4oCUIEV4ZWN1dGl2ZSBidXNpbmVzcyBy
+ZXZpZXcKMjAyNi0xMC0xNOKAkzIwMjYtMTAtMjAgfCBVU0QgfCBBbWVyaWNhL0NoaWNhZ28KTGl2
+ZSBNZXRvcmlrIGRhdGEuIFByZXZpb3VzIHBlcmlvZDogMjAyNi0xMC0wN+KAkzIwMjYtMTAtMTMK
+CuKAoiBOZXQgcmV2ZW51ZTogJDI0LDAwMCAoMjAuMCUgdnMgcHJpb3Igd2VlaykuCuKAoiBHcm9z
+cyByZXZlbnVlOiAkMjYsMDAwOyByZWZ1bmRzOiAkMSwwMDA7IHNhbGVzIHRheGVzOiAkMSwwMDAu
+CuKAoiBPcmRlcnM6IDgwICgxNC4zJSk7IGl0ZW1zOiA5MC4K4oCiIERpc2NvdW50cyByZWNvcmRl
+ZDogJDIsMDAwIChhbHJlYWR5IHJlZmxlY3RlZCBpbiBncm9zczsgbm90IHN1YnRyYWN0ZWQgYWdh
+aW4pLgoKT3JkZXItdHlwZSByZXZlbnVlIChNZXRvcmlrIGdyb3VwZWQgcmVwb3J0KToK4oCiIE5v
+bi1yZW5ld2FsIG9yZGVyczogJDE4LDAwMArigKIgUmVuZXdhbHM6ICQ2LDAwMAoKQ09HUywgZ3Jv
+c3MgcHJvZml0LCBvcGVyYXRpbmcgaW5jb21lLCBuZXQgcHJvZml0LCBtYXJrZXRpbmcgc3BlbmQg
+YW5kIE1FUjogdW5hdmFpbGFibGUgd2l0aCB0aGlzIGNvbm5lY3Rpb24uIE1pc3NpbmcgY29zdHMg
+YXJlIG5vdCB6ZXJvLgpJbmNsdWRlcyBzdWJzY3JpcHRpb24gcmVuZXdhbHMuIE5vbi1yZW5ld2Fs
+IG9yZGVycyBhcmUgbm90IHRoZSBzYW1lIGFzIGZpcnN0LXRpbWUgYnV5ZXJzLgpOZXQgcmV2ZW51
+ZSB1c2VzIHJlZnVuZC1kYXRlIHJlcG9ydGluZzsgb3JkZXIvcHJvZHVjdCByZXBvcnRzIGNhbiBk
+aWZmZXIgYmVjYXVzZSByZWZ1bmRzIGZvbGxvdyB0aGUgb3JpZ2luYWwgb3JkZXIgY29ob3J0LgpS
+ZXZpZXc6IGNoZWNrIHJlbmV3YWwgdGltaW5nIGFuZCBwcm9kdWN0IG1peCBiZWZvcmUgZXhwbGFp
+bmluZyB0aGUgcmV2ZW51ZSBjaGFuZ2UuCg==
 -----END FILE-----
 -----BEGIN FILE marketing-2026-10-14-to-2026-10-20.md-----
-REVNTyDigJQgU1lOVEhFVElDIERBVEEgfCBFeGFtcGxlIFN0b3JlIOKAlCBNYXJrZXRpbmcgc291
-cmNlIHJldmlldwoyMDI2LTEwLTE04oCTMjAyNi0xMC0yMCB8IFVTRCB8IEFtZXJpY2EvQ2hpY2Fn
-bwpTeW50aGV0aWMgZXhhbXBsZSBkYXRhOyBubyByZWFsIGJ1c2luZXNzIGZpZ3VyZXMuIFByZXZp
-b3VzIHBlcmlvZDogMjAyNi0xMC0wN+KAkzIwMjYtMTAtMTMKCuKAoiBUb3RhbCBzdG9yZSBvcmRl
-cnM6IDgwOyBvcmRlci1jb2hvcnQgbmV0IHNhbGVzOiAkMjQsMDAwLgrigKIgU291cmNlIHJlcG9y
-dCByZXByZXNlbnRzIDYwIG9yZGVycyAoNzUuMCUpIGFuZCAkMTgsMDAwIG5ldCBzYWxlcy4K4oCi
-IDIwIG9yZGVycyBhcmUgbm90IHJlcHJlc2VudGVkIGluIHRoZXNlIHNvdXJjZSByb3dzOyBkbyBu
-b3QgY2xhc3NpZnkgdGhlbSBhcyBEaXJlY3QuCgpSZWNvcmRlZCBzb3VyY2UgLyBtZWRpdW0g4oaS
-IG9yZGVycyDihpIgbmV0IHNhbGVzCuKAoiBuZXdzbGV0dGVyIC8gZW1haWwg4oaSIDI1IOKGkiAk
-Nyw1MDAK4oCiIGdvb2dsZSAvIGNwYyDihpIgMjAg4oaSICQ2LDAwMArigKIgZ29vZ2xlIC8gb3Jn
-YW5pYyDihpIgMTUg4oaSICQ0LDUwMAoKVGhlc2UgYXJlIHNvdXJjZXMgc3RvcmVkIG9uIG9yZGVy
-cywgbm90IEdBNCBzZXNzaW9uIGNoYW5uZWxzIG9yIHByb29mIG9mIGluY3JlbWVudGFsIHNhbGVz
-LiBHb29nbGUgd2l0aG91dCBhIHBhaWQgbWVkaXVtIGlzIG5vdCBHb29nbGUgQWRzLgpBZCBzcGVu
-ZCwgUk9BUywgc2Vzc2lvbnMgYW5kIGVtYWlsLWNhcHR1cmUgcmF0ZTogdW5hdmFpbGFibGUgZnJv
-bSB0aGlzIGNvbm5lY3Rpb24uClJldmlldzogaW52ZXN0aWdhdGUgbWlzc2luZyBhdHRyaWJ1dGlv
-biBhbmQgc2VwYXJhdGUgcGFpZCB2cyBvcmdhbmljIGJlZm9yZSBzaGlmdGluZyBzcGVuZC4K
+UFJJVkFURSBMSVZFIFJFVklFVyB8IERlbW8gU3RvcmUg4oCUIE1hcmtldGluZyBzb3VyY2UgcmV2
+aWV3CjIwMjYtMTAtMTTigJMyMDI2LTEwLTIwIHwgVVNEIHwgQW1lcmljYS9DaGljYWdvCkxpdmUg
+TWV0b3JpayBkYXRhLiBQcmV2aW91cyBwZXJpb2Q6IDIwMjYtMTAtMDfigJMyMDI2LTEwLTEzCgri
+gKIgVG90YWwgc3RvcmUgb3JkZXJzOiA4MDsgb3JkZXItY29ob3J0IG5ldCBzYWxlczogJDI0LDAw
+MC4K4oCiIFNvdXJjZSByZXBvcnQgcmVwcmVzZW50cyA2MCBvcmRlcnMgKDc1LjAlKSBhbmQgJDE4
+LDAwMCBuZXQgc2FsZXMuCuKAoiAyMCBvcmRlcnMgYXJlIG5vdCByZXByZXNlbnRlZCBpbiB0aGVz
+ZSBzb3VyY2Ugcm93czsgZG8gbm90IGNsYXNzaWZ5IHRoZW0gYXMgRGlyZWN0LgoKUmVjb3JkZWQg
+c291cmNlIC8gbWVkaXVtIOKGkiBvcmRlcnMg4oaSIG5ldCBzYWxlcwrigKIgbmV3c2xldHRlciAv
+IGVtYWlsIOKGkiAyNSDihpIgJDcsNTAwCuKAoiBnb29nbGUgLyBjcGMg4oaSIDIwIOKGkiAkNiww
+MDAK4oCiIGdvb2dsZSAvIG9yZ2FuaWMg4oaSIDE1IOKGkiAkNCw1MDAKClRoZXNlIGFyZSBzb3Vy
+Y2VzIHN0b3JlZCBvbiBvcmRlcnMsIG5vdCBHQTQgc2Vzc2lvbiBjaGFubmVscyBvciBwcm9vZiBv
+ZiBpbmNyZW1lbnRhbCBzYWxlcy4gR29vZ2xlIHdpdGhvdXQgYSBwYWlkIG1lZGl1bSBpcyBub3Qg
+R29vZ2xlIEFkcy4KQWQgc3BlbmQsIFJPQVMsIHNlc3Npb25zIGFuZCBlbWFpbC1jYXB0dXJlIHJh
+dGU6IHVuYXZhaWxhYmxlIGZyb20gdGhpcyBjb25uZWN0aW9uLgpSZXZpZXc6IGludmVzdGlnYXRl
+IG1pc3NpbmcgYXR0cmlidXRpb24gYW5kIHNlcGFyYXRlIHBhaWQgdnMgb3JnYW5pYyBiZWZvcmUg
+c2hpZnRpbmcgc3BlbmQuCg==
 -----END FILE-----
 -----BEGIN FILE products-2026-10-14-to-2026-10-20.md-----
-REVNTyDigJQgU1lOVEhFVElDIERBVEEgfCBFeGFtcGxlIFN0b3JlIOKAlCBUb3AgcHJvZHVjdCBy
-ZXZpZXcKMjAyNi0xMC0xNOKAkzIwMjYtMTAtMjAgfCBVU0QgfCBBbWVyaWNhL0NoaWNhZ28KU3lu
-dGhldGljIGV4YW1wbGUgZGF0YTsgbm8gcmVhbCBidXNpbmVzcyBmaWd1cmVzLiBQcmV2aW91cyBw
-ZXJpb2Q6IDIwMjYtMTAtMDfigJMyMDI2LTEwLTEzCgpQcm9kdWN0cyByYW5rZWQgYnkgbmV0IHNh
-bGVzIChzdWJzY3JpcHRpb24gcmVuZXdhbHMgaW5jbHVkZWQpOgoKMS4gQW5udWFsIGxlYXJuaW5n
-IHBsYW4g4oCUICQxMiwwMDAgfCAyMCBvcmRlcnMgfCAyMCB1bml0cwogICBDYXRhbG9nIHN0YXR1
-czogcHVibGlzaCB8IHN1YnNjcmlwdGlvbgpodHRwczovL2V4YW1wbGUuY29tL3Byb2R1Y3RzL2Fu
-bnVhbAoyLiBRdWFydGVybHkgbGVhcm5pbmcgcGxhbiDigJQgJDYsMDAwIHwgMzAgb3JkZXJzIHwg
-MzAgdW5pdHMKICAgQ2F0YWxvZyBzdGF0dXM6IHB1Ymxpc2ggfCBzdWJzY3JpcHRpb24KaHR0cHM6
-Ly9leGFtcGxlLmNvbS9wcm9kdWN0cy9xdWFydGVybHkKMy4gQW5hbHl0aWNzIGZvdW5kYXRpb25z
-IOKAlCAkNCwwMDAgfCAyMCBvcmRlcnMgfCAyMCB1bml0cwogICBDYXRhbG9nIHN0YXR1czogcHVi
-bGlzaCB8IHNpbXBsZQpodHRwczovL2V4YW1wbGUuY29tL3Byb2R1Y3RzL2FuYWx5dGljcwo0LiBF
-bWFpbCBlc3NlbnRpYWxzIOKAlCAkMiwwMDAgfCAxMCBvcmRlcnMgfCAxMCB1bml0cwogICBDYXRh
-bG9nIHN0YXR1czogcHVibGlzaCB8IHNpbXBsZQpodHRwczovL2V4YW1wbGUuY29tL3Byb2R1Y3Rz
-L2VtYWlsCgpSYW5raW5nIGlzIHNhbGVzLCBub3QgY29udmVyc2lvbiByYXRlLiBVbml0cyBjYW4g
-aW5jbHVkZSBzZWF0czsgcHJvZHVjdCBvcmRlciBjb3VudHMgY2FuIG92ZXJsYXAuClN1YnNjcmlw
-dGlvbiBwcm9kdWN0IG5hbWVzIGRvIG5vdCBpZGVudGlmeSB0aGUgY291cnNlIHRoYXQgcGVyc3Vh
-ZGVkIHNvbWVvbmUgdG8gc3Vic2NyaWJlLgpDYXRhbG9nIHN0YXR1cyBhbmQgbGlua3MgY29tZSBm
-cm9tIFdvb0NvbW1lcmNlIHZpYSBNZXRvcmlrOyBjaGVja291dCBhdmFpbGFiaWxpdHkgaGFzIG5v
-dCBiZWVuIGluZGVwZW5kZW50bHkgdGVzdGVkLgpSZXZpZXc6IGluc3BlY3QgdGhlIGxpbmtlZCBw
-YWdlcyBhbmQgZGlzdGluZ3Vpc2ggc3Vic2NyaXB0aW9uIHBsYW5zIGZyb20gb25lLW9mZiBjb3Vy
-c2UgZGVtYW5kLgo=
+UFJJVkFURSBMSVZFIFJFVklFVyB8IERlbW8gU3RvcmUg4oCUIFRvcCBwcm9kdWN0IHJldmlldwoy
+MDI2LTEwLTE04oCTMjAyNi0xMC0yMCB8IFVTRCB8IEFtZXJpY2EvQ2hpY2FnbwpMaXZlIE1ldG9y
+aWsgZGF0YS4gUHJldmlvdXMgcGVyaW9kOiAyMDI2LTEwLTA34oCTMjAyNi0xMC0xMwoKUHJvZHVj
+dHMgcmFua2VkIGJ5IG5ldCBzYWxlcyAoc3Vic2NyaXB0aW9uIHJlbmV3YWxzIGluY2x1ZGVkKToK
+CjEuIEFubnVhbCBsZWFybmluZyBwbGFuIOKAlCAkMTIsMDAwIHwgMjAgb3JkZXJzIHwgMjAgdW5p
+dHMKICAgQ2F0YWxvZyBzdGF0dXM6IHB1Ymxpc2ggfCBzdWJzY3JpcHRpb24KaHR0cHM6Ly9leGFt
+cGxlLmNvbS9wcm9kdWN0cy9hbm51YWwKMi4gUXVhcnRlcmx5IGxlYXJuaW5nIHBsYW4g4oCUICQ2
+LDAwMCB8IDMwIG9yZGVycyB8IDMwIHVuaXRzCiAgIENhdGFsb2cgc3RhdHVzOiBwdWJsaXNoIHwg
+c3Vic2NyaXB0aW9uCmh0dHBzOi8vZXhhbXBsZS5jb20vcHJvZHVjdHMvcXVhcnRlcmx5CjMuIEFu
+YWx5dGljcyBmb3VuZGF0aW9ucyDigJQgJDQsMDAwIHwgMjAgb3JkZXJzIHwgMjAgdW5pdHMKICAg
+Q2F0YWxvZyBzdGF0dXM6IHB1Ymxpc2ggfCBzaW1wbGUKaHR0cHM6Ly9leGFtcGxlLmNvbS9wcm9k
+dWN0cy9hbmFseXRpY3MKNC4gRW1haWwgZXNzZW50aWFscyDigJQgJDIsMDAwIHwgMTAgb3JkZXJz
+IHwgMTAgdW5pdHMKICAgQ2F0YWxvZyBzdGF0dXM6IHB1Ymxpc2ggfCBzaW1wbGUKaHR0cHM6Ly9l
+eGFtcGxlLmNvbS9wcm9kdWN0cy9lbWFpbAoKUmFua2luZyBpcyBzYWxlcywgbm90IGNvbnZlcnNp
+b24gcmF0ZS4gVW5pdHMgY2FuIGluY2x1ZGUgc2VhdHM7IHByb2R1Y3Qgb3JkZXIgY291bnRzIGNh
+biBvdmVybGFwLgpTdWJzY3JpcHRpb24gcHJvZHVjdCBuYW1lcyBkbyBub3QgaWRlbnRpZnkgdGhl
+IGNvdXJzZSB0aGF0IHBlcnN1YWRlZCBzb21lb25lIHRvIHN1YnNjcmliZS4KQ2F0YWxvZyBzdGF0
+dXMgYW5kIGxpbmtzIGNvbWUgZnJvbSBXb29Db21tZXJjZSB2aWEgTWV0b3JpazsgY2hlY2tvdXQg
+YXZhaWxhYmlsaXR5IGhhcyBub3QgYmVlbiBpbmRlcGVuZGVudGx5IHRlc3RlZC4KUmV2aWV3OiBp
+bnNwZWN0IHRoZSBsaW5rZWQgcGFnZXMgYW5kIGRpc3Rpbmd1aXNoIHN1YnNjcmlwdGlvbiBwbGFu
+cyBmcm9tIG9uZS1vZmYgY291cnNlIGRlbWFuZC4K
 -----END FILE-----
 -----BEGIN FILE traffic-2026-10-14-to-2026-10-20.md-----
 IyBXZWJzaXRlIHRyYWZmaWMgcmV2aWV3CgpTWU5USEVUSUMgREFUQSDigJQgaW52ZW50ZWQgd29y
@@ -187,4 +214,31 @@ bmcgcGFnZXMgYmVmb3JlIGNob29zaW5nIGFuIGFjdGlvbi4gRXZlbnQgY291bnRzIGFyZSBub3Qg
 dW5pcXVlIGJ1eWVycyBvciBwcm9vZiBvZiBpbmNyZW1lbnRhbCBzYWxlcy4gWW91ciBzdG9yZSBv
 ciBDUk0gcmVtYWlucyB0aGUgcmV2ZW51ZSBzb3VyY2UuCgpObyBBUEkgcXVhbGl0eSBmbGFncyBy
 ZXR1cm5lZDsgdGhpcyBkb2VzIG5vdCBndWFyYW50ZWUgY29tcGxldGUgdHJhY2tpbmcuCg==
+-----END FILE-----
+-----BEGIN FILE email-2026-10-14-to-2026-10-20.md-----
+UFJJVkFURSBMSVZFIFJFVklFVyB8IERlbW8gU3RvcmUgfCBFbWFpbCByZXZpZXcgKEN1c3RvbWVy
+LmlvKQoyMDI2LTEwLTE0IHRvIDIwMjYtMTAtMjAgfCBDdXN0b21lci5pbyBkYXlzIGFyZSBVVEMg
+fCBwcmlvciB3ZWVrIDIwMjYtMTAtMDcgdG8gMjAyNi0xMC0xMwoK4oCiIEVtYWlscyBzZW50OiAy
+NDAgKDI0Mi45JSB2cyBwcmlvciB3ZWVrKTsgZGVsaXZlcmVkOiAyNDAuCuKAoiBIdW1hbiBvcGVu
+czogNDQgKDE4LjMlIG9mIGRlbGl2ZXJlZCwgcHJpb3IgMTAuMCUpOyBodW1hbiBjbGlja3M6IDAg
+KDAuMCUsIHByaW9yIDAuMCUpLgrigKIgQ29udmVyc2lvbnM6IDAgKHByaW9yIDApLgrigKIgVW5z
+dWJzY3JpYmVzOiAyICgwLjglIG9mIGRlbGl2ZXJlZCkgdnMgMSAoMS40JSk7IHRvcGljIHVuc3Vi
+c2NyaWJlczogMC4K4oCiIEJvdW5jZXM6IDA7IHNwYW0gY29tcGxhaW50czogMC4KClRvcCBzZW5k
+cyB0aGlzIHdlZWsgKHNlbnQsIG9wZW4gcmF0ZSwgY2xpY2sgcmF0ZSwgdW5zdWJzY3JpYmVzKToK
+4oCiIEF1dG9tYXRpb246IFdlbGNvbWUgc2VyaWVzIOKGkiAxNDAg4oaSIDEwLjAlIOKGkiAwLjAl
+IOKGkiAyCuKAoiBCcm9hZGNhc3Q6IE9jdG9iZXIgbmV3c2xldHRlciDihpIgMTAwIOKGkiAzMC4w
+JSDihpIgMC4wJSDihpIgMAoKRW1haWwgY2FwdHVyZTogbm90IHNldCB1cCB5ZXQuIFNldCBjaW9D
+YXB0dXJlU2VnbWVudElkIGluIFNldHRpbmdzLiBNaXNzaW5nLCBub3QgemVyby4KCkNvdmVycyAx
+IHJ1bm5pbmcgYXV0b21hdGlvbnMgYW5kIDEgYnJvYWRjYXN0cyBzZW50IGluIHRoZSB0d28gd2Vl
+a3MuIENvdW50cyBhcmUgbWVzc2FnZXMsIG5vdCB1bmlxdWUgcGVvcGxlLiBPcGVucyBhbmQgY2xp
+Y2tzIGFyZSBodW1hbi1vbmx5LiBDb252ZXJzaW9ucyBmb2xsb3cgZWFjaCBjYW1wYWlnbidzIG93
+biBnb2FsLgpSZXZpZXc6IGNoZWNrIHRoZSBzZW5kcyB3aXRoIHRoZSBoaWdoZXN0IHVuc3Vic2Ny
+aWJlIHJhdGUgYmVmb3JlIHRoZWlyIG5leHQgc2VuZC4K
+-----END FILE-----
+-----BEGIN FILE summary-2026-10-14-to-2026-10-20.md-----
+IyBXZWVrbHkgc3VtbWFyeSB8IERlbW8gU3RvcmUKMjAyNi0xMC0xNCB0byAyMDI2LTEwLTIwCldy
+aXR0ZW4gYnkgYW4gQUkgbW9kZWwgZnJvbSB0aGlzIHJ1bidzIHJlcG9ydHMgYW5kIHRoZSBjb21w
+YXJpc29ucyBjb21wdXRlZCBpbiB0aGUgd29ya2Zsb3cuIENoZWNrIGEgbnVtYmVyIGFnYWluc3Qg
+aXRzIHJlcG9ydCBiZWZvcmUgYWN0aW5nIG9uIGl0LgoKIyMgSGVhZGxpbmUKVGVzdCBzdW1tYXJ5
+OiA1IG9mIDUgcmV2aWV3cyByYW47IGhpc3Rvcnkgd2Vla3MgMS4K
 -----END FILE-----
