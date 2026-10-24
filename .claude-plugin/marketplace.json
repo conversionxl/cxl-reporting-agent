@@ -4,6 +4,6 @@
   "description": "CXL's Reporting agent plugin for the AI Native Marketer cohort.",
   "owner": { "name": "CXL", "email": "hesh@cxl.com" },
   "plugins": [
-    { "name": "reporting-agent", "description": "Four weekly business and traffic reviews from n8n, saved into your personal OS and read with Claude.", "source": "./", "category": "productivity" }
+    { "name": "reporting-agent", "description": "Weekly business and traffic reviews built in n8n with Claude, plus Nick's ads review, saved into your personal OS and read with Claude.", "source": "./", "category": "productivity" }
   ]
 }

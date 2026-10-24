@@ -68,4 +68,4 @@ if git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
   rm -f "$probe"
 fi
 echo
-echo "Next: the walkthrough continues with n8n (step 2 of /reporting-agent:build-reporting-agent)."
+echo "Next: the command that ran this checks your n8n connection, then carries on."

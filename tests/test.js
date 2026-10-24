@@ -1,7 +1,7 @@
 const fs = require('fs');
 const { run } = require('./run');
 const [OUT, SRC, SAMPLES] = process.argv.slice(2);
-const demo = `${__dirname}/../workflows/four-reviews-demo-v1.0.json`, tmpl = `${OUT}/four-reviews-metorik-template-v1.1.json`, full = `${OUT}/four-reviews-connection-template-v1.2.json`;
+const demo = `${OUT}/four-reviews-demo-v2.json`, ads = `${OUT}/ads-review-from-nick-v1.json`, tmpl = `${OUT}/four-reviews-metorik-template-v1.1.json`, full = `${OUT}/four-reviews-connection-template-v1.2.json`;
 let failures = 0;
 const ok = (cond, msg) => { console.log((cond ? 'PASS ' : 'FAIL ') + msg); if (!cond) failures++; };
 const byName = items => Object.fromEntries(items.map(i => [i.json.fileName, i.json.markdown]));
@@ -63,22 +63,47 @@ const decoded = i => Buffer.from(i.binary.report.data, 'base64').toString('utf8'
     'Trends | Metorik revenue (last 90 days)': ret([{ totals: { net: 9000, gross: 9500, orders: 90 } }]),
     'Trends | Metorik revenue (prior 90 days)': ret([{ totals: { net: 6000, gross: 6300, orders: 60 } }]) };
 
-  console.log('\n== T1 demo (Nick\'s v1.0, unchanged): each lane matches Nick\'s examples');
+  console.log('\n== T1 Nick\'s v2 demo: the four lanes still write Nick\'s example reports');
   let r = await run(demo);
   ok(!r.errors.length, 'no errors ' + r.errors.join('; '));
-  const lanes = ['Executive', 'Marketing', 'Products', 'Traffic'].map(l => r.runData[`${l} | Create Markdown BEFORE Slack`]?.[0]);
-  ok(lanes.every(Boolean), 'all four lanes wrote a Markdown file');
-  ok(!r.nodes['Settings'] && !r.nodes['Collect all four reports'] && !Object.values(r.nodes).some(n => n.name.startsWith('Deliver |')), 'no Settings, no Collect, no delivery branch');
-  ok(Object.values(r.nodes).filter(n => n.type === 'n8n-nodes-base.slack').every(n => n.disabled), 'the per-lane Slack nodes ship switched off');
-  const m = Object.fromEntries(lanes.map(i => [i.json.fileName, i.json.markdown]));
+  ok(r.collected.length === 4 && !r.collected.some(i => i.json.incomplete), 'Collect all reports holds 4 complete reviews');
+  const m = byName(r.collected);
   for (const lane of ['executive', 'marketing', 'products']) {
     const nick = fs.readFileSync(`${SRC}/${lane}-example.md`, 'utf8');
     ok(m[`${lane}-2026-10-14-to-2026-10-20.md`] === nick, `${lane} report identical to Nick's example`);
   }
-  ok(m['website-traffic-review.md'] === fs.readFileSync(`${SRC}/traffic-example.md`, 'utf8'), 'traffic report identical to Nick\'s example');
-  ok(lanes.every(i => decoded(i) === i.json.markdown), 'binary report matches markdown for all 4');
+  const tName = Object.keys(m).find(f => f.startsWith('traffic-'));
+  ok(tName === 'traffic-2026-10-14-to-2026-10-20.md' && m[tName].replace('Your store or CRM remains the revenue source.', 'Metorik remains the revenue source.') === fs.readFileSync(`${SRC}/traffic-example.md`, 'utf8'),
+    'traffic report is Nick\'s example with a dated file name and "your store or CRM" in the readout');
+  ok(r.collected.every(i => decoded(i) === i.json.markdown), 'binary report matches markdown for all 4');
+  const g = r.runData['Summary | Week at a glance'][0].json;
+  ok(g.fileName === 'glance-2026-10-14-to-2026-10-20.md' && g.markdown.includes('2026-10-14 to 2026-10-20 | Demo Store | 4 of 4 reviews complete')
+    && g.markdown.includes('• Sales: Net revenue: $24,000 (20.0% vs prior week).') && g.markdown.includes('• Traffic: Sessions: 12000 vs 10000 (20.0%).'), 'week at a glance quotes one line from each review, no new numbers');
+  ok(g.facts.reviews.complete_count === 4 && g.facts.reports.length === 4, 'the glance carries the facts for the AI summary');
+  ok(r.runData['Summary | AI summary report'][0].json.skipped && r.runData['All reports and summary'].length === 5, 'AI summary switched off: skipped, the four reviews and the glance go out');
   fs.mkdirSync(SAMPLES, { recursive: true });
   for (const [f, md] of Object.entries(m)) fs.writeFileSync(`${SAMPLES}/${f}`, md);
+  fs.writeFileSync(`${SAMPLES}/${g.fileName}`, g.markdown);
+
+  console.log('\n== T1a v2 demo, Slack connected (recorded, not sent)');
+  r = await run(demo, { deliver: true });
+  const dsl = r.delivered.slack;
+  ok(!r.errors.length && dsl.length === 5 && dsl.every(x => x.channel === 'SELECT_YOUR_TEST_CHANNEL'), 'Slack posts 5 messages (4 reviews and the glance) to the channel from Settings');
+  ok(dsl[0].text.startsWith('📊 *Executive business review*') && dsl[4].text.startsWith('🗓️ *Week at a glance*'), 'reviews and the glance are formatted for Slack');
+  const dtypes = Object.values(r.nodes).map(n => n.type);
+  ok(!dtypes.includes('n8n-nodes-base.gmail') && !dtypes.includes('n8n-nodes-base.github') && dtypes.filter(t => t === 'n8n-nodes-base.slack').length === 1 && !r.delivered.email.length && !r.delivered.github.length, 'Slack is the only delivery');
+  ok(r.nodes['Deliver | Slack'].disabled && r.nodes['Summary | AI summary'].disabled && !r.nodes['Summary | Claude model'].credentials, 'Slack and the AI summary ship switched off, no credentials');
+
+  console.log('\n== T1b v2 demo, AI summary switched on (stand-in model)');
+  r = await run(demo, { deliver: true, ai: f => `## Headline\nDemo summary: ${f.facts.reviews.complete_count} of ${f.facts.reviews.total_count} reviews ran.` });
+  const ds = r.runData['Summary | AI summary report'][0].json;
+  ok(!r.errors.length && !ds.skipped && ds.fileName === 'summary-2026-10-14-to-2026-10-20.md' && ds.markdown.includes('Demo summary: 4 of 4 reviews ran.'), 'AI summary written from the glance facts');
+  ok(r.delivered.slack.length === 6 && r.delivered.slack[5].text.startsWith('🧠 *Weekly summary*'), 'Slack adds the AI summary as a sixth message');
+
+  console.log('\n== T1d v2 demo, one lane fails');
+  r = await run(demo, { fail: { 'Executive | Previous revenue': 'Settings code broken' } });
+  const g2 = r.runData['Summary | Week at a glance'][0].json.markdown;
+  ok(!r.errors.length && g2.includes('3 of 4 reviews complete') && g2.includes('Did not run (missing, not zero):') && g2.includes('• Sales: Failed step: Executive | Previous revenue'), 'the glance lists the review that did not run');
 
   console.log('\n== T1c template, sources connected, deliveries recorded');
   r = await run(tmpl, { deliver: true, fixtures: mFix, history: lastWeek, ai, settings: { storeName: 'Demo Store' } });
@@ -237,36 +262,51 @@ const decoded = i => Buffer.from(i.binary.report.data, 'base64').toString('utf8'
   const e11 = r.merged.find(i => i.json.fileName.startsWith('executive-'));
   ok(e11 && !e11.json.incomplete && e11.json.markdown.includes('• Orders: 0 ('), 'an empty week is a true zero, reported as complete');
 
-  console.log('\n== T14 Ads review switched off (as shipped): skipped, never delivered or counted');
-  for (const [label, path, opts] of [['full', full, { fixtures: fullFixtures, settings: fullSettings }], ['metorik', tmpl, { fixtures: { ...mFix, ...mTrends }, settings: fullSettings }]]) {
-    r = await run(path, { deliver: true, history: lastWeek, ai, ...opts });
-    const sk = r.collected.find(i => String(i.json.fileName).startsWith('ads-'));
-    ok(!r.errors.length && r.collected.length === 6 && sk && sk.json.skipped && sk.json.fileName.endsWith('-skipped.md'), `${label}: Collect completes with the ads lane as a skipped sixth item`);
-    const files = r.runData['All reports and summary'].map(i => i.json.fileName);
-    ok(!files.some(f => f.startsWith('ads-')) && r.delivered.slack.length === 6 && r.delivered.email[0].attachments.length === 6 && r.delivered.github.length === 6, `${label}: nothing about ads in Slack, email or GitHub`);
-    const f14 = r.runData['Trends | Facts for the summary'][0].json, h14 = r.delivered.history[0];
-    ok(f14.reviews.total_count === 5 && !f14.reports.some(x => String(x.file).startsWith('ads-')) && f14.sample_data.length === 0 && h14.reviews_total === '5', `${label}: not in the summary facts or the history row`);
-  }
+  console.log('\n== T14 ads review (its own workflow) on Nick\'s sample data');
+  r = await run(ads, { deliver: true, settings: { storeName: 'Demo Store' } });
+  ok(!r.errors.length, 'no errors ' + r.errors.join('; '));
+  const ad = r.runData['Ads | Create Markdown BEFORE Slack'][0].json;
+  ok(ad.fileName === 'ads-2026-10-20-to-2026-10-20.md' && !ad.incomplete && ad.sample === true, 'one ads review for yesterday: ' + ad.fileName);
+  ok(ad.markdown.startsWith('SAMPLE DATA | Demo Store | Ads review') && ad.markdown.includes("Sample data: the example campaigns from Nick Christensen's ads workshop"), 'labelled SAMPLE DATA');
+  ok(ad.markdown.includes('📊 *Daily Paid Media Digest*') && ad.markdown.includes('Competitor - Search') && ad.markdown.includes('Campaigns graded: 9; flagged: '), "Nick's grading runs on his 9 sample campaigns");
+  ok(decoded(r.runData['Ads | Create Markdown BEFORE Slack'][0]) === ad.markdown, 'binary report matches markdown');
+  ok(r.delivered.slack.length === 1 && r.delivered.slack[0].text.startsWith('🎯 *Ads review (Google Ads and Meta)*') && r.delivered.slack[0].channel === 'SELECT_YOUR_TEST_CHANNEL', 'Slack: one formatted message to the channel from Settings');
+  ok(r.delivered.email.length === 1 && r.delivered.email[0].attachments.length === 1 && r.delivered.email[0].body.startsWith('Weekly reports, run 2026-10-21. 1 of 1 reviews complete.'), 'email: one message, the review attached');
+  ok(r.nodes['Deliver | Slack'].disabled && r.nodes['Deliver | Email'].disabled, 'both deliveries ship switched off');
+  fs.writeFileSync(`${SAMPLES}/ads-sample-data-example.md`, ad.markdown);
 
-  console.log('\n== T15 Ads review switched on with Nick\'s sample data');
-  for (const [label, path, opts] of [['full', full, { fixtures: fullFixtures }], ['metorik', tmpl, { fixtures: { ...mFix, ...mTrends } }]]) {
-    r = await run(path, { deliver: true, history: lastWeek, ai, ...opts, settings: { ...fullSettings, adsEnabled: true } });
-    const ad = r.merged.find(i => i.json.fileName === 'ads-2026-10-14-to-2026-10-20.md');
-    ok(!r.errors.length && ad && !ad.json.incomplete && ad.json.sample === true, `${label}: ads report collected as the sixth review`);
-    const md = ad ? ad.json.markdown : '';
-    ok(md.startsWith('SAMPLE DATA | Demo Store | Ads review') && md.includes("Sample data: the example campaigns from Nick Christensen's ads workshop"), `${label}: labelled SAMPLE DATA`);
-    ok(md.includes('📊 *Daily Paid Media Digest*') && md.includes('*Needs attention (') && md.includes('Competitor - Search') && md.includes('Campaigns graded: 9; flagged: '), `${label}: Nick's grading runs on his 9 sample campaigns`);
-    const f15 = r.runData['Trends | Facts for the summary'][0].json;
-    ok(f15.reviews.total_count === 6 && f15.sample_data.includes('ads-2026-10-14-to-2026-10-20.md'), `${label}: summary facts mark the ads report as sample data`);
-    ok(r.nodes['AI | Weekly summary'].parameters.options.systemMessage.includes('SAMPLE DATA'), `${label}: the model is told sample data is not the business's`);
-    ok(r.delivered.slack.length === 7 && r.delivered.slack.some(m => m.text.startsWith('🎯 *Ads review (Google Ads and Meta)*')) && r.delivered.email[0].body.startsWith('Weekly reports, run 2026-10-21. 6 of 6 reviews complete.'), `${label}: Slack 7 messages, email counts 6 reviews`);
-    if (label === 'full') fs.writeFileSync(`${SAMPLES}/ads-sample-data-example.md`, md);
-  }
+  console.log('\n== T15 ads review, the grading step fails');
+  r = await run(ads, { settings: { storeName: 'Demo Store' }, fail: { 'Ads | Analyze': 'Cannot read properties of undefined' } });
+  const a15 = r.runData['Ads | Create Markdown BEFORE Slack'][0].json;
+  ok(!r.errors.length && a15.incomplete && a15.fileName.endsWith('-incomplete.md') && a15.markdown.includes('Failed step: Ads | Analyze'), 'ads review INCOMPLETE and names the failed step');
 
-  console.log('\n== T16 Ads review switched on, the grading step fails');
-  r = await run(full, { fixtures: fullFixtures, history: lastWeek, ai, settings: { ...fullSettings, adsEnabled: true }, fail: { 'Ads | Analyze': 'Cannot read properties of undefined' } });
-  const ai16 = r.merged.find(i => String(i.json.fileName).startsWith('ads-'));
-  ok(!r.errors.length && ai16 && ai16.json.incomplete && ai16.json.markdown.includes('Failed step: Ads | Analyze'), 'ads review INCOMPLETE, names the failed step, the other reviews unaffected');
+  console.log('\n== T16 ads review with the sample nodes replaced (your own rows)');
+  const adsWf = JSON.parse(fs.readFileSync(ads, 'utf8'));
+  const swap = { 'Ads | Google Ads (sample data)': 'Ads | Google Ads', 'Ads | Meta Ads (sample data)': 'Ads | Meta Ads' };
+  const row = (campaign, platform, spend, conv, value) => ({ campaign, platform, spend, conversions: conv, conversion_value: value, cpa: spend / conv, historical_cpa: spend / conv, ctr: 0.02, clicks: 100, impressions: 5000 });
+  const rows = { 'Ads | Google Ads': [row('Brand', 'google', 100, 10, 400)], 'Ads | Meta Ads': [row('Prospecting', 'meta', 200, 4, 80)] };
+  for (const n of adsWf.nodes) if (swap[n.name]) { n.name = swap[n.name]; n.parameters = { jsCode: `return ${JSON.stringify(rows[n.name])}.map(json=>({json}));` }; }
+  const sw = JSON.stringify(adsWf.connections).replace(/Ads \| Google Ads \(sample data\)/g, 'Ads | Google Ads').replace(/Ads \| Meta Ads \(sample data\)/g, 'Ads | Meta Ads');
+  adsWf.connections = JSON.parse(sw);
+  const livePath = `${OUT}/ads-live-test.json`;
+  fs.writeFileSync(livePath, JSON.stringify(adsWf));
+  r = await run(livePath, { settings: { storeName: 'Demo Store' } });
+  const a16 = r.runData['Ads | Create Markdown BEFORE Slack'][0].json;
+  ok(!r.errors.length && !a16.sample && a16.markdown.startsWith('PRIVATE LIVE REVIEW | Demo Store | Ads review') && a16.markdown.includes('Campaigns graded: 2;'), 'renamed source nodes: the review is live, no SAMPLE DATA label');
+
+  console.log('\n== T17 v2 demo, the task done the email way (Slack swapped for the worked example\'s email delivery)');
+  const swapWf = JSON.parse(fs.readFileSync(demo, 'utf8')), fullWf = JSON.parse(fs.readFileSync(full, 'utf8'));
+  swapWf.nodes = swapWf.nodes.filter(n => !['Deliver | Slack', 'Slack | Format for Slack'].includes(n.name))
+    .concat(fullWf.nodes.filter(n => ['Email | Combine reports', 'Deliver | Email'].includes(n.name)));
+  delete swapWf.connections['Slack | Format for Slack'];
+  swapWf.connections['All reports and summary'] = { main: [[{ node: 'Email | Combine reports', type: 'main', index: 0 }]] };
+  swapWf.connections['Email | Combine reports'] = { main: [[{ node: 'Deliver | Email', type: 'main', index: 0 }]] };
+  const swapPath = `${OUT}/demo-email-swap-test.json`;
+  fs.writeFileSync(swapPath, JSON.stringify(swapWf));
+  r = await run(swapPath, { deliver: true });
+  const se = r.delivered.email;
+  ok(!r.errors.length && se.length === 1 && se[0].body.includes('4 of 4 reviews complete.') && !se[0].subject.endsWith('(incomplete)'), 'one email; the glance is not counted as a review');
+  ok((se[0].body.match(/-----BEGIN FILE (executive|marketing|products|traffic|glance)-2026-10-14-to-2026-10-20\.md-----/g) || []).length === 5, 'five exact copies for get-email-reports, the glance included');
 
   console.log(failures ? `\n${failures} FAILED` : '\nALL PASSED');
   process.exit(failures ? 1 : 0);

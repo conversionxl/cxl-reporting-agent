@@ -1,14 +1,16 @@
-"""Build both connection templates.
+"""Build every shipped workflow.
 
 Usage: python3 -I build.py <src_dir> <out_dir>
-build(): the v1.1 edits on Nick's connection template export, written as
-four-reviews-metorik-template-v1.1.json (Metorik and GA4).
-build_full(): the full template, four-reviews-connection-template-v1.2.json, from the
-sanitized export of the workflow tested live on 23 October 2026
+build_demo_v2(): Nick's v2 demo, four-reviews-demo-v2.json, from Nick's v1.0 demo export
+(tests/fixtures/nick-v1.0): Settings, the four lanes on made-up data, Collect, the
+summaries (week at a glance in code; the AI summary shipped off) and Slack only.
+build(): the Metorik worked example, four-reviews-metorik-template-v1.1.json, from
+Nick's connection template export.
+build_full(): the WooCommerce worked example, four-reviews-connection-template-v1.2.json,
+from the sanitized export of the workflow tested live on 23 October 2026
 (tests/fixtures/full-template-source.json), plus the plugin edits.
-The demo ships as Nick's v1.0 export, unchanged (workflows/four-reviews-demo-v1.0.json):
-Settings, Collect and delivery belong to the templates only. The demo
-branches in build() are kept so the template's edits stay in one place.
+build_ads(): the ads review, ads-review-from-nick-v1.json, its own workflow, from Nick
+Christensen's MIT ads starter (tests/fixtures/nick-ads-starter).
 Every string replacement asserts the exact number of matches, so a changed
 source fails loudly instead of producing a half-edited workflow.
 """
@@ -34,18 +36,17 @@ COLLECT = "Collect all reports"
 # Collapsible canvas groups. n8n stores them as the workflow's top-level `nodeGroups`
 # (id, name, nodeNames, description). A trigger cannot be in a group. The trigger,
 # Settings and Collect stay visible, so collapsed the canvas reads: trigger, Settings,
-# six review blocks, Collect, Trends and AI summary, three delivery blocks.
+# five review blocks, Collect, Trends and AI summary, three delivery blocks.
 GROUP_NS = uuid.UUID("b5f3c9a0-2c1e-4d8e-9a77-3e1f0c5a7d21")
 LANE_GROUPS = [("Executive", "1. Executive review"), ("Marketing", "2. Marketing source review"),
                ("Products", "3. Top product review"), ("Traffic", "4. Website traffic review"),
-               ("Customer.io", "5. Email review (Customer.io)"), ("Ads", "6. Ads review")]
-GROUP_ORDER = [g for _, g in LANE_GROUPS] + ["Trends and AI summary", "Deliver: Slack",
+               ("Customer.io", "5. Email review (Customer.io)")]
+GROUP_ORDER = [g for _, g in LANE_GROUPS] + ["Summary", "Trends and AI summary", "Ads review", "Deliver: Slack",
                                              "Deliver: GitHub pull request", "Deliver: Email"]
 UNGROUPED = {"Run all four reviews", "Settings", COLLECT}
 COMMON_GROUP_DESC = {
     "4. Website traffic review": "GA4 sessions, sources, landing pages and events, last 7 days vs prior 7.",
     "5. Email review (Customer.io)": "Sends, opens, clicks, conversions, unsubscribes and email capture.",
-    "6. Ads review": "Google Ads and Meta campaigns graded on value-to-spend (Nick Christensen's starter). Optional: adsEnabled in Settings.",
     "Trends and AI summary": "MoM and QoQ computed in code, run history, and the AI summary of all reviews.",
     "Deliver: Slack": "One formatted message per report and one for the summary.",
     "Deliver: GitHub pull request": "A branch and a pull request with every report; never commits to main.",
@@ -62,6 +63,10 @@ FULL_GROUP_DESC = {**COMMON_GROUP_DESC,
 
 
 def group_of(name):
+    if name.startswith("Summary | "):
+        return "Summary"
+    if name.startswith("Ads | "):
+        return "Ads review"
     for lane, g in LANE_GROUPS:
         if name.startswith(lane + " | "):
             return g
@@ -76,13 +81,12 @@ def group_of(name):
     return None
 
 
-def add_groups(wf, template, desc):
+def add_groups(wf, template, desc, override=None):
     members = {}
     for n in wf["nodes"]:
-        if n["type"] == "n8n-nodes-base.stickyNote" or n["name"] in UNGROUPED:
-            continue
-        assert n["type"] != "n8n-nodes-base.manualTrigger", "a trigger cannot be in a group"
-        g = group_of(n["name"])
+        if n["type"] == "n8n-nodes-base.stickyNote" or n["name"] in UNGROUPED or n["type"].endswith("Trigger"):
+            continue  # a trigger cannot be in a group
+        g = (override or {}).get(n["name"]) or group_of(n["name"])
         assert g, "node without a group: " + n["name"]
         members.setdefault(g, []).append(n["name"])
     wf["nodeGroups"] = [{"id": str(uuid.uuid5(GROUP_NS, template + "/" + g)), "name": g, "nodeNames": members[g],
@@ -176,7 +180,7 @@ EMAIL_NOTE = """## 5. Email review (Customer.io)
 # the delivery groups. Lanes start at x 704 and sit 480 apart. Notes never overlap a grouped node.
 LANE_NOTES = {"Executive": ("Executive explainer", 760, 230, 3), "Marketing": ("Marketing explainer", 760, 230, 4),
               "Products": ("Products explainer", 760, 230, 5), "Traffic": ("Website traffic explainer", 758, 224, 5),
-              "Customer.io": ("Email review explainer", 758, 240, 7), "Ads": ("Ads review explainer", 758, 300, 1)}
+              "Customer.io": ("Email review explainer", 758, 240, 7)}
 DROPPED_NOTES = {"Slack frame", "Email frame", "GitHub frame", "Start here", "Customer.io explainer"}
 
 
@@ -354,7 +358,6 @@ return [{{json:{{
   cioApiUrl:'https://api.customer.io', // Customer.io App API; EU workspaces use https://api-eu.customer.io
   cioCaptureSegmentId:'',            // Customer.io segment whose growth counts as email capture; empty = not set up
   cioCaptureLabel:'',                // that segment's name, printed on the email review
-  adsEnabled:false,                  // Ads review (lane 6): true to include it. Until you connect your ad data it shows Nick Christensen's sample campaigns, labelled SAMPLE DATA
   emailTo:'YOU@EXAMPLE.COM',         // Email delivery: where the reports go
   githubOwner:'YOUR_GITHUB_USERNAME',// GitHub delivery: owner of your personal OS repo
   githubRepo:'YOUR_PERSONAL_OS_REPO',// GitHub delivery: that repo's name
@@ -418,11 +421,12 @@ Incomplete reports are delivered too, so a failed source shows up instead of goi
 
 
 # ---------------------------------------------------------------------------
-# Lane 6, the Ads review: Nick Christensen's ads reporting starter from his CXL workshop
-# "Ship ICP-driven ad campaigns and automated monitoring" (29 June 2026), MIT licensed,
-# https://github.com/nickyc1/ship-icp-ads-automate-monitoring (n8n-ads-reporting/).
-# Its sample-data nodes, merge and Analyze code are carried unchanged under a credit header;
-# its schedule trigger, Slack webhook and email node are left out (the collection report delivers).
+# The ads review, its own workflow: Nick Christensen's ads reporting starter from his CXL
+# workshop "Ship ICP-driven ad campaigns and automated monitoring" (29 June 2026), MIT
+# licensed, https://github.com/nickyc1/ship-icp-ads-automate-monitoring (n8n-ads-reporting/).
+# His schedule trigger, sample-data nodes, merge and Analyze code are carried unchanged
+# (the code under a credit header). His Slack webhook and email nodes are replaced by the
+# same Slack and Gmail delivery the other workflows use, both switched off.
 
 ADS_SRC = os.path.join(os.path.dirname(os.path.abspath(__file__)), "fixtures", "nick-ads-starter", "starter-workflow.json")
 ADS_CREDIT = ("// From Nick Christensen's ads reporting starter (MIT), workshop \"Ship ICP-driven ad campaigns and automated monitoring\".\n"
@@ -430,16 +434,26 @@ ADS_CREDIT = ("// From Nick Christensen's ads reporting starter (MIT), workshop 
               "// Carried unchanged below this header.\n")
 ADS_FROM = {"Mock Google Ads": "Ads | Google Ads (sample data)", "Mock Meta Ads": "Ads | Meta Ads (sample data)",
             "Merge": "Ads | Merge", "Analyze": "Ads | Analyze"}
-ADS_SKIP = ("if(s.adsEnabled!==true)return [{json:{skipped:true,markdown:'',slackText:'',"
-            "fileName:'ads-'+p.start+'-to-'+p.end+'-skipped.md'}}];\n")
-ADS_PERIOD = """// Same weeks as the executive review.
-const p=$('Executive | Reporting period').first().json;
-return [{json:{start:p.start,end:p.end,previousStart:p.previousStart,previousEnd:p.previousEnd}}];"""
+ADS_TRIGGER = "Daily 9am"
+ADS_RUN_NOW = "Run now"
+ADS_SETTINGS = """// Edit these before the first run. Every step reads its settings from here.
+return [{json:{
+  storeName:'YOUR_BUSINESS',         // printed on the review
+  currency:'USD',                    // ISO code, for example EUR or GBP
+  timeZone:'America/Chicago',        // reporting timezone, for example Europe/London
+  locale:'en-US',                    // number and money format, for example en-GB or de-DE
+  slackChannel:'SELECT_YOUR_TEST_CHANNEL', // Slack delivery: the channel ID (right-click the channel, Copy link: the part after /archives/)
+  emailTo:'YOU@EXAMPLE.COM',         // Email delivery: where the review goes
+  n8nUrl:'https://YOUR-INSTANCE.app.n8n.cloud' // your n8n address, for the workflow links in email and Slack
+}}];"""
+ADS_PERIOD = """// Yesterday, in the Settings timezone: Nick's digest is a daily read.
+const s=$('Settings').first().json;
+const d=$now.setZone(s.timeZone).startOf('day').minus({days:1}).toISODate();
+return [{json:{start:d,end:d}}];"""
 ADS_COMPOSE = """// Wraps the ads digest from Ads | Analyze (Nick Christensen's grading) into the report contract.
-// While adsEnabled is false in Settings this lane sends a skipped item: Collect never waits, and every
-// step after it (summary facts, history, Slack, email, GitHub) leaves it out.
 const p=$('Ads | Reporting period').first().json, s=$('Settings').first().json;
-""" + ADS_SKIP + """const isSample=n=>{try{const j=$(n).first().json;return !!(j&&j.campaign!==undefined&&j.platform!==undefined);}catch(e){return false;}};
+// A sample node that ran means sample rows reached the grading; once both are replaced (renamed), this is false.
+const isSample=n=>{try{const j=$(n).first().json;return !!(j&&j.campaign!==undefined&&j.platform!==undefined);}catch(e){return false;}};
 const sample=isSample('Ads | Google Ads (sample data)')||isSample('Ads | Meta Ads (sample data)');
 const a=$('Ads | Analyze').first().json;
 if(!a||typeof a.digest!=='string'||!a.campaign_count)throw Error('No ad data: Ads | Analyze returned no campaigns. Connect your ad platforms, or keep the two sample nodes switched on.');
@@ -452,7 +466,7 @@ const lines=[(sample?'SAMPLE DATA':'PRIVATE LIVE REVIEW')+' | '+s.storeName+' | 
   'Review: check the flagged campaigns in the ad platform before changing any budget.'];
 const markdown=lines.join('\\n')+'\\n';
 return [{json:{markdown,slackText:markdown,fileName:'ads-'+p.start+'-to-'+p.end+'.md',period:p,sample}}];"""
-ADS_INCOMPLETE = ("const p=$('Ads | Reporting period').first().json,s=$('Settings').first().json;" + ADS_SKIP.replace("\n", "") +
+ADS_INCOMPLETE = ("const p=$('Ads | Reporting period').first().json,s=$('Settings').first().json;"
     "const j=$input.first().json,e=j.error??j;"
     "const reason=String(typeof e==='string'?e:(e.message||e.description||JSON.stringify(e))).replace(/[\\r\\n]+/g,' ').slice(0,300);"
     "const markdown=['INCOMPLETE | '+s.storeName+' | Ads review (Google Ads and Meta)',p.start+' to '+p.end+' | '+s.currency,'',"
@@ -460,21 +474,36 @@ ADS_INCOMPLETE = ("const p=$('Ads | Reporting period').first().json,s=$('Setting
     "'Failed step: '+$prevNode.name,'Reason: '+reason,'',"
     "'Review: fix the connection or setting named above, then run the workflow again.'].join('\\n')+'\\n';"
     "return [{json:{markdown,slackText:markdown,fileName:'ads-'+p.start+'-to-'+p.end+'-incomplete.md',incomplete:true}}];")
-ADS_NOTE = """## 6. Ads review (optional)
-**For:** every Google Ads and Meta campaign graded on value-to-spend, flagged when below target or when CPA runs above 2x its usual level, with a plain call: scale, hold, or investigate.
+ADS_NOTE = """## Ads review (Nick Christensen's starter)
+**For:** every Google Ads and Meta campaign graded on value-to-spend, flagged when below target or when CPA runs above 2x its usual level, with a plain call: scale, hold, or investigate. A daily read of yesterday.
 
-**Source:** Nick Christensen's ads reporting starter (MIT), from his workshop "Ship ICP-driven ad campaigns and automated monitoring". It ships with his sample campaigns, labelled SAMPLE DATA.
+**Source:** Nick Christensen's ads reporting starter (MIT), from his workshop "Ship ICP-driven ad campaigns and automated monitoring". It ships with his sample campaigns, labelled SAMPLE DATA, so it runs with nothing connected.
 
-**Switch on:** set `adsEnabled` to true in Settings. While it is false the lane is skipped and nothing about ads is delivered.
+**Make it live:** replace the two sample nodes with your own rows in the same fields: campaign, platform, spend, conversions, conversion_value, cpa, historical_cpa, ctr, clicks, impressions. Then set the targets at the top of Ads | Analyze."""
+ADS_CONNECT_NOTE = """## Connect your ad platforms
+**Meta:** a Facebook Graph API credential (access token with `ads_read`) on the insights edge of `act_<your ad account id>`, level campaign: one request for yesterday, one for the last 30 days (for historical CPA). Pick the conversion `action_type` your funnel uses (purchase, lead, complete_registration).
 
-**Make it live:** replace the two sample nodes with your own rows in the same fields. Meta: a Facebook Graph API credential (access token with `ads_read`) on the insights edge of `act_<your ad account id>`, and the conversion `action_type` your funnel uses (purchase, lead...). Google Ads: the Google Ads node, an HTTP request, or your Google Ads MCP. Then set the targets at the top of Ads | Analyze."""
+**Google Ads:** the Google Ads node, or an HTTP Request to the Google Ads API. Both need a Google Ads developer token as well as the Google login.
+
+**Any other channel:** fetch its campaign report and map each row to the same fields in a Code node.
+
+**Name the replacement nodes** `Ads | Google Ads` and `Ads | Meta Ads` (no "sample data") and wire them into Ads | Merge where the sample nodes were. The SAMPLE DATA label goes away once no sample node runs."""
+ADS_SLACK_NOTE = """## Slack setup
+1. Create and install a Slack app with the bot scope `chat:write`.
+2. Save its token as an n8n Slack credential.
+3. Invite the bot to a test channel and put its channel ID in Settings.
+4. Select the credential on Deliver | Slack and switch it on. It posts one formatted message.
+
+Prefer email? Switch on Deliver | Email instead, with a Gmail credential and `emailTo` in Settings."""
 
 
-def add_ads_lane(wf):
-    """Lane 6: Nick's starter, collected as the sixth input of Collect."""
-    starter = {n["name"]: n for n in json.load(open(ADS_SRC))["nodes"]}
-    nodes = {n["name"]: n for n in wf["nodes"]}
-    conns = wf["connections"]
+def build_ads():
+    """Nick's ads starter as its own workflow: Settings, his chain, the report contract, Slack and email (both off)."""
+    starter = json.load(open(ADS_SRC))
+    by = {n["name"]: n for n in starter["nodes"]}
+    nodes, conns = {}, {}
+    wf = {"name": "Workshop | Ads review from Nick Christensen's starter | v1", "nodes": [], "connections": conns,
+          "settings": {"executionOrder": "v1"}}
 
     def add(node):
         node.setdefault("id", nid())
@@ -483,9 +512,16 @@ def add_ads_lane(wf):
         nodes[node["name"]] = node
         return node
 
+    t = copy.deepcopy(by[ADS_TRIGGER])
+    t.pop("id", None)
+    add(t)
+    # A manual trigger beside Nick's schedule, so the n8n MCP can run it on demand; both start the same chain
+    add({"parameters": {}, "name": ADS_RUN_NOW, "type": "n8n-nodes-base.manualTrigger", "typeVersion": 1})
+    add({"parameters": {"jsCode": ADS_SETTINGS}, "name": "Settings", "type": "n8n-nodes-base.code", "typeVersion": 2,
+         "notes": "Edit before the first run: business name, currency, timezone and delivery.", "notesInFlow": True})
     add({"parameters": {"jsCode": ADS_PERIOD}, "name": "Ads | Reporting period", "type": "n8n-nodes-base.code", "typeVersion": 2})
     for old, new in ADS_FROM.items():
-        n = copy.deepcopy(starter[old])
+        n = copy.deepcopy(by[old])
         n.pop("id", None)
         n.update({"name": new, "position": [0, 0]})
         if "jsCode" in n["parameters"]:
@@ -495,15 +531,17 @@ def add_ads_lane(wf):
     add({"parameters": {"jsCode": ADS_COMPOSE}, "name": "Ads | Compose review", "type": "n8n-nodes-base.code", "typeVersion": 2,
          "onError": "continueErrorOutput"})
     add({"parameters": {"jsCode": ADS_INCOMPLETE}, "name": "Ads | Incomplete report", "type": "n8n-nodes-base.code", "typeVersion": 2,
-         "notes": "Runs only when a step in this lane fails. Writes an INCOMPLETE report so the other reviews still go out.", "notesInFlow": True})
-    md = copy.deepcopy(nodes["Executive | Create Markdown BEFORE Slack"])
-    md.pop("id", None)
-    md["name"] = "Ads | Create Markdown BEFORE Slack"
-    add(md)
-    add({"parameters": {"content": ADS_NOTE, "width": 758, "height": 300, "color": 1}, "name": "Ads review explainer",
-         "type": "n8n-nodes-base.stickyNote", "typeVersion": 1})
+         "notes": "Runs only when a step fails. Writes an INCOMPLETE review instead of stopping the run.", "notesInFlow": True})
+    add({"parameters": {"jsCode": MARKDOWN_CODE}, "name": "Ads | Create Markdown BEFORE Slack", "type": "n8n-nodes-base.code", "typeVersion": 2})
+    add({"parameters": {"jsCode": SLACK_FORMAT}, "name": "Slack | Format for Slack", "type": "n8n-nodes-base.code", "typeVersion": 2,
+         "notes": "Rewrites the review for Slack: emoji title, bold labels.", "notesInFlow": True})
+    add(slack_node("One formatted message with the review. Select your Slack credential, set slackChannel in Settings, then switch on."))
+    add({"parameters": {"jsCode": EMAIL_COMBINE}, "name": "Email | Combine reports", "type": "n8n-nodes-base.code", "typeVersion": 2})
+    add(gmail_node("One email with the review in the body and attached. Set emailTo in Settings, select a Gmail credential, then switch on."))
     m = lambda target, index=0: {"node": target, "type": "main", "index": index}
-    conns["Settings"]["main"][0].append(m("Ads | Reporting period"))
+    conns[ADS_TRIGGER] = {"main": [[m("Settings")]]}
+    conns[ADS_RUN_NOW] = {"main": [[m("Settings")]]}
+    conns["Settings"] = {"main": [[m("Ads | Reporting period")]]}
     conns["Ads | Reporting period"] = {"main": [[m("Ads | Google Ads (sample data)"), m("Ads | Meta Ads (sample data)")]]}
     conns["Ads | Google Ads (sample data)"] = {"main": [[m("Ads | Merge", 0)]]}
     conns["Ads | Meta Ads (sample data)"] = {"main": [[m("Ads | Merge", 1)]]}
@@ -511,12 +549,69 @@ def add_ads_lane(wf):
     conns["Ads | Analyze"] = {"main": [[m("Ads | Compose review")], [m("Ads | Incomplete report")]]}
     conns["Ads | Compose review"] = {"main": [[m("Ads | Create Markdown BEFORE Slack")], [m("Ads | Incomplete report")]]}
     conns["Ads | Incomplete report"] = {"main": [[m("Ads | Create Markdown BEFORE Slack")]]}
-    nodes[COLLECT]["parameters"]["numberInputs"] = 6
-    conns["Ads | Create Markdown BEFORE Slack"] = {"main": [[m(COLLECT, 5)]]}
+    conns["Ads | Create Markdown BEFORE Slack"] = {"main": [[m("Slack | Format for Slack"), m("Email | Combine reports")]]}
+    conns["Slack | Format for Slack"] = {"main": [[m("Deliver | Slack")]]}
+    conns["Email | Combine reports"] = {"main": [[m("Deliver | Email")]]}
+    # Layout: one row, notes above it, delivery to the right
+    chain = ["Ads | Reporting period", "Ads | Google Ads (sample data)", "Ads | Merge", "Ads | Analyze", "Ads | Compose review",
+             "Ads | Create Markdown BEFORE Slack"]
+    x0, y0, step = 704, 400, 224
+    nodes[ADS_TRIGGER]["position"] = [256, y0]
+    nodes[ADS_RUN_NOW]["position"] = [256, y0 + 192]
+    nodes["Settings"]["position"] = [480, y0]
+    for k, name in enumerate(chain):
+        nodes[name]["position"] = [x0 + k * step, y0]
+    nodes["Ads | Meta Ads (sample data)"]["position"] = [x0 + step, y0 + 192]
+    nodes["Ads | Incomplete report"]["position"] = [x0 + 4 * step, y0 + 192]
+    dx = x0 + len(chain) * step + 224
+    nodes["Slack | Format for Slack"]["position"] = [dx, y0]
+    nodes["Deliver | Slack"]["position"] = [dx + step, y0]
+    nodes["Email | Combine reports"]["position"] = [dx, y0 + 256]
+    nodes["Deliver | Email"]["position"] = [dx + step, y0 + 256]
+    for name, text, pos, w, h, color in [
+            ("Ads review explainer", ADS_NOTE, [x0 - 64, y0 - 380], 760, 340, 1),
+            ("Connect your ad platforms", ADS_CONNECT_NOTE, [x0 + 3 * step + 64, y0 - 380], 700, 340, 4),
+            ("Slack setup guide", ADS_SLACK_NOTE, [dx - 64, y0 - 400], 560, 360, 4)]:
+        add({"parameters": {"content": text, "width": w, "height": h, "color": color}, "name": name, "position": pos,
+             "type": "n8n-nodes-base.stickyNote", "typeVersion": 1})
+    add_groups(wf, "ads", ADS_GROUP_DESC, override={"Slack | Format for Slack": "Deliver: Slack"})
+    out = f"{OUT}/ads-review-from-nick-v1.json"
+    json.dump(wf, open(out, "w"), indent=2, ensure_ascii=False)
+    print("wrote", out, len(wf["nodes"]), "nodes")
 
 
-def build(fn, demo, full):
-    wf = json.load(open(f"{SRC}/{fn}"))
+ADS_GROUP_DESC = {
+    "Ads review": "Google Ads and Meta campaigns graded on value-to-spend, from Nick Christensen's starter (sample data until connected).",
+    "Deliver: Slack": "One formatted message with the review.",
+    "Deliver: Email": "One email with the review in the body and attached.",
+}
+MARKDOWN_CODE = "const d=$input.first().json;return [{json:d,binary:{report:{data:Buffer.from(d.markdown,'utf8').toString('base64'),mimeType:'text/markdown',fileExtension:'md',fileName:d.fileName}}}];"
+
+
+def slack_node(notes):
+    """The n8n Slack node every workflow delivers through: channel by ID from Settings, no n8n footer link."""
+    return {"parameters": {"select": "channel",
+                           "channelId": {"__rl": True, "value": "={{ $('Settings').first().json.slackChannel }}", "mode": "id"},
+                           "text": "={{ $json.slackText }}",
+                           "otherOptions": {"unfurl_links": False, "unfurl_media": False, "includeLinkToWorkflow": False}},
+            "name": "Deliver | Slack", "type": "n8n-nodes-base.slack", "typeVersion": 2.3, "disabled": True,
+            "webhookId": str(uuid.uuid5(GROUP_NS, "slack-webhook")), "notes": notes, "notesInFlow": True}
+
+
+def gmail_node(notes):
+    return {"parameters": {
+        "resource": "message", "operation": "send",
+        "sendTo": "={{ $('Settings').first().json.emailTo }}",
+        "subject": "={{ $json.subject }}", "emailType": "text", "message": "={{ $json.body }}",
+        "options": {"appendAttribution": False,
+                    "attachmentsUi": {"attachmentsBinary": [{"property": "={{ $json.attachmentNames }}"}]}}},
+        "name": "Deliver | Email", "type": "n8n-nodes-base.gmail", "typeVersion": 2.2, "disabled": True,
+        "notes": notes, "notesInFlow": True}
+
+
+def core(wf, demo, settings_js):
+    """Settings, Settings-driven lanes, INCOMPLETE reports, Collect, and the formatted Slack delivery.
+    Shared by Nick's v2 demo and the Metorik worked example."""
     nodes = {n["name"]: n for n in wf["nodes"]}
     conns = wf["connections"]
 
@@ -532,7 +627,7 @@ def build(fn, demo, full):
 
     # 1. Settings node between the trigger and the four lanes
     nodes["Run all four reviews"]["position"] = [-460, 480]
-    wf["nodes"].append({"parameters": {"jsCode": settings_code(demo)}, "id": nid(), "name": "Settings",
+    wf["nodes"].append({"parameters": {"jsCode": settings_js}, "id": nid(), "name": "Settings",
                         "type": "n8n-nodes-base.code", "typeVersion": 2, "position": [-240, 480],
                         "notes": "Edit before the first run: store, currency, timezone, GA4 and delivery settings.",
                         "notesInFlow": True})
@@ -636,6 +731,12 @@ def build(fn, demo, full):
                         "notes": "Rewrites each review for Slack: emoji title, bold labels, tables as bullet lines.",
                         "notesInFlow": True})
     conns["Slack | Format for Slack"] = {"main": [[{"node": "Deliver | Slack", "type": "main", "index": 0}]]}
+    return nodes, conns, code, set_code, note
+
+
+def build(fn, demo, full):
+    wf = json.load(open(f"{SRC}/{fn}"))
+    nodes, conns, code, set_code, note = core(wf, demo, settings_code(demo))
     add_github_pr_chain(wf, conns)
     wf["nodes"].append({"parameters": {"jsCode": EMAIL_COMBINE}, "id": nid(), "name": "Email | Combine reports",
                         "type": "n8n-nodes-base.code", "typeVersion": 2, "position": [2280, 940]})
@@ -673,11 +774,203 @@ def build(fn, demo, full):
     add_metorik_extras(wf, full)
     txt = json.dumps(wf, ensure_ascii=False)
     wf = json.loads(rep(txt, "Collect all four reports", COLLECT, txt.count("Collect all four reports")))
-    add_ads_lane(wf)
     group_layout(wf, METORIK_CHAINS, METORIK_TRENDS_ROW)
     add_groups(wf, "metorik", METORIK_GROUP_DESC)
     wf["name"] = wf["name"] + " | v1.1"
     out = f"{OUT}/four-reviews-metorik-template-v1.1.json"
+    json.dump(wf, open(out, "w"), indent=2, ensure_ascii=False)
+    print("wrote", out, len(wf["nodes"]), "nodes")
+
+
+# ---------------------------------------------------------------------------
+# Nick's v2 demo: what Nick asked for on top of his v1.0 demo. Settings, the four lanes on his
+# made-up data, Collect, a summary, and Slack as the only delivery. The week-at-a-glance summary
+# is plain code (no API key); the AI summary sits beside it, switched off.
+
+DEMO_SETTINGS = """// Edit these before the first run. Every lane reads its settings from here.
+return [{json:{
+  storeName:'Demo Store',            // the made-up store; keep it for the demo
+  currency:'USD',                    // ISO code, for example EUR or GBP
+  timeZone:'America/Chicago',        // reporting timezone, for example Europe/London
+  locale:'en-US',                    // number and money format, for example en-GB or de-DE
+  ga4PropertyId:'NOT_NEEDED_FOR_THE_DEMO', // the demo's traffic data is made up
+  ga4Events:['purchase','generate_lead'], // events the traffic review lists
+  slackChannel:'SELECT_YOUR_TEST_CHANNEL', // Slack delivery: the channel ID (right-click the channel, Copy link: the part after /archives/)
+  emailTo:'YOU@EXAMPLE.COM',         // only if you swap Slack for email
+  n8nUrl:'https://YOUR-INSTANCE.app.n8n.cloud' // your n8n address, for the workflow links in Slack
+}}];"""
+GLANCE_CODE = """// Week at a glance: one line per review, quoted from its report, and the reviews that did not run.
+// Plain code, no AI and no new arithmetic: every figure here is copied from a review.
+const items=$('Collect all reports').all(), s=$('Settings').first().json, p=$('Executive | Reporting period').first().json;
+const lines=md=>String(md||'').split('\\n').map(x=>x.trim());
+const pick={executive:/^\\u2022 Net revenue:/,marketing:/^\\u2022 Source report represents/,products:/^1\\. /,traffic:/^Sessions:/,email:/^\\u2022 Emails sent:/};
+const label={executive:'Sales',marketing:'Sources',products:'Top product',traffic:'Traffic',email:'Email'}; // add a lane here when you add a review
+const lane=i=>String(i.json.fileName).split('-')[0];
+const done=items.filter(i=>!i.json.incomplete), missing=items.filter(i=>i.json.incomplete);
+const out=['# Week at a glance',p.start+' to '+p.end+' | '+s.storeName+' | '+done.length+' of '+items.length+' reviews complete',''];
+for(const i of done){const l=lines(i.json.markdown).find(x=>(pick[lane(i)]||/^\\u2022/).test(x));out.push('\\u2022 '+(label[lane(i)]||lane(i))+': '+(l?l.replace(/^\\u2022\\s*/,''):'see the review'));}
+if(missing.length){out.push('','Did not run (missing, not zero):');for(const i of missing){const f=lines(i.json.markdown).find(x=>/^Failed step:/.test(x));out.push('\\u2022 '+(label[lane(i)]||lane(i))+': '+(f||'see the review'));}}
+out.push('','Every figure above is quoted from its review. The reviews follow.');
+const markdown=out.join('\\n')+'\\n', fileName='glance-'+p.start+'-to-'+p.end+'.md';
+const facts={period:{start:p.start,end:p.end,previousStart:p.previousStart,previousEnd:p.previousEnd},currency:s.currency,
+  reviews:{complete:done.map(i=>i.json.fileName),incomplete:missing.map(i=>i.json.fileName),complete_count:done.length,total_count:items.length},
+  reports:items.map(i=>({file:i.json.fileName,incomplete:!!i.json.incomplete,markdown:i.json.markdown}))};
+return [{json:{markdown,slackText:markdown,fileName,facts},binary:{report:{data:Buffer.from(markdown,'utf8').toString('base64'),mimeType:'text/markdown',fileExtension:'md',fileName}}}];"""
+DEMO_AI_SYSTEM = """You write a short weekly summary for a marketing team from the facts you are given, and nothing else.
+
+Rules:
+1. Every number you write must appear in the facts. You may round to whole numbers. Never calculate a new number.
+2. How many reviews ran comes only from reviews.complete_count and reviews.total_count. Name the incomplete ones from reviews.incomplete.
+3. A report marked incomplete, or a value that is missing or null, is missing data, not zero. Say it is missing and name the failed step.
+4. Keep facts, hypotheses and missing data apart. Label every hypothesis as a hypothesis.
+5. If the reports say DEMO or SYNTHETIC DATA, say once, first, that the figures are made up.
+6. Order sources are not incrementality, event counts are not unique people, and non-renewal revenue is not first-time buyer revenue.
+7. Plain US English, short lines, no em dashes, no all caps.
+
+Output Markdown with exactly these sections:
+## Headline (two lines)
+## Flags
+## Working
+## Not working
+## Missing data
+## Check next (at most three items, each tied to a line in a report)"""
+DEMO_AI_REPORT = """// The AI summary as one more file. While the AI node is switched off it passes the glance through,
+// so this step marks the summary skipped and nothing extra is delivered.
+const j=$input.first().json, p=$('Summary | Week at a glance').first().json.facts.period;
+if(!j.output&&!j.error)return [{json:{skipped:true,fileName:'summary-'+p.start+'-to-'+p.end+'-skipped.md',markdown:'',slackText:''}}];
+const ok=!j.error&&j.output;
+const body=ok?String(j.output).replace(/\\s*\\u2014\\s*/g,', '):'INCOMPLETE: the AI summary did not run, so there is no AI summary this week. The reviews are unaffected.\\nReason: '+String(j.error?.message||j.error||'no output').slice(0,300);
+const fileName='summary-'+p.start+'-to-'+p.end+(ok?'':'-incomplete')+'.md';
+const markdown='# Weekly summary\\n'+p.start+' to '+p.end+'\\nWritten by an AI model from this run\\'s reviews. Check a number against its review before acting on it.\\n\\n'+body+'\\n';
+return [{json:{markdown,slackText:markdown,fileName,incomplete:!ok},binary:{report:{data:Buffer.from(markdown,'utf8').toString('base64'),mimeType:'text/markdown',fileExtension:'md',fileName}}}];"""
+DEMO_ALL = """// The four reviews, the week at a glance and, when it is switched on, the AI summary.
+return [...$('Collect all reports').all(), $('Summary | Week at a glance').first(), ...$('Summary | AI summary report').all().filter(i => !i.json.skipped)];"""
+DEMO_INTRO_NOTE = """## Nick's demo, v2
+Four weekly reviews on made-up data: no logins, no API calls. **Settings** holds the store, currency and timezone. Each review is a group: open one block at a time.
+
+After the four lanes, **Collect all reports** gathers them, **Summary** writes a week at a glance (plain code, every figure quoted), and **Deliver: Slack** posts them, switched off until you connect Slack.
+
+Every number is invented and fixed. The store reviews show a fixed example week; traffic uses the last 7 days."""
+DEMO_TASK_NOTE = """## Your task
+Get the reviews out of n8n, one of two ways:
+
+**A. Slack:** create a Slack app with the bot scope `chat:write`, save its token as an n8n Slack credential, invite the bot to a test channel, put the channel ID in Settings (`slackChannel`), select the credential on Deliver | Slack, switch it on, run.
+
+**B. Email instead:** replace Deliver | Slack with a Gmail node that sends the reports (ask Claude to swap it), set `emailTo` in Settings, run, then `/reporting-agent:get-email-reports` saves them into your OS."""
+DEMO_SUMMARY_NOTE = """## Summary
+**Week at a glance** (on): one line per review, quoted from the review, and any review that did not run. Plain code, no API key.
+
+**AI summary** (off): an AI Agent with a Claude model reads the reviews and writes flags, what is working and what to check. It may not invent a number. To switch it on: add an Anthropic credential to Summary | Claude model, then switch on Summary | AI summary."""
+DEMO_SLACK_NOTE = """## Slack setup
+1. Create and install a Slack app with the bot scope `chat:write`.
+2. Save its token as an n8n Slack credential.
+3. Invite the bot to a test channel.
+4. Put the channel ID in Settings (`slackChannel`).
+5. Select the credential on Deliver | Slack and switch it on. It posts one formatted message per review and one for the summary.
+
+App installation may need workspace approval."""
+DEMO_GROUP_DESC = {
+    "1. Executive review": "Sales, refunds and orders this week vs last, on made-up data.",
+    "2. Marketing source review": "Orders and net sales by recorded source, on made-up data.",
+    "3. Top product review": "Top products and plans by net sales, on made-up data.",
+    "4. Website traffic review": "Sessions, sources, landing pages and events, on a made-up GA4 response.",
+    "Summary": "Week at a glance in code (on) and the AI summary (off), then every report together.",
+    "Deliver: Slack": "One formatted message per review and one for the summary.",
+}
+DEMO_CHAINS = {
+    "Executive": ["Reporting period", "Verify store", "Check store identity", "Current revenue", "Previous revenue",
+                  "Order types", "Compose review", "Create Markdown BEFORE Slack"],
+    "Marketing": ["Reporting period", "Verify store", "Check store identity", "Order sources", "All orders",
+                  "Compose review", "Create Markdown BEFORE Slack"],
+    "Products": ["Reporting period", "Verify store", "Check store identity", "Top products", "Compose review",
+                 "Create Markdown BEFORE Slack"],
+    "Traffic": ["Reporting period", "Build GA4 request", "Synthetic GA4 response", "Compose review", "Create Markdown BEFORE Slack"],
+}
+
+
+def build_demo_v2(full):
+    wf = json.load(open(f"{SRC}/four-reviews-demo.json"))
+    nodes, conns, code, set_code, note = core(wf, True, DEMO_SETTINGS)
+    txt = json.dumps(wf, ensure_ascii=False)
+    wf = json.loads(rep(txt, "Collect all four reports", COLLECT, txt.count("Collect all four reports")))
+    nodes = {n["name"]: n for n in wf["nodes"]}
+    nodes["Settings"]["notes"] = "Edit before the first run: currency, timezone, number format and the Slack channel."
+    conns = wf["connections"]
+    fn = {n["name"]: n for n in full["nodes"]}
+
+    def add(node):
+        node.setdefault("id", nid())
+        node.setdefault("position", [0, 0])
+        wf["nodes"].append(node)
+        nodes[node["name"]] = node
+        return node
+
+    # Slack: channel from Settings
+    nodes["Deliver | Slack"]["parameters"]["channelId"] = {"__rl": True, "value": "={{ $('Settings').first().json.slackChannel }}", "mode": "id"}
+    nodes["Deliver | Slack"]["notes"] = "One formatted message per review and one for the summary. Select your Slack credential, set slackChannel in Settings, then switch on."
+    # Summary: week at a glance (on), AI summary (off)
+    add({"parameters": {"jsCode": GLANCE_CODE}, "name": "Summary | Week at a glance", "type": "n8n-nodes-base.code", "typeVersion": 2,
+         "notes": "One line per review, quoted. No AI.", "notesInFlow": True})
+    agent = copy.deepcopy(fn["AI | Weekly summary"])
+    agent.pop("id", None)
+    agent["name"] = "Summary | AI summary"
+    agent["disabled"] = True
+    agent["parameters"]["text"] = "={{ 'Facts (JSON):\\n' + JSON.stringify($json.facts, null, 1) }}"
+    agent["parameters"]["options"]["systemMessage"] = DEMO_AI_SYSTEM
+    add(agent)
+    model = copy.deepcopy(fn["AI | Claude model"])
+    model.pop("id", None)
+    model.pop("credentials", None)
+    model["name"] = "Summary | Claude model"
+    add(model)
+    add({"parameters": {"jsCode": DEMO_AI_REPORT}, "name": "Summary | AI summary report", "type": "n8n-nodes-base.code", "typeVersion": 2})
+    add({"parameters": {"jsCode": DEMO_ALL}, "name": "All reports and summary", "type": "n8n-nodes-base.code", "typeVersion": 2})
+    m = lambda target, index=0: {"node": target, "type": "main", "index": index}
+    conns[COLLECT] = {"main": [[m("Summary | Week at a glance")]]}
+    conns["Summary | Week at a glance"] = {"main": [[m("Summary | AI summary")]]}
+    conns["Summary | Claude model"] = {"ai_languageModel": [[{"node": "Summary | AI summary", "type": "ai_languageModel", "index": 0}]]}
+    conns["Summary | AI summary"] = {"main": [[m("Summary | AI summary report")]]}
+    conns["Summary | AI summary report"] = {"main": [[m("All reports and summary")]]}
+    conns["All reports and summary"] = {"main": [[m("Slack | Format for Slack")]]}
+
+    # Notes
+    nodes["How to demonstrate"]["parameters"]["content"] = DEMO_INTRO_NOTE
+    nodes["Slack app setup guide"]["parameters"]["content"] = DEMO_SLACK_NOTE
+    for name, text in [("Summary explainer", DEMO_SUMMARY_NOTE), ("Your task", DEMO_TASK_NOTE)]:
+        add({"parameters": {"content": text}, "name": name, "type": "n8n-nodes-base.stickyNote", "typeVersion": 1})
+
+    # Layout: Hesh's pattern. Lane explainers left of each lane group, summary and Slack to the right.
+    x0, step, y0, gap = 704, 224, 304, 480
+    for i, (lane, chain) in enumerate(DEMO_CHAINS.items()):
+        y = y0 + i * gap
+        for k, short in enumerate(chain):
+            nodes[f"{lane} | {short}"]["position"] = [x0 + k * step, y]
+        nodes[f"{lane} | Incomplete report"]["position"] = [x0 + chain.index("Compose review") * step, y + 192]
+        note_name, w, h, color = LANE_NOTES[lane]
+        nodes[note_name]["position"] = [x0 - 848, y - 192]
+        nodes[note_name]["parameters"].update({"width": w, "height": h, "color": color})
+    nodes["Run all four reviews"]["position"] = [-64, 920]
+    nodes["Settings"]["position"] = [160, 920]
+    nodes["How to demonstrate"]["position"] = [-816, -128]
+    nodes["How to demonstrate"]["parameters"].update({"width": 480, "height": 400, "color": 2})
+    right = x0 + max(len(c) for c in DEMO_CHAINS.values()) * step + 256
+    nodes[COLLECT]["position"] = [right, y0 + gap]
+    sx, sy = right + 224, y0 + gap
+    row = ["Summary | Week at a glance", "Summary | AI summary", "Summary | AI summary report", "All reports and summary",
+           "Slack | Format for Slack", "Deliver | Slack"]
+    for k, name in enumerate(row):
+        nodes[name]["position"] = [sx + k * step + (224 if k >= 4 else 0), sy]
+    nodes["Summary | Claude model"]["position"] = [sx + step, sy + 224]
+    nodes["Summary explainer"]["position"] = [sx - 64, sy - 340]
+    nodes["Summary explainer"]["parameters"].update({"width": 4 * step + 64, "height": 300, "color": 6})
+    slack_x = sx + 4 * step + 224
+    nodes["Slack app setup guide"]["position"] = [slack_x - 64, sy - 480]
+    nodes["Slack app setup guide"]["parameters"].update({"width": 520, "height": 440, "color": 4})
+    nodes["Your task"]["position"] = [slack_x - 64, sy + 200]
+    nodes["Your task"]["parameters"].update({"width": 520, "height": 470, "color": 3})
+    add_groups(wf, "demo-v2", DEMO_GROUP_DESC, override={"All reports and summary": "Summary"})
+    wf["name"] = "Workshop | Four reviews | Nick's demo | v2"
+    out = f"{OUT}/four-reviews-demo-v2.json"
     json.dump(wf, open(out, "w"), indent=2, ensure_ascii=False)
     print("wrote", out, len(wf["nodes"]), "nodes")
 
@@ -703,7 +996,6 @@ return [{json:{
   cioApiUrl:'https://api.customer.io', // Customer.io App API; EU workspaces use https://api-eu.customer.io
   cioCaptureSegmentId:'',            // Customer.io segment whose growth counts as email capture; empty = not set up
   cioCaptureLabel:'',                // that segment's name, printed on the email review
-  adsEnabled:false,                  // Ads review (lane 6): true to include it. Until you connect your ad data it shows Nick Christensen's sample campaigns, labelled SAMPLE DATA
   emailTo:'YOU@EXAMPLE.COM',         // Email delivery: where the reports go
   githubOwner:'YOUR_GITHUB_USERNAME',// GitHub delivery: owner of your personal OS repo
   githubRepo:'YOUR_PERSONAL_OS_REPO',// GitHub delivery: that repo's name
@@ -726,8 +1018,6 @@ LANE_CHAINS = {
     "Traffic": ["Reporting period", "Build GA4 request", "Connect GA4 - enable after setup", "Compose review", "Create Markdown BEFORE Slack"],
     "Customer.io": ["Reporting period", "Campaigns", "Running campaigns", "Campaign metrics", "Broadcasts", "Sent broadcasts",
                     "Broadcast metrics", "Capture count", "Last saved count", "Compose review", "Create Markdown BEFORE Slack"],
-    "Ads": ["Reporting period", "Google Ads (sample data)", "Meta Ads (sample data)", "Merge", "Analyze", "Compose review",
-            "Create Markdown BEFORE Slack"],
 }
 TRENDS_CHAIN = ["Trends | Periods", "Trends | WooCommerce orders (180 days)", "Trends | Revenue by period", "Trends | Load history",
                 "Trends | Facts for the summary", "AI | Weekly summary", "AI | Summary report", "History | Save this run",
@@ -795,9 +1085,9 @@ def full_delivery_note():
 
 
 def count_reviews(js):
-    """Email and the pull request count the reviews, not the summary file."""
+    """Email and the pull request count the reviews, not the summary or week-at-a-glance file."""
     js = rep(js, "const done=items.filter(i=>!i.json.incomplete).length;",
-             "const reviews=items.filter(i=>!String(i.json.fileName).startsWith('summary-')),done=reviews.filter(i=>!i.json.incomplete).length;")
+             "const reviews=items.filter(i=>!/^(summary|glance)-/.test(String(i.json.fileName))),done=reviews.filter(i=>!i.json.incomplete).length;")
     js = rep(js, "done<items.length", "done<reviews.length")
     js = rep(js, "done+' of '+items.length+' reviews complete.", "done+' of '+reviews.length+' reviews complete.")
     return js
@@ -843,20 +1133,6 @@ def build_full():
     # History: no "}}" inside an expression, which would end it early
     hv = nodes["History | Save this run"]["parameters"]["columns"]["value"]
     hv["facts_json"] = rep(hv["facts_json"], "|| {json:{}}).json", "|| { json: {} }).json")
-
-    # A lane that is switched off in Settings (the Ads review) sends a skipped item so Collect never waits;
-    # everything after Collect leaves it out: the summary facts, the history row and every delivery.
-    hv["reviews_complete"] = rep(hv["reviews_complete"], ".all().filter(i => !i.json.incomplete)", ".all().filter(i => !i.json.skipped && !i.json.incomplete)")
-    hv["reviews_total"] = rep(hv["reviews_total"], f"$('{COLLECT}').all().length", f"$('{COLLECT}').all().filter(i => !i.json.skipped).length")
-    js = rep(code("Trends | Facts for the summary"), f"const collected=$('{COLLECT}').all();", f"const collected=$('{COLLECT}').all().filter(i=>!i.json.skipped);")
-    set_code("Trends | Facts for the summary", rep(js, "exec_totals:exec}}];",
-             "exec_totals:exec,sample_data:reports.filter(r=>/^SAMPLE DATA/.test(String(r.markdown||''))).map(r=>r.file)}}];"))
-    js = rep(code("All reports and summary"), "// The reports plus the AI summary, so every delivery sends all of them.",
-             "// The reports plus the AI summary, so every delivery sends all of them. A lane switched off in Settings is left out.")
-    set_code("All reports and summary", rep(js, f"return [...$('{COLLECT}').all(), ", f"return [...$('{COLLECT}').all().filter(i => !i.json.skipped), "))
-    o = nodes["AI | Weekly summary"]["parameters"]["options"]
-    o["systemMessage"] = rep(o["systemMessage"], "8. Plain US English",
-        "8. A report that starts with SAMPLE DATA, or is listed in sample_data, holds example data, not the business's. Say it is sample data and never present its numbers as the business's results.\n9. Plain US English")
 
     # AI summary: no em dash in code, clearer reason when the model is off
     js = code("AI | Summary report")
@@ -904,7 +1180,6 @@ def build_full():
 
     # Layout and collapsible groups (shared with the Metorik template)
     nodes["AI | Claude model"]["parameters"]["options"]["maxTokensToSample"] = 6000
-    add_ads_lane(wf)
     group_layout(wf, LANE_CHAINS, TRENDS_CHAIN)
     add_groups(wf, "full", FULL_GROUP_DESC)
 
@@ -925,7 +1200,6 @@ METORIK_CHAINS = {
     "Traffic": ["Reporting period", "Build GA4 request", "Connect GA4 - enable after setup", "Compose review",
                 "Create Markdown BEFORE Slack"],
     "Customer.io": LANE_CHAINS["Customer.io"],
-    "Ads": LANE_CHAINS["Ads"],
 }
 METORIK_TRENDS_ROW = ["Trends | Periods"] + [f"Trends | Metorik revenue ({label})" for _, label in METORIK_TRENDS] + \
     ["Trends | Revenue by period", "Trends | Load history", "Trends | Facts for the summary", "AI | Weekly summary",
@@ -933,3 +1207,5 @@ METORIK_TRENDS_ROW = ["Trends | Periods"] + [f"Trends | Metorik revenue ({label}
 
 full_wf = build_full()
 build("four-reviews-connection-template.json", False, full_wf)
+build_demo_v2(full_wf)
+build_ads()
