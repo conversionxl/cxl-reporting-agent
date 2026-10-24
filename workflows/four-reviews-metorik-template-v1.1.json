@@ -688,9 +688,9 @@
     },
     {
       "parameters": {
-        "jsCode": "// Edit these before the first run. Every lane reads its settings from here.\nreturn [{json:{\n  storeName:'YOUR_STORE_NAME',          // must match the store name your source returns\n  currency:'USD',                    // ISO code, for example EUR or GBP\n  timeZone:'America/Chicago',        // reporting timezone, for example Europe/London\n  locale:'en-US',                    // number and money format, for example en-GB or de-DE\n  sourceLabel:'Metorik',             // where the store figures come from, printed in the summary facts\n  refundNote:'Net revenue uses refund-date reporting: a refund counts in the week it happens, even on an older order.', // how your source dates refunds\n  ga4PropertyId:'YOUR_GA4_PROPERTY_ID', // numeric GA4 property ID (Traffic lane)\n  ga4Events:['purchase','generate_lead'], // events your GA4 property collects\n  cioApiUrl:'https://api.customer.io', // Customer.io App API; EU workspaces use https://api-eu.customer.io\n  cioCaptureSegmentId:'',            // Customer.io segment whose growth counts as email capture; empty = not set up\n  cioCaptureLabel:'',                // that segment's name, printed on the email review\n  adsEnabled:false,                  // Ads review (lane 6): true to include it. Until you connect your ad data it shows Nick Christensen's sample campaigns, labelled SAMPLE DATA\n  emailTo:'YOU@EXAMPLE.COM',         // Email delivery: where the reports go\n  githubOwner:'YOUR_GITHUB_USERNAME',// GitHub delivery: owner of your personal OS repo\n  githubRepo:'YOUR_PERSONAL_OS_REPO',// GitHub delivery: that repo's name\n  githubFolder:'projects/reporting-agent/reports', // folder in the repo, no slash at either end\n  githubBase:'main',                 // the PR targets this branch; nothing is committed to it\n  n8nUrl:'https://YOUR-INSTANCE.app.n8n.cloud' // your n8n address, for the workflow links in email and Slack\n}}];"
+        "jsCode": "// Edit these before the first run. Every lane reads its settings from here.\nreturn [{json:{\n  storeName:'YOUR_STORE_NAME',          // must match the store name your source returns\n  currency:'USD',                    // ISO code, for example EUR or GBP\n  timeZone:'America/Chicago',        // reporting timezone, for example Europe/London\n  locale:'en-US',                    // number and money format, for example en-GB or de-DE\n  sourceLabel:'Metorik',             // where the store figures come from, printed in the summary facts\n  refundNote:'Net revenue uses refund-date reporting: a refund counts in the week it happens, even on an older order.', // how your source dates refunds\n  ga4PropertyId:'YOUR_GA4_PROPERTY_ID', // numeric GA4 property ID (Traffic lane)\n  ga4Events:['purchase','generate_lead'], // events your GA4 property collects\n  cioApiUrl:'https://api.customer.io', // Customer.io App API; EU workspaces use https://api-eu.customer.io\n  cioCaptureSegmentId:'',            // Customer.io segment whose growth counts as email capture; empty = not set up\n  cioCaptureLabel:'',                // that segment's name, printed on the email review\n  emailTo:'YOU@EXAMPLE.COM',         // Email delivery: where the reports go\n  githubOwner:'YOUR_GITHUB_USERNAME',// GitHub delivery: owner of your personal OS repo\n  githubRepo:'YOUR_PERSONAL_OS_REPO',// GitHub delivery: that repo's name\n  githubFolder:'projects/reporting-agent/reports', // folder in the repo, no slash at either end\n  githubBase:'main',                 // the PR targets this branch; nothing is committed to it\n  n8nUrl:'https://YOUR-INSTANCE.app.n8n.cloud' // your n8n address, for the workflow links in email and Slack\n}}];"
       },
-      "id": "f0c171a0-71ff-4c5e-8075-d499e45aeee8",
+      "id": "287c6041-b800-41b7-ad6c-6209f5875e53",
       "name": "Settings",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -705,7 +705,7 @@
       "parameters": {
         "jsCode": "const p=$('Executive | Reporting period').first().json;const j=$input.first().json,e=j.error??j;const reason=String(typeof e==='string'?e:(e.message||e.description||JSON.stringify(e))).replace(/[\\r\\n]+/g,' ').slice(0,300);const setup=/switched off|configure the connection first|did not load: no response|got undefined/.test(reason);const markdown=['INCOMPLETE | '+p.storeName+' | Executive business review',p.start+' to '+p.end+' | '+p.currency+' | '+p.timeZone,'','This review did not run, so it reports no figures this week. Missing figures are not zero.','Failed step: '+$prevNode.name,'Reason: '+reason,'',...(setup?['First run before setup? The source nodes stay switched off until you connect them, so this is expected.']:[]),'Review: fix the connection or setting named above, then run the workflow again.'].join('\\n')+'\\n';return [{json:{markdown,slackText:markdown,fileName:'executive-'+p.start+'-to-'+p.end+'-incomplete.md',incomplete:true}}];"
       },
-      "id": "4b6a3627-6787-4706-9290-8c593916963b",
+      "id": "218de273-cd96-4ffb-81e3-7e3aa87cbda2",
       "name": "Executive | Incomplete report",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -720,7 +720,7 @@
       "parameters": {
         "jsCode": "const p=$('Marketing | Reporting period').first().json;const j=$input.first().json,e=j.error??j;const reason=String(typeof e==='string'?e:(e.message||e.description||JSON.stringify(e))).replace(/[\\r\\n]+/g,' ').slice(0,300);const setup=/switched off|configure the connection first|did not load: no response|got undefined/.test(reason);const markdown=['INCOMPLETE | '+p.storeName+' | Marketing source review',p.start+' to '+p.end+' | '+p.currency+' | '+p.timeZone,'','This review did not run, so it reports no figures this week. Missing figures are not zero.','Failed step: '+$prevNode.name,'Reason: '+reason,'',...(setup?['First run before setup? The source nodes stay switched off until you connect them, so this is expected.']:[]),'Review: fix the connection or setting named above, then run the workflow again.'].join('\\n')+'\\n';return [{json:{markdown,slackText:markdown,fileName:'marketing-'+p.start+'-to-'+p.end+'-incomplete.md',incomplete:true}}];"
       },
-      "id": "8a1bd724-dd74-4c97-a1ab-c167c0bf1927",
+      "id": "9d3f5b86-0b38-4c45-affd-ae54ba088625",
       "name": "Marketing | Incomplete report",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -735,7 +735,7 @@
       "parameters": {
         "jsCode": "const p=$('Products | Reporting period').first().json;const j=$input.first().json,e=j.error??j;const reason=String(typeof e==='string'?e:(e.message||e.description||JSON.stringify(e))).replace(/[\\r\\n]+/g,' ').slice(0,300);const setup=/switched off|configure the connection first|did not load: no response|got undefined/.test(reason);const markdown=['INCOMPLETE | '+p.storeName+' | Top product review',p.start+' to '+p.end+' | '+p.currency+' | '+p.timeZone,'','This review did not run, so it reports no figures this week. Missing figures are not zero.','Failed step: '+$prevNode.name,'Reason: '+reason,'',...(setup?['First run before setup? The source nodes stay switched off until you connect them, so this is expected.']:[]),'Review: fix the connection or setting named above, then run the workflow again.'].join('\\n')+'\\n';return [{json:{markdown,slackText:markdown,fileName:'products-'+p.start+'-to-'+p.end+'-incomplete.md',incomplete:true}}];"
       },
-      "id": "39090a6b-73ec-435f-a067-ebb40facae52",
+      "id": "40bd40a1-27d3-43ff-86a5-58f7514dc3d6",
       "name": "Products | Incomplete report",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -750,7 +750,7 @@
       "parameters": {
         "jsCode": "const c=$('Traffic | Reporting period').first().json;const p={start:c.current.start,end:c.current.end};const s=$('Settings').first().json;const j=$input.first().json,e=j.error??j;const reason=String(typeof e==='string'?e:(e.message||e.description||JSON.stringify(e))).replace(/[\\r\\n]+/g,' ').slice(0,300);const setup=/switched off|configure the connection first|did not load: no response|got undefined/.test(reason);const markdown=['INCOMPLETE | '+s.storeName+' | Website traffic review',p.start+' to '+p.end+' | '+'GA4 | '+c.timeZone,'','This review did not run, so it reports no figures this week. Missing figures are not zero.','Failed step: '+$prevNode.name,'Reason: '+reason,'',...(setup?['First run before setup? The source nodes stay switched off until you connect them, so this is expected.']:[]),'Review: fix the connection or setting named above, then run the workflow again.'].join('\\n')+'\\n';return [{json:{markdown,slackText:markdown,fileName:'traffic-'+p.start+'-to-'+p.end+'-incomplete.md',incomplete:true}}];"
       },
-      "id": "e44058dc-3fcb-42d1-98fd-800c6bdb1403",
+      "id": "dee39561-55ef-4de0-9419-4a06e91fc876",
       "name": "Traffic | Incomplete report",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -763,9 +763,9 @@
     },
     {
       "parameters": {
-        "numberInputs": 6
+        "numberInputs": 5
       },
-      "id": "072cf625-1b35-481c-a35f-a2d1f05c30ba",
+      "id": "d09bfd44-377f-4de2-9965-b30b84faa0ce",
       "name": "Collect all reports",
       "type": "n8n-nodes-base.merge",
       "typeVersion": 3.2,
@@ -775,7 +775,7 @@
       ]
     },
     {
-      "id": "a21afc3b-beb6-43ea-9dc3-497676e82a27",
+      "id": "49f0067b-1a27-465b-9477-3384061c9fba",
       "name": "Deliver | Slack",
       "type": "n8n-nodes-base.slack",
       "typeVersion": 2.3,
@@ -803,9 +803,9 @@
     },
     {
       "parameters": {
-        "jsCode": "// Turns each review's Markdown into a Slack message: an emoji title, bold labels,\n// a dashed rule between parts, and table rows as bullet lines (Slack can't show\n// Markdown tables). The Markdown file itself is unchanged; only slackText is rewritten.\nconst s = $('Settings').first().json;\nconst base = String(s.n8nUrl || '').replace(/\\/+$/, '');\nconst linked = /^https?:\\/\\//.test(base) && !base.includes('YOUR-INSTANCE');\nconst wfUrl = linked ? base + '/workflow/' + $workflow.id : '';\nconst icon = { executive: '📊', marketing: '📣', products: '🛍️', traffic: '🌐', email: '✉️', ads: '🎯', summary: '🧠' };\nconst title = { executive: 'Executive business review', marketing: 'Marketing source review', products: 'Top product review', traffic: 'Website traffic review', email: 'Email review (Customer.io)', ads: 'Ads review (Google Ads and Meta)', summary: 'Weekly summary' };\nconst rule = '------------------------------';\nconst esc = t => String(t).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');\nconst isContext = l => /^(DEMO|PRIVATE LIVE|SYNTHETIC DATA|SAMPLE DATA|LIVE GA4|INCOMPLETE \\|)/.test(l) || /^\\d{4}-\\d{2}-\\d{2}/.test(l) || /^(Synthetic example data|Sample data:|Live Metorik data|Live data from|Written by an AI model)/.test(l);\nconst cells = l => l.replace(/^\\|/, '').replace(/\\|\\s*$/, '').split('|').map(c => c.trim());\n\nreturn $input.all().map(item => {\n  const j = item.json;\n  const lane = String(j.fileName || '').split('-')[0];\n  const head = (j.incomplete ? '⚠️' : (icon[lane] || '📄')) + ' *' + (title[lane] || esc(j.fileName || 'Review')) + (j.incomplete ? ': incomplete' : '') + '*';\n  const context = [], body = [];\n  let header = null;\n  for (const raw of String(j.markdown || '').split('\\n')) {\n    const l = raw.trim();\n    if (!l) { if (body.length && body[body.length - 1] !== '') body.push(''); continue; }\n    if (l.startsWith('# ')) continue;\n    if (!body.length && isContext(l)) { context.push('_' + esc(l.replace(/\\s*\\|\\s*/g, ' · ')) + '_'); continue; }\n    if (l.startsWith('## ')) { if (body.length && body[body.length - 1] !== '') body.push(''); body.push('*' + esc(l.slice(3)) + '*'); header = null; continue; }\n    if (l.startsWith('|')) {\n      const c = cells(l);\n      if (c.every(x => /^:?-+:?$/.test(x))) continue;\n      if (!header) { header = c; continue; }\n      body.push('• *' + esc(c[0]) + '*' + c.slice(1).map((v, k) => ' · ' + esc(header[k + 1]) + ' ' + esc(v)).join(''));\n      continue;\n    }\n    header = null;\n    let m;\n    if ((m = l.match(/^Review:\\s*(.*)$/))) { body.push('👉 *Review:* ' + esc(m[1])); continue; }\n    if ((m = l.match(/^([•-])\\s+([^:]{1,45}):\\s+(.*)$/))) { body.push('• *' + esc(m[2]) + ':* ' + esc(m[3]).replace(/\\s*\\|\\s*/g, ' · ')); continue; }\n    if ((m = l.match(/^(\\d+)\\.\\s+(.+?)\\s+—\\s+(.*)$/))) { body.push(m[1] + '. *' + esc(m[2]) + '* · ' + esc(m[3]).replace(/\\s*\\|\\s*/g, ' · ')); continue; }\n    if ((m = l.match(/^(Failed step|Reason):\\s*(.*)$/))) { body.push('*' + m[1] + ':* ' + esc(m[2])); continue; }\n    if (/^[^:]{3,60}:$/.test(l)) { body.push('*' + esc(l) + '*'); continue; }\n    body.push(esc(l).replace(/\\s*\\|\\s*/g, ' · '));\n  }\n  while (body.length && body[body.length - 1] === '') body.pop();\n  const parts = [head, ...context, rule, ...body];\n  if (linked) parts.push(rule, '<' + wfUrl + '|Open the workflow> · <' + wfUrl + '/executions/' + $execution.id + '|This run>');\n  return { json: { ...j, slackText: parts.join('\\n') }, binary: item.binary };\n});\n"
+        "jsCode": "// Turns each review's Markdown into a Slack message: an emoji title, bold labels,\n// a dashed rule between parts, and table rows as bullet lines (Slack can't show\n// Markdown tables). The Markdown file itself is unchanged; only slackText is rewritten.\nconst s = $('Settings').first().json;\nconst base = String(s.n8nUrl || '').replace(/\\/+$/, '');\nconst linked = /^https?:\\/\\//.test(base) && !base.includes('YOUR-INSTANCE');\nconst wfUrl = linked ? base + '/workflow/' + $workflow.id : '';\nconst icon = { executive: '📊', marketing: '📣', products: '🛍️', traffic: '🌐', email: '✉️', ads: '🎯', summary: '🧠', glance: '🗓️' };\nconst title = { executive: 'Executive business review', marketing: 'Marketing source review', products: 'Top product review', traffic: 'Website traffic review', email: 'Email review (Customer.io)', ads: 'Ads review (Google Ads and Meta)', summary: 'Weekly summary', glance: 'Week at a glance' };\nconst rule = '------------------------------';\nconst esc = t => String(t).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');\nconst isContext = l => /^(DEMO|PRIVATE LIVE|SYNTHETIC DATA|SAMPLE DATA|LIVE GA4|INCOMPLETE \\|)/.test(l) || /^\\d{4}-\\d{2}-\\d{2}/.test(l) || /^(Synthetic example data|Sample data:|Live Metorik data|Live data from|Written by an AI model)/.test(l);\nconst cells = l => l.replace(/^\\|/, '').replace(/\\|\\s*$/, '').split('|').map(c => c.trim());\n\nreturn $input.all().map(item => {\n  const j = item.json;\n  const lane = String(j.fileName || '').split('-')[0];\n  const head = (j.incomplete ? '⚠️' : (icon[lane] || '📄')) + ' *' + (title[lane] || esc(j.fileName || 'Review')) + (j.incomplete ? ': incomplete' : '') + '*';\n  const context = [], body = [];\n  let header = null;\n  for (const raw of String(j.markdown || '').split('\\n')) {\n    const l = raw.trim();\n    if (!l) { if (body.length && body[body.length - 1] !== '') body.push(''); continue; }\n    if (l.startsWith('# ')) continue;\n    if (!body.length && isContext(l)) { context.push('_' + esc(l.replace(/\\s*\\|\\s*/g, ' · ')) + '_'); continue; }\n    if (l.startsWith('## ')) { if (body.length && body[body.length - 1] !== '') body.push(''); body.push('*' + esc(l.slice(3)) + '*'); header = null; continue; }\n    if (l.startsWith('|')) {\n      const c = cells(l);\n      if (c.every(x => /^:?-+:?$/.test(x))) continue;\n      if (!header) { header = c; continue; }\n      body.push('• *' + esc(c[0]) + '*' + c.slice(1).map((v, k) => ' · ' + esc(header[k + 1]) + ' ' + esc(v)).join(''));\n      continue;\n    }\n    header = null;\n    let m;\n    if ((m = l.match(/^Review:\\s*(.*)$/))) { body.push('👉 *Review:* ' + esc(m[1])); continue; }\n    if ((m = l.match(/^([•-])\\s+([^:]{1,45}):\\s+(.*)$/))) { body.push('• *' + esc(m[2]) + ':* ' + esc(m[3]).replace(/\\s*\\|\\s*/g, ' · ')); continue; }\n    if ((m = l.match(/^(\\d+)\\.\\s+(.+?)\\s+—\\s+(.*)$/))) { body.push(m[1] + '. *' + esc(m[2]) + '* · ' + esc(m[3]).replace(/\\s*\\|\\s*/g, ' · ')); continue; }\n    if ((m = l.match(/^(Failed step|Reason):\\s*(.*)$/))) { body.push('*' + m[1] + ':* ' + esc(m[2])); continue; }\n    if (/^[^:]{3,60}:$/.test(l)) { body.push('*' + esc(l) + '*'); continue; }\n    body.push(esc(l).replace(/\\s*\\|\\s*/g, ' · '));\n  }\n  while (body.length && body[body.length - 1] === '') body.pop();\n  const parts = [head, ...context, rule, ...body];\n  if (linked) parts.push(rule, '<' + wfUrl + '|Open the workflow> · <' + wfUrl + '/executions/' + $execution.id + '|This run>');\n  return { json: { ...j, slackText: parts.join('\\n') }, binary: item.binary };\n});\n"
       },
-      "id": "7e7af313-40ed-4f31-ac4f-bc3a74dbd759",
+      "id": "644e4018-716e-4b6b-bd32-282e9b29af91",
       "name": "Slack | Format for Slack",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -818,9 +818,9 @@
     },
     {
       "parameters": {
-        "jsCode": "const s=$('Settings').first().json,items=$input.all();\nconst runDate=$now.setZone(s.timeZone).toISODate();\nconst reviews=items.filter(i=>!String(i.json.fileName).startsWith('summary-')),done=reviews.filter(i=>!i.json.incomplete).length;\nconst branch='reports/'+runDate+'-run-'+$execution.id;\nconst files=items.map(i=>'- '+s.githubFolder+'/'+i.json.fileName+(i.json.incomplete?' (INCOMPLETE)':'')).join('\\n');\nreturn [{json:{owner:s.githubOwner,repo:s.githubRepo,base:s.githubBase,branch,\n title:'Weekly reports '+runDate+(done<reviews.length?' (incomplete)':''),\n body:'Weekly reports from the n8n reporting workflow, run '+runDate+'. '+done+' of '+reviews.length+' reviews complete.\\n\\n'+files+'\\n\\nMerge this pull request to add the reports. Nothing was committed to '+s.githubBase+'.'}}];"
+        "jsCode": "const s=$('Settings').first().json,items=$input.all();\nconst runDate=$now.setZone(s.timeZone).toISODate();\nconst reviews=items.filter(i=>!/^(summary|glance)-/.test(String(i.json.fileName))),done=reviews.filter(i=>!i.json.incomplete).length;\nconst branch='reports/'+runDate+'-run-'+$execution.id;\nconst files=items.map(i=>'- '+s.githubFolder+'/'+i.json.fileName+(i.json.incomplete?' (INCOMPLETE)':'')).join('\\n');\nreturn [{json:{owner:s.githubOwner,repo:s.githubRepo,base:s.githubBase,branch,\n title:'Weekly reports '+runDate+(done<reviews.length?' (incomplete)':''),\n body:'Weekly reports from the n8n reporting workflow, run '+runDate+'. '+done+' of '+reviews.length+' reviews complete.\\n\\n'+files+'\\n\\nMerge this pull request to add the reports. Nothing was committed to '+s.githubBase+'.'}}];"
       },
-      "id": "15380008-9dea-48cf-8ce4-c401366c823d",
+      "id": "9c777084-31d7-4981-a461-70bfc41fa507",
       "name": "GitHub | Plan PR",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -846,7 +846,7 @@
         },
         "options": {}
       },
-      "id": "0ca5f869-7f58-48a4-9f81-e23e7f027d96",
+      "id": "8bf7da08-d54d-4d69-8437-b24b5777b669",
       "name": "GitHub | Get base branch",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
@@ -879,7 +879,7 @@
         "specifyBody": "json",
         "jsonBody": "={{ JSON.stringify({ref:'refs/heads/'+$('GitHub | Plan PR').first().json.branch, sha:$json.object.sha}) }}"
       },
-      "id": "c0186284-d50c-481a-97e3-e366fbab98ef",
+      "id": "a4a3d96d-ea9d-4852-b288-b2804db1b787",
       "name": "GitHub | Create branch",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
@@ -896,7 +896,7 @@
       "parameters": {
         "jsCode": "return $('All reports and summary').all();"
       },
-      "id": "7942a524-343a-4ee7-8950-19d585d619e5",
+      "id": "1aa37f40-fd97-47f0-a6ba-258578dd3728",
       "name": "GitHub | Reports to commit",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -929,7 +929,7 @@
           }
         }
       },
-      "id": "c8ce7710-7360-4c86-9963-badb86e18256",
+      "id": "57df950a-1102-4e3b-bdad-0ca039a8a98a",
       "name": "GitHub | Commit to branch",
       "type": "n8n-nodes-base.github",
       "typeVersion": 1.1,
@@ -962,7 +962,7 @@
         "specifyBody": "json",
         "jsonBody": "={{ JSON.stringify({title:$('GitHub | Plan PR').first().json.title, head:$('GitHub | Plan PR').first().json.branch, base:$('GitHub | Plan PR').first().json.base, body:$('GitHub | Plan PR').first().json.body}) }}"
       },
-      "id": "2b9807c1-60c2-4732-8bdd-c727fc3ef783",
+      "id": "4f8eecbf-a277-478c-b182-284084c537b2",
       "name": "GitHub | Open pull request",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
@@ -978,9 +978,9 @@
     },
     {
       "parameters": {
-        "jsCode": "const items=$input.all(),s=$('Settings').first().json;\nconst runDate=$now.setZone(s.timeZone).toISODate();\nconst reviews=items.filter(i=>!String(i.json.fileName).startsWith('summary-')),done=reviews.filter(i=>!i.json.incomplete).length;\nconst base=String(s.n8nUrl||'').replace(/\\/+$/,''),linked=/^https?:\\/\\//.test(base)&&!base.includes('YOUR-INSTANCE'),wfUrl=linked?base+'/workflow/'+$workflow.id:'';\nconst body=['Weekly reports, run '+runDate+'. '+done+' of '+reviews.length+' reviews complete.',...(linked?['Workflow: '+wfUrl,'This run: '+wfUrl+'/executions/'+$execution.id]:[]),'',\n ...items.map(i=>'-----BEGIN REPORT '+i.json.fileName+'-----\\n'+i.json.markdown+'-----END REPORT-----\\n')].join('\\n');\nconst exact=items.map(i=>'-----BEGIN FILE '+i.json.fileName+'-----\\n'+Buffer.from(i.json.markdown,'utf8').toString('base64').match(/.{1,76}/g).join('\\n')+'\\n-----END FILE-----').join('\\n');\nconst binary={};items.forEach((i,k)=>{if(i.binary?.report)binary['report_'+k]=i.binary.report;});\nreturn [{json:{subject:'Weekly reports '+runDate+(done<reviews.length?' (incomplete)':''),body:body+'\\n\\nExact copies for /get-email-reports (base64, do not edit):\\n'+exact+'\\n',attachmentNames:Object.keys(binary).join(',')},binary}];"
+        "jsCode": "const items=$input.all(),s=$('Settings').first().json;\nconst runDate=$now.setZone(s.timeZone).toISODate();\nconst reviews=items.filter(i=>!/^(summary|glance)-/.test(String(i.json.fileName))),done=reviews.filter(i=>!i.json.incomplete).length;\nconst base=String(s.n8nUrl||'').replace(/\\/+$/,''),linked=/^https?:\\/\\//.test(base)&&!base.includes('YOUR-INSTANCE'),wfUrl=linked?base+'/workflow/'+$workflow.id:'';\nconst body=['Weekly reports, run '+runDate+'. '+done+' of '+reviews.length+' reviews complete.',...(linked?['Workflow: '+wfUrl,'This run: '+wfUrl+'/executions/'+$execution.id]:[]),'',\n ...items.map(i=>'-----BEGIN REPORT '+i.json.fileName+'-----\\n'+i.json.markdown+'-----END REPORT-----\\n')].join('\\n');\nconst exact=items.map(i=>'-----BEGIN FILE '+i.json.fileName+'-----\\n'+Buffer.from(i.json.markdown,'utf8').toString('base64').match(/.{1,76}/g).join('\\n')+'\\n-----END FILE-----').join('\\n');\nconst binary={};items.forEach((i,k)=>{if(i.binary?.report)binary['report_'+k]=i.binary.report;});\nreturn [{json:{subject:'Weekly reports '+runDate+(done<reviews.length?' (incomplete)':''),body:body+'\\n\\nExact copies for /get-email-reports (base64, do not edit):\\n'+exact+'\\n',attachmentNames:Object.keys(binary).join(',')},binary}];"
       },
-      "id": "ba1d6c5e-ab4f-4239-b0ee-9e9821d664b1",
+      "id": "366b5bd5-42cf-4f6e-b46b-4c8c91961026",
       "name": "Email | Combine reports",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -1008,7 +1008,7 @@
           }
         }
       },
-      "id": "90c5308f-d6d2-4d5b-9303-e878c1b7103a",
+      "id": "7497fc4f-e631-425d-bb9e-691de336dee9",
       "name": "Deliver | Email",
       "type": "n8n-nodes-base.gmail",
       "typeVersion": 2.2,
@@ -1027,7 +1027,7 @@
         "width": 520,
         "color": 6
       },
-      "id": "baaf37cf-d4fc-4e00-8a32-d928d34d96c3",
+      "id": "900d64d4-2e21-4771-82f0-d9cc03f6f3c1",
       "name": "Delivery explainer",
       "type": "n8n-nodes-base.stickyNote",
       "typeVersion": 1,
@@ -1037,7 +1037,7 @@
       ]
     },
     {
-      "id": "e0bc8bf1-0dbd-427f-85b0-6a7e86c0a133",
+      "id": "0f894223-a576-49a8-a86a-3477c5bde001",
       "name": "Trends | Periods",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -1050,7 +1050,7 @@
       }
     },
     {
-      "id": "c1d00386-bf71-4f59-b3cd-a0cfc33351af",
+      "id": "8a212e13-0e2c-4ad8-a5a3-4a8554b9c350",
       "name": "Trends | Load history",
       "type": "n8n-nodes-base.dataTable",
       "typeVersion": 1.1,
@@ -1076,7 +1076,7 @@
       "alwaysOutputData": true
     },
     {
-      "id": "338df5ea-3c7d-4c67-95d7-c768993a9691",
+      "id": "6ead9560-105b-4999-8efc-e4611e8b870d",
       "name": "Trends | Facts for the summary",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -1085,11 +1085,11 @@
         1264
       ],
       "parameters": {
-        "jsCode": "// Everything the AI may quote: this run's reports, the comparisons computed above, and saved runs. Numbers come only from here.\nconst p=$('Executive | Reporting period').first().json;\nconst collected=$('Collect all reports').all().filter(i=>!i.json.skipped);\nconst reports=collected.map(i=>({file:i.json.fileName,incomplete:!!i.json.incomplete,markdown:i.json.markdown}));\nconst trends=$('Trends | Revenue by period').first().json;\n// Earlier runs, newest first, one per reporting week (reruns of the same week are dropped), excluding this week.\nconst seen=new Set();\nconst history=$('Trends | Load history').all().map(i=>i.json).filter(r=>r&&r.run_date).filter(r=>{const k=r.period_start+'|'+r.period_end;if(r.period_start===p.start||seen.has(k))return false;seen.add(k);return true;}).map(r=>({run_date:r.run_date,period:r.period_start+' to '+r.period_end,reviews_complete:r.reviews_complete,reviews_total:r.reviews_total,exec_net:r.exec_net,exec_orders:r.exec_orders}));\nconst ex=collected.find(i=>String(i.json.fileName).startsWith('executive-')&&!i.json.incomplete);\nconst exec=ex?.json?.totals??null;\nconst reviews={complete:reports.filter(r=>!r.incomplete).map(r=>r.file),incomplete:reports.filter(r=>r.incomplete).map(r=>r.file),complete_count:reports.filter(r=>!r.incomplete).length,total_count:reports.length};\nreturn [{json:{period:{start:p.start,end:p.end,previousStart:p.previousStart,previousEnd:p.previousEnd},currency:p.currency,source:$('Settings').first().json.sourceLabel,reviews,reports,trends,history,history_weeks:history.length,exec_totals:exec,sample_data:reports.filter(r=>/^SAMPLE DATA/.test(String(r.markdown||''))).map(r=>r.file)}}];"
+        "jsCode": "// Everything the AI may quote: this run's reports, the comparisons computed above, and saved runs. Numbers come only from here.\nconst p=$('Executive | Reporting period').first().json;\nconst collected=$('Collect all reports').all();\nconst reports=collected.map(i=>({file:i.json.fileName,incomplete:!!i.json.incomplete,markdown:i.json.markdown}));\nconst trends=$('Trends | Revenue by period').first().json;\n// Earlier runs, newest first, one per reporting week (reruns of the same week are dropped), excluding this week.\nconst seen=new Set();\nconst history=$('Trends | Load history').all().map(i=>i.json).filter(r=>r&&r.run_date).filter(r=>{const k=r.period_start+'|'+r.period_end;if(r.period_start===p.start||seen.has(k))return false;seen.add(k);return true;}).map(r=>({run_date:r.run_date,period:r.period_start+' to '+r.period_end,reviews_complete:r.reviews_complete,reviews_total:r.reviews_total,exec_net:r.exec_net,exec_orders:r.exec_orders}));\nconst ex=collected.find(i=>String(i.json.fileName).startsWith('executive-')&&!i.json.incomplete);\nconst exec=ex?.json?.totals??null;\nconst reviews={complete:reports.filter(r=>!r.incomplete).map(r=>r.file),incomplete:reports.filter(r=>r.incomplete).map(r=>r.file),complete_count:reports.filter(r=>!r.incomplete).length,total_count:reports.length};\nreturn [{json:{period:{start:p.start,end:p.end,previousStart:p.previousStart,previousEnd:p.previousEnd},currency:p.currency,source:$('Settings').first().json.sourceLabel,reviews,reports,trends,history,history_weeks:history.length,exec_totals:exec}}];"
       }
     },
     {
-      "id": "fd640ba2-8075-485e-892f-6019b097d6b7",
+      "id": "e791c041-6d59-446d-9d45-286a81e9105c",
       "name": "AI | Weekly summary",
       "type": "@n8n/n8n-nodes-langchain.agent",
       "typeVersion": 3.1,
@@ -1101,7 +1101,7 @@
         "promptType": "define",
         "text": "={{ 'Facts (JSON):\\n' + JSON.stringify($json, null, 1) }}",
         "options": {
-          "systemMessage": "You write the weekly summary for the marketing team from the facts you are given, and nothing else.\n\nRules:\n1. Every number you write must appear in the facts. You may round to whole numbers. Never calculate a new number.\n2. How many reviews ran comes only from reviews.complete_count and reviews.total_count. Name the incomplete ones from reviews.incomplete.\n3. A report marked incomplete, or a value that is missing or null, is missing data, not zero. Say it is missing and name the failed step.\n4. Keep facts, hypotheses and missing data apart. Label every hypothesis as a hypothesis.\n5. Month over month and quarter over quarter come only from trends.mom and trends.qoq. If trends.available is false, say they are unavailable and why.\n6. History holds earlier weeks, one row each. Describe a trend across weeks only when history_weeks is at least 3; otherwise say there is not enough history yet.\n7. Order sources are not incrementality, event counts are not unique people, email counts are messages not people, and non-renewal revenue is not first-time buyer revenue.\n8. A report that starts with SAMPLE DATA, or is listed in sample_data, holds example data, not the business's. Say it is sample data and never present its numbers as the business's results.\n9. Plain US English, short lines, no em dashes, no all caps.\n\nOutput Markdown with exactly these sections:\n## Headline (two lines)\n## Month and quarter\n## Trends\n## Flags\n## Working\n## Not working\n## Missing data\n## Check next (at most three items, each tied to a line in a report)",
+          "systemMessage": "You write the weekly summary for the marketing team from the facts you are given, and nothing else.\n\nRules:\n1. Every number you write must appear in the facts. You may round to whole numbers. Never calculate a new number.\n2. How many reviews ran comes only from reviews.complete_count and reviews.total_count. Name the incomplete ones from reviews.incomplete.\n3. A report marked incomplete, or a value that is missing or null, is missing data, not zero. Say it is missing and name the failed step.\n4. Keep facts, hypotheses and missing data apart. Label every hypothesis as a hypothesis.\n5. Month over month and quarter over quarter come only from trends.mom and trends.qoq. If trends.available is false, say they are unavailable and why.\n6. History holds earlier weeks, one row each. Describe a trend across weeks only when history_weeks is at least 3; otherwise say there is not enough history yet.\n7. Order sources are not incrementality, event counts are not unique people, email counts are messages not people, and non-renewal revenue is not first-time buyer revenue.\n8. Plain US English, short lines, no em dashes, no all caps.\n\nOutput Markdown with exactly these sections:\n## Headline (two lines)\n## Month and quarter\n## Trends\n## Flags\n## Working\n## Not working\n## Missing data\n## Check next (at most three items, each tied to a line in a report)",
           "maxIterations": 3
         }
       },
@@ -1109,7 +1109,7 @@
       "disabled": true
     },
     {
-      "id": "e054be4f-9352-4c38-a119-25773078be83",
+      "id": "a30aa237-b093-44cf-ad29-a532edb7f409",
       "name": "AI | Claude model",
       "type": "@n8n/n8n-nodes-langchain.lmChatAnthropic",
       "typeVersion": 1.6,
@@ -1129,7 +1129,7 @@
       }
     },
     {
-      "id": "5cdc90d1-3c22-4b38-9a9f-0c20065aeb4c",
+      "id": "b1082366-6882-4d68-b1b9-6a2d04319039",
       "name": "AI | Summary report",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -1142,7 +1142,7 @@
       }
     },
     {
-      "id": "b300100d-430f-46f6-86c8-6c66633096d5",
+      "id": "5c2ece0e-d57c-482a-9a9f-b746b75ce3c4",
       "name": "History | Save this run",
       "type": "n8n-nodes-base.dataTable",
       "typeVersion": 1.1,
@@ -1164,8 +1164,8 @@
             "run_date": "={{ $now.setZone($('Settings').first().json.timeZone).toISODate() }}",
             "period_start": "={{ $('Trends | Facts for the summary').first().json.period.start }}",
             "period_end": "={{ $('Trends | Facts for the summary').first().json.period.end }}",
-            "reviews_complete": "={{ $('Collect all reports').all().filter(i => !i.json.skipped && !i.json.incomplete).length }}",
-            "reviews_total": "={{ $('Collect all reports').all().filter(i => !i.json.skipped).length }}",
+            "reviews_complete": "={{ $('Collect all reports').all().filter(i => !i.json.incomplete).length }}",
+            "reviews_total": "={{ $('Collect all reports').all().length }}",
             "exec_net": "={{ $('Trends | Facts for the summary').first().json.exec_totals ? Math.round($('Trends | Facts for the summary').first().json.exec_totals.net) : null }}",
             "exec_orders": "={{ $('Trends | Facts for the summary').first().json.exec_totals ? $('Trends | Facts for the summary').first().json.exec_totals.orders : null }}",
             "facts_json": "={{ JSON.stringify({trends: $('Trends | Facts for the summary').first().json.trends, exec_totals: $('Trends | Facts for the summary').first().json.exec_totals, leads_email_count: ($('Collect all reports').all().find(i => String(i.json.fileName).startsWith('email-')) || { json: {} }).json.capture_count ?? null}) }}"
@@ -1249,7 +1249,7 @@
       "onError": "continueRegularOutput"
     },
     {
-      "id": "be86b8c7-a36a-4558-b3bd-fc747eb4fbce",
+      "id": "f76500e5-61b1-4a9a-8b1d-53d5356f61f4",
       "name": "All reports and summary",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -1258,11 +1258,11 @@
         1264
       ],
       "parameters": {
-        "jsCode": "// The reports plus the AI summary, so every delivery sends all of them. A lane switched off in Settings is left out.\nreturn [...$('Collect all reports').all().filter(i => !i.json.skipped), $('AI | Summary report').first()];"
+        "jsCode": "// The reports plus the AI summary, so every delivery sends all of them.\nreturn [...$('Collect all reports').all(), $('AI | Summary report').first()];"
       }
     },
     {
-      "id": "9668fb19-276e-42c1-92c3-7408cbbe6389",
+      "id": "cb7b4fa4-8089-4a3a-a1ce-2718b788eae4",
       "name": "Customer.io | Reporting period",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -1275,7 +1275,7 @@
       }
     },
     {
-      "id": "51c872de-5d7f-4fbf-8fb7-8029805f92f0",
+      "id": "fc11c362-616b-4bee-9c82-8380ccdd7645",
       "name": "Customer.io | Campaigns",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
@@ -1299,7 +1299,7 @@
       "disabled": true
     },
     {
-      "id": "6aeb246e-e861-49b9-bff0-857f777a6c03",
+      "id": "2f39f0db-4caa-42bd-984e-4a9b5e32b55a",
       "name": "Customer.io | Running campaigns",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -1313,7 +1313,7 @@
       "alwaysOutputData": true
     },
     {
-      "id": "b8577b65-f93e-4235-acdc-8bc2909059d1",
+      "id": "e1f562fd-a3e4-4d8e-be26-84f392552775",
       "name": "Customer.io | Campaign metrics",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
@@ -1361,7 +1361,7 @@
       "disabled": true
     },
     {
-      "id": "ab61971d-d073-40c2-847e-912f7204e6ed",
+      "id": "9f0ce4f3-807d-4ba0-a56c-758625ad9575",
       "name": "Customer.io | Broadcasts",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
@@ -1396,7 +1396,7 @@
       "disabled": true
     },
     {
-      "id": "e0da40b7-9f3d-4681-affc-9f558a511f6d",
+      "id": "f4d8ba10-3339-461e-acd3-e9f1279781f8",
       "name": "Customer.io | Sent broadcasts",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -1410,7 +1410,7 @@
       "alwaysOutputData": true
     },
     {
-      "id": "564cb418-8016-4f7b-89ba-eb3552607ae7",
+      "id": "0b8e7e4e-9332-4d72-9398-ea6bcd430ae1",
       "name": "Customer.io | Broadcast metrics",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
@@ -1454,7 +1454,7 @@
       "disabled": true
     },
     {
-      "id": "54d68a19-0e16-4312-b8bf-c2b68aad5ca8",
+      "id": "c6e108c8-a3f2-4885-a6f0-762a1ed5e6f5",
       "name": "Customer.io | Capture count",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
@@ -1476,7 +1476,7 @@
       "disabled": true
     },
     {
-      "id": "0eb1b56f-b4b3-47af-8423-6edf887aef8a",
+      "id": "8f8921c9-f726-49d3-a59a-4b75bb0d2ce8",
       "name": "Customer.io | Compose review",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -1490,7 +1490,7 @@
       "onError": "continueErrorOutput"
     },
     {
-      "id": "6c110661-57b7-407b-b5d3-8c3f8e8018f6",
+      "id": "a2b6864b-0940-4347-aa6c-4651682f4fec",
       "name": "Customer.io | Incomplete report",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -1504,7 +1504,7 @@
       "notes": "Runs only when a step in this lane fails. Writes an INCOMPLETE report so the other reviews still go out."
     },
     {
-      "id": "e1a68791-8c6b-44f4-b8ca-6d6ec52966a2",
+      "id": "e67fdb4b-a21b-4c59-93b7-e6b67c23d37f",
       "name": "Customer.io | Create Markdown BEFORE Slack",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -1517,7 +1517,7 @@
       }
     },
     {
-      "id": "89e1023f-d408-4f6c-9894-567723af7540",
+      "id": "e5b8be9c-fa26-4f91-ae7a-f3817e5937ba",
       "name": "Customer.io | Last saved count",
       "type": "n8n-nodes-base.dataTable",
       "typeVersion": 1.1,
@@ -1543,7 +1543,7 @@
       "alwaysOutputData": true
     },
     {
-      "id": "51b78c2b-2784-4486-ae14-2d1978e20a1d",
+      "id": "1bcddb5e-8235-4e4d-be72-25aeda77e45c",
       "name": "Trends | Metorik revenue (last 30 days)",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
@@ -1586,7 +1586,7 @@
       "notesInFlow": true
     },
     {
-      "id": "52812a28-18c1-437f-bb93-835a381bf76c",
+      "id": "1ca2e6c0-984f-49b9-8613-0b07b83d7405",
       "name": "Trends | Metorik revenue (prior 30 days)",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
@@ -1629,7 +1629,7 @@
       "notesInFlow": true
     },
     {
-      "id": "4a78b9b6-41d9-4a96-a356-060cfca809a2",
+      "id": "64750b32-c2e0-4d08-ae00-bc372e80fb56",
       "name": "Trends | Metorik revenue (last 90 days)",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
@@ -1672,7 +1672,7 @@
       "notesInFlow": true
     },
     {
-      "id": "f0496dea-23a1-4b80-974f-24a7568e42c6",
+      "id": "e72a244a-a878-42c4-adf1-289b4f7ec8d9",
       "name": "Trends | Metorik revenue (prior 90 days)",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
@@ -1718,7 +1718,7 @@
       "parameters": {
         "jsCode": "// Last 30 vs prior 30 and last 90 vs prior 90 days, from the totals of four Metorik revenue reports, computed in code.\n// A switched-off or failed request has no totals, so trends report themselves unavailable, never zero.\nconst p=$('Trends | Periods').first().json;\nconst names={\"last30\": \"Trends | Metorik revenue (last 30 days)\", \"prev30\": \"Trends | Metorik revenue (prior 30 days)\", \"last90\": \"Trends | Metorik revenue (last 90 days)\", \"prev90\": \"Trends | Metorik revenue (prior 90 days)\"};\nconst read=n=>{try{const j=$(n).first().json;return j&&j.totals&&Number.isFinite(Number(j.totals.net))?j.totals:null;}catch(e){return null;}};\nconst windows={},missing=[];\nfor(const [k,n] of Object.entries(names)){const t=read(n);if(!t){missing.push(n);continue;}windows[k]={...p.windows[k],orders:Number(t.orders),gross:Math.round(Number(t.gross)),net:Math.round(Number(t.net))};}\nif(missing.length)return [{json:{available:false,reason:'no Metorik totals from '+missing.join(', ')+' (switched off, or the request failed)'}}];\nconst pct=(a,b)=>b?Math.round((a-b)/b*1000)/10:null;\nreturn [{json:{available:true,source:'Metorik revenue report',truncated:false,windows,\n  mom:{net_pct:pct(windows.last30.net,windows.prev30.net),orders_pct:pct(windows.last30.orders,windows.prev30.orders)},\n  qoq:{net_pct:pct(windows.last90.net,windows.prev90.net),orders_pct:pct(windows.last90.orders,windows.prev90.orders)}}}];"
       },
-      "id": "4db7ec06-e071-4385-9584-47289614d82d",
+      "id": "08e72736-e4e2-49b7-8369-93fd24e2c524",
       "name": "Trends | Revenue by period",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -1735,7 +1735,7 @@
         "height": 230,
         "color": 6
       },
-      "id": "993ce627-ed1e-46c5-8132-bfef61346abc",
+      "id": "9765e0b4-7592-41b5-b4fc-29640883348a",
       "name": "Trends and summary explainer",
       "type": "n8n-nodes-base.stickyNote",
       "typeVersion": 1,
@@ -1746,136 +1746,12 @@
     },
     {
       "parameters": {
-        "jsCode": "// Same weeks as the executive review.\nconst p=$('Executive | Reporting period').first().json;\nreturn [{json:{start:p.start,end:p.end,previousStart:p.previousStart,previousEnd:p.previousEnd}}];"
-      },
-      "name": "Ads | Reporting period",
-      "type": "n8n-nodes-base.code",
-      "typeVersion": 2,
-      "id": "c42ab749-3b96-450c-895e-1ac6f080f6b7",
-      "position": [
-        704,
-        2704
-      ]
-    },
-    {
-      "parameters": {
-        "jsCode": "// From Nick Christensen's ads reporting starter (MIT), workshop \"Ship ICP-driven ad campaigns and automated monitoring\".\n// Source: https://github.com/nickyc1/ship-icp-ads-automate-monitoring (n8n-ads-reporting/starter-workflow.json).\n// Carried unchanged below this header.\n// Mock Google Ads daily metrics. Swap this node for an HTTP Request / google-ads-mcp call later.\n// Shape stays the same so nothing downstream changes.\nconst campaigns = [\n  { campaign: \"Brand - Search\",        platform: \"google\", spend: 820,  conversions: 41, conversion_value: 3120, cpa: 20.0, historical_cpa: 19.0, ctr: 0.112, clicks: 612, impressions: 5460 },\n  { campaign: \"Competitor - Search\",   platform: \"google\", spend: 1450, conversions: 22, conversion_value: 1980, cpa: 65.9, historical_cpa: 31.0, ctr: 0.041, clicks: 410, impressions: 9900 },\n  { campaign: \"PMax - All Products\",   platform: \"google\", spend: 2100, conversions: 78, conversion_value: 6890, cpa: 26.9, historical_cpa: 28.0, ctr: 0.066, clicks: 880, impressions: 13300 },\n  { campaign: \"Generic - High Intent\", platform: \"google\", spend: 240,  conversions: 14, conversion_value: 1510, cpa: 17.1, historical_cpa: 18.0, ctr: 0.094, clicks: 168, impressions: 1780 },\n  { campaign: \"Display - Remarketing\", platform: \"google\", spend: 560,  conversions: 6,  conversion_value: 430,  cpa: 93.3, historical_cpa: 88.0, ctr: 0.008, clicks: 240, impressions: 30000 }\n];\nreturn campaigns.map(c => ({ json: c }));"
-      },
-      "name": "Ads | Google Ads (sample data)",
-      "type": "n8n-nodes-base.code",
-      "typeVersion": 2,
-      "position": [
-        928,
-        2704
-      ],
-      "id": "3e2a6994-3b92-4d78-89bd-0e73932ac889"
-    },
-    {
-      "parameters": {
-        "jsCode": "// From Nick Christensen's ads reporting starter (MIT), workshop \"Ship ICP-driven ad campaigns and automated monitoring\".\n// Source: https://github.com/nickyc1/ship-icp-ads-automate-monitoring (n8n-ads-reporting/starter-workflow.json).\n// Carried unchanged below this header.\n// Mock Meta daily metrics. Swap for the Meta Ads CLI/MCP later (one OAuth, no third-party app).\n// frequency is Meta-specific and feeds fatigue checks.\nconst campaigns = [\n  { campaign: \"Prospecting - Broad\",    platform: \"meta\", spend: 1300, conversions: 47, conversion_value: 2010, cpa: 27.7, historical_cpa: 25.0, ctr: 0.014, clicks: 980,  impressions: 70000, frequency: 1.8 },\n  { campaign: \"Retargeting - 7d\",       platform: \"meta\", spend: 430,  conversions: 33, conversion_value: 1890, cpa: 13.0, historical_cpa: 14.0, ctr: 0.022, clicks: 410,  impressions: 18600, frequency: 3.9 },\n  { campaign: \"Lookalike - Buyers 1%\",  platform: \"meta\", spend: 760,  conversions: 18, conversion_value: 720,  cpa: 42.2, historical_cpa: 39.0, ctr: 0.010, clicks: 520,  impressions: 52000, frequency: 2.1 },\n  { campaign: \"Creator - Whitelisting\", platform: \"meta\", spend: 290,  conversions: 16, conversion_value: 1240, cpa: 18.1, historical_cpa: 21.0, ctr: 0.031, clicks: 300,  impressions: 9700,  frequency: 1.4 }\n];\nreturn campaigns.map(c => ({ json: c }));"
-      },
-      "name": "Ads | Meta Ads (sample data)",
-      "type": "n8n-nodes-base.code",
-      "typeVersion": 2,
-      "position": [
-        1152,
-        2704
-      ],
-      "id": "17d35894-ccf1-43b4-894f-d6c454def8d7"
-    },
-    {
-      "parameters": {
-        "numberInputs": 2
-      },
-      "name": "Ads | Merge",
-      "type": "n8n-nodes-base.merge",
-      "typeVersion": 3,
-      "position": [
-        1376,
-        2704
-      ],
-      "id": "b76197d1-c79f-460c-a237-6d8de6ab9c33"
-    },
-    {
-      "parameters": {
-        "jsCode": "// From Nick Christensen's ads reporting starter (MIT), workshop \"Ship ICP-driven ad campaigns and automated monitoring\".\n// Source: https://github.com/nickyc1/ship-icp-ads-automate-monitoring (n8n-ads-reporting/starter-workflow.json).\n// Carried unchanged below this header.\n// Grade every campaign on profit-to-spend, flag anomalies, and write a plain-language digest.\n// Profit, not ROAS, is the hero number. Edit the targets to match your business.\nconst TARGET = { google: 1.5, meta: 0.5 };\n\nconst rows = $input.all().map(i => i.json);\nconst totalSpend = rows.reduce((s, r) => s + r.spend, 0);\nconst totalValue = rows.reduce((s, r) => s + r.conversion_value, 0);\nconst avgSpend = totalSpend / rows.length;\n\nconst graded = rows.map(r => {\n  const ptos = r.conversion_value / r.spend;            // profit-to-spend proxy\n  const target = TARGET[r.platform] ?? 1.0;\n  const grade = ptos >= target ? \"green\" : \"red\";\n  const anomaly = r.cpa > 2 * r.historical_cpa;\n  let decision;\n  if (grade === \"red\") decision = \"Investigate or pause\";\n  else if (r.spend < avgSpend && r.conversions > 0) decision = \"Scale (underfunded winner)\";\n  else decision = \"Hold\";\n  return { ...r, ptos: Number(ptos.toFixed(2)), grade, decision, anomaly };\n});\n\nconst attention = graded.filter(g => g.grade === \"red\" || g.anomaly);\nconst blended = (totalValue / totalSpend).toFixed(2);\n\nconst fmt = g => `${g.grade === \"green\" ? \"🟢\" : \"🔴\"} *${g.campaign}* (${g.platform}) — $${g.spend} spend, ${g.ptos}x value/spend → ${g.decision}${g.anomaly ? \"  ⚠️ CPA 2x+ historical\" : \"\"}`;\n\nlet digest = `📊 *Daily Paid Media Digest*\\n`;\ndigest += `Spend $${totalSpend.toLocaleString()} · Value $${totalValue.toLocaleString()} · Blended ${blended}x\\n\\n`;\ndigest += `*Needs attention (${attention.length})*\\n`;\ndigest += attention.length ? attention.map(fmt).join(\"\\n\") : \"Nothing flagged. All campaigns at or above target.\";\ndigest += `\\n\\n*All campaigns*\\n`;\ndigest += graded.sort((a, b) => b.ptos - a.ptos).map(fmt).join(\"\\n\");\ndigest += `\\n\\n_You make the call. This is the analyst, not the boss._`;\n\nreturn [{ json: { digest, campaign_count: graded.length, flagged: attention.length } }];"
-      },
-      "name": "Ads | Analyze",
-      "type": "n8n-nodes-base.code",
-      "typeVersion": 2,
-      "position": [
-        1600,
-        2704
-      ],
-      "id": "524d9874-268f-4d87-84c2-87d7249ed6f6",
-      "onError": "continueErrorOutput"
-    },
-    {
-      "parameters": {
-        "jsCode": "// Wraps the ads digest from Ads | Analyze (Nick Christensen's grading) into the report contract.\n// While adsEnabled is false in Settings this lane sends a skipped item: Collect never waits, and every\n// step after it (summary facts, history, Slack, email, GitHub) leaves it out.\nconst p=$('Ads | Reporting period').first().json, s=$('Settings').first().json;\nif(s.adsEnabled!==true)return [{json:{skipped:true,markdown:'',slackText:'',fileName:'ads-'+p.start+'-to-'+p.end+'-skipped.md'}}];\nconst isSample=n=>{try{const j=$(n).first().json;return !!(j&&j.campaign!==undefined&&j.platform!==undefined);}catch(e){return false;}};\nconst sample=isSample('Ads | Google Ads (sample data)')||isSample('Ads | Meta Ads (sample data)');\nconst a=$('Ads | Analyze').first().json;\nif(!a||typeof a.digest!=='string'||!a.campaign_count)throw Error('No ad data: Ads | Analyze returned no campaigns. Connect your ad platforms, or keep the two sample nodes switched on.');\nif(/NaN|undefined/.test(a.digest))throw Error('Ad rows are missing fields: each row needs campaign, platform, spend, conversions, conversion_value, cpa and historical_cpa.');\nconst lines=[(sample?'SAMPLE DATA':'PRIVATE LIVE REVIEW')+' | '+s.storeName+' | Ads review (Google Ads and Meta)',p.start+' to '+p.end+' | '+s.currency,\n  sample?'Sample data: the example campaigns from Nick Christensen\\'s ads workshop, not your ad accounts. Replace the two sample nodes with your Google Ads and Meta data (same fields) to make this review live.':'Live data from your ad platforms.',\n  '',a.digest,'',\n  'Campaigns graded: '+a.campaign_count+'; flagged: '+a.flagged+'.',\n  'Grades use value-to-spend against the targets at the top of Ads | Analyze. Platform-reported conversion value is not profit: set the targets from your margins.',\n  'Review: check the flagged campaigns in the ad platform before changing any budget.'];\nconst markdown=lines.join('\\n')+'\\n';\nreturn [{json:{markdown,slackText:markdown,fileName:'ads-'+p.start+'-to-'+p.end+'.md',period:p,sample}}];"
-      },
-      "name": "Ads | Compose review",
-      "type": "n8n-nodes-base.code",
-      "typeVersion": 2,
-      "onError": "continueErrorOutput",
-      "id": "9b48a410-3f15-4e45-8946-e989239f2728",
-      "position": [
-        1824,
-        2704
-      ]
-    },
-    {
-      "parameters": {
-        "jsCode": "const p=$('Ads | Reporting period').first().json,s=$('Settings').first().json;if(s.adsEnabled!==true)return [{json:{skipped:true,markdown:'',slackText:'',fileName:'ads-'+p.start+'-to-'+p.end+'-skipped.md'}}];const j=$input.first().json,e=j.error??j;const reason=String(typeof e==='string'?e:(e.message||e.description||JSON.stringify(e))).replace(/[\\r\\n]+/g,' ').slice(0,300);const markdown=['INCOMPLETE | '+s.storeName+' | Ads review (Google Ads and Meta)',p.start+' to '+p.end+' | '+s.currency,'','This review did not run, so it reports no figures this week. Missing figures are not zero.','Failed step: '+$prevNode.name,'Reason: '+reason,'','Review: fix the connection or setting named above, then run the workflow again.'].join('\\n')+'\\n';return [{json:{markdown,slackText:markdown,fileName:'ads-'+p.start+'-to-'+p.end+'-incomplete.md',incomplete:true}}];"
-      },
-      "name": "Ads | Incomplete report",
-      "type": "n8n-nodes-base.code",
-      "typeVersion": 2,
-      "notes": "Runs only when a step in this lane fails. Writes an INCOMPLETE report so the other reviews still go out.",
-      "notesInFlow": true,
-      "id": "43fbffd9-7c77-4bac-8ada-ac9a77f12a07",
-      "position": [
-        1824,
-        2896
-      ]
-    },
-    {
-      "name": "Ads | Create Markdown BEFORE Slack",
-      "type": "n8n-nodes-base.code",
-      "typeVersion": 2,
-      "position": [
-        2048,
-        2704
-      ],
-      "parameters": {
-        "jsCode": "const d=$input.first().json;return [{json:d,binary:{report:{data:Buffer.from(d.markdown,'utf8').toString('base64'),mimeType:'text/markdown',fileExtension:'md',fileName:d.fileName}}}];"
-      },
-      "id": "5c2d12f7-4e40-46ec-8b8f-682a85869442"
-    },
-    {
-      "parameters": {
-        "content": "## 6. Ads review (optional)\n**For:** every Google Ads and Meta campaign graded on value-to-spend, flagged when below target or when CPA runs above 2x its usual level, with a plain call: scale, hold, or investigate.\n\n**Source:** Nick Christensen's ads reporting starter (MIT), from his workshop \"Ship ICP-driven ad campaigns and automated monitoring\". It ships with his sample campaigns, labelled SAMPLE DATA.\n\n**Switch on:** set `adsEnabled` to true in Settings. While it is false the lane is skipped and nothing about ads is delivered.\n\n**Make it live:** replace the two sample nodes with your own rows in the same fields. Meta: a Facebook Graph API credential (access token with `ads_read`) on the insights edge of `act_<your ad account id>`, and the conversion `action_type` your funnel uses (purchase, lead...). Google Ads: the Google Ads node, an HTTP request, or your Google Ads MCP. Then set the targets at the top of Ads | Analyze.",
-        "width": 758,
-        "height": 300,
-        "color": 1
-      },
-      "name": "Ads review explainer",
-      "type": "n8n-nodes-base.stickyNote",
-      "typeVersion": 1,
-      "id": "a0554577-105e-44c6-8bf6-046c0eded7c7",
-      "position": [
-        -144,
-        2512
-      ]
-    },
-    {
-      "parameters": {
         "content": "## 5. Email review (Customer.io)\n**For:** emails sent and delivered, human opens and clicks, conversions, unsubscribes, bounces and the top sends, this week against last, plus email capture.\n**Connection pattern:** Customer.io App API (running automations, broadcasts and their daily metrics; one segment count for capture) → review → Markdown file → collected with the other reports → delivery.\n**Setup:** a Bearer Auth credential with an App API key on the five request nodes; set cioCaptureSegmentId and cioCaptureLabel in Settings. Days are UTC; counts are messages, not people.",
         "width": 758,
         "height": 240,
         "color": 7
       },
-      "id": "393b45a9-a01d-444e-995c-bf614bd37116",
+      "id": "a3685193-bfd1-4256-9480-55fcf79ab6db",
       "name": "Email review explainer",
       "type": "n8n-nodes-base.stickyNote",
       "typeVersion": 1,
@@ -2318,11 +2194,6 @@
             "node": "Customer.io | Reporting period",
             "type": "main",
             "index": 0
-          },
-          {
-            "node": "Ads | Reporting period",
-            "type": "main",
-            "index": 0
           }
         ]
       ]
@@ -2761,113 +2632,6 @@
           }
         ]
       ]
-    },
-    "Ads | Reporting period": {
-      "main": [
-        [
-          {
-            "node": "Ads | Google Ads (sample data)",
-            "type": "main",
-            "index": 0
-          },
-          {
-            "node": "Ads | Meta Ads (sample data)",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Ads | Google Ads (sample data)": {
-      "main": [
-        [
-          {
-            "node": "Ads | Merge",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Ads | Meta Ads (sample data)": {
-      "main": [
-        [
-          {
-            "node": "Ads | Merge",
-            "type": "main",
-            "index": 1
-          }
-        ]
-      ]
-    },
-    "Ads | Merge": {
-      "main": [
-        [
-          {
-            "node": "Ads | Analyze",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Ads | Analyze": {
-      "main": [
-        [
-          {
-            "node": "Ads | Compose review",
-            "type": "main",
-            "index": 0
-          }
-        ],
-        [
-          {
-            "node": "Ads | Incomplete report",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Ads | Compose review": {
-      "main": [
-        [
-          {
-            "node": "Ads | Create Markdown BEFORE Slack",
-            "type": "main",
-            "index": 0
-          }
-        ],
-        [
-          {
-            "node": "Ads | Incomplete report",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Ads | Incomplete report": {
-      "main": [
-        [
-          {
-            "node": "Ads | Create Markdown BEFORE Slack",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Ads | Create Markdown BEFORE Slack": {
-      "main": [
-        [
-          {
-            "node": "Collect all reports",
-            "type": "main",
-            "index": 5
-          }
-        ]
-      ]
     }
   },
   "settings": {
@@ -2951,21 +2715,6 @@
         "Customer.io | Last saved count"
       ],
       "description": "Sends, opens, clicks, conversions, unsubscribes and email capture."
-    },
-    {
-      "id": "a512b6fa-9289-5388-a823-735a9f219676",
-      "name": "6. Ads review",
-      "nodeNames": [
-        "Ads | Reporting period",
-        "Ads | Google Ads (sample data)",
-        "Ads | Meta Ads (sample data)",
-        "Ads | Merge",
-        "Ads | Analyze",
-        "Ads | Compose review",
-        "Ads | Incomplete report",
-        "Ads | Create Markdown BEFORE Slack"
-      ],
-      "description": "Google Ads and Meta campaigns graded on value-to-spend (Nick Christensen's starter). Optional: adsEnabled in Settings."
     },
     {
       "id": "efb941a9-b8c8-54e9-9081-502187ce2631",

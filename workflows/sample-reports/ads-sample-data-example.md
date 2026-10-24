@@ -1,5 +1,5 @@
 SAMPLE DATA | Demo Store | Ads review (Google Ads and Meta)
-2026-10-14 to 2026-10-20 | USD
+2026-10-20 to 2026-10-20 | USD
 Sample data: the example campaigns from Nick Christensen's ads workshop, not your ad accounts. Replace the two sample nodes with your Google Ads and Meta data (same fields) to make this review live.
 
 📊 *Daily Paid Media Digest*

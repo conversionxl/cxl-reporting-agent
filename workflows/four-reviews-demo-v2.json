@@ -1,0 +1,1360 @@
+{
+  "name": "Workshop | Four reviews | Nick's demo | v2",
+  "nodes": [
+    {
+      "id": "23a9547e-3b80-48e6-9f5d-bb00176cb6fa",
+      "name": "Run all four reviews",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        -64,
+        920
+      ],
+      "parameters": {}
+    },
+    {
+      "id": "5269bd93-20d8-459e-8618-2317c5ee2e47",
+      "name": "Executive | Reporting period",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        704,
+        304
+      ],
+      "parameters": {
+        "jsCode": "const s=$('Settings').first().json;return [{json:{\"start\": \"2026-10-14\", \"end\": \"2026-10-20\", \"previousStart\": \"2026-10-07\", \"previousEnd\": \"2026-10-13\", \"currency\": s.currency, \"timeZone\": s.timeZone, \"locale\": s.locale, \"storeName\": s.storeName}}];"
+      }
+    },
+    {
+      "id": "bf14482b-c2a5-4458-8a13-8b896c86cd52",
+      "name": "Executive | Verify store",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        928,
+        304
+      ],
+      "parameters": {
+        "jsCode": "// Synthetic fixture. No network request.\nconst p=$('Executive | Reporting period').first().json;return [{json:{name:p.storeName,currency:p.currency,timezone:p.timeZone}}];"
+      },
+      "onError": "continueErrorOutput"
+    },
+    {
+      "id": "4f6ad079-fbc6-42fb-a7bd-0adb09856e9e",
+      "name": "Executive | Check store identity",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1152,
+        304
+      ],
+      "parameters": {
+        "jsCode": "const s=$input.first().json,p=$('Executive | Reporting period').first().json;if(s.name!==p.storeName||s.currency!==p.currency||s.timezone!==p.timeZone)throw Error('Wrong store/currency/timezone: expected '+p.storeName+', '+p.currency+', '+p.timeZone+'; got '+s.name+', '+s.currency+', '+s.timezone);return [{json:s}];"
+      },
+      "onError": "continueErrorOutput"
+    },
+    {
+      "id": "39b3e9e1-151b-4fce-a9e6-60089c54fe9b",
+      "name": "Executive | Current revenue",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1376,
+        304
+      ],
+      "parameters": {
+        "jsCode": "// Synthetic fixture. No network request.\nreturn [{json:{\"totals\": {\"net\": 24000, \"gross\": 26000, \"refunds\": 1000, \"taxes\": 1000, \"orders\": 80, \"items\": 90, \"discounts\": 2000}}}];"
+      },
+      "onError": "continueErrorOutput"
+    },
+    {
+      "id": "04858625-d846-47b5-bef8-9eb1324a60f0",
+      "name": "Executive | Previous revenue",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1600,
+        304
+      ],
+      "parameters": {
+        "jsCode": "// Synthetic fixture. No network request.\nreturn [{json:{\"totals\": {\"net\": 20000, \"gross\": 22000, \"refunds\": 1000, \"taxes\": 1000, \"orders\": 70, \"items\": 80, \"discounts\": 1500}}}];"
+      },
+      "onError": "continueErrorOutput"
+    },
+    {
+      "id": "fb7cc44a-a442-41b5-8a95-011cfea3371b",
+      "name": "Executive | Order types",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1824,
+        304
+      ],
+      "parameters": {
+        "jsCode": "// Synthetic fixture. No network request.\nreturn [{json:{\"data\": [{\"grouped_by\": null, \"net\": 18000}, {\"grouped_by\": \"Renewals\", \"net\": 6000}]}}];"
+      },
+      "onError": "continueErrorOutput"
+    },
+    {
+      "id": "0284dbfd-23e6-4ec1-b2c4-c5804ca68504",
+      "name": "Executive | Compose review",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2048,
+        304
+      ],
+      "parameters": {
+        "jsCode": "const p=$('Executive | Reporting period').first().json;const money=v=>new Intl.NumberFormat(p.locale,{style:'currency',currency:p.currency,maximumFractionDigits:0}).format(Number(v));const pct=(a,b)=>b?((a-b)/b*100).toFixed(1)+'%':'N/A';const safe=v=>String(v??'Unknown').replace(/[<>&|\\r\\n]/g,' ');const lines=['DEMO — SYNTHETIC DATA | Example Store — Executive business review',p.start+'–'+p.end+' | '+p.currency+' | '+p.timeZone,'Synthetic example data; no real business figures. Previous period: '+p.previousStart+'–'+p.previousEnd,''];const c=$('Executive | Current revenue').first().json.totals,b=$('Executive | Previous revenue').first().json.totals;if(!c||!b||!Number.isFinite(Number(c.net)))throw Error('Revenue totals missing');lines.push('• Net revenue: '+money(c.net)+' ('+pct(c.net,b.net)+' vs prior week).','• Gross revenue: '+money(c.gross)+'; refunds: '+money(c.refunds)+'; sales taxes: '+money(c.taxes)+'.','• Orders: '+c.orders+' ('+pct(c.orders,b.orders)+'); items: '+c.items+'.','• Discounts recorded: '+money(c.discounts)+' (already reflected in gross; not subtracted again).','','Order-type revenue (Metorik grouped report):');const grouped=$('Executive | Order types').first().json.data;if(!Array.isArray(grouped))throw Error('Order-type response missing');for(const r of grouped)lines.push('• '+safe(r.grouped_by===null?'Non-renewal orders':r.grouped_by)+': '+money(r.net));lines.push('','COGS, gross profit, operating income, net profit, marketing spend and MER: unavailable with this connection. Missing costs are not zero.','Includes subscription renewals. Non-renewal orders are not the same as first-time buyers.','Net revenue uses refund-date reporting; order/product reports can differ because refunds follow the original order cohort.','Review: check renewal timing and product mix before explaining the revenue change.');const markdown=lines.join('\\n')+'\\n';return [{json:{markdown,slackText:markdown,fileName:'executive-'+p.start+'-to-'+p.end+'.md',period:p}}];"
+      },
+      "onError": "continueErrorOutput"
+    },
+    {
+      "id": "0aa7d827-731f-4986-8404-7623cb5cb622",
+      "name": "Executive | Create Markdown BEFORE Slack",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2272,
+        304
+      ],
+      "parameters": {
+        "jsCode": "const d=$input.first().json;return [{json:d,binary:{report:{data:Buffer.from(d.markdown,'utf8').toString('base64'),mimeType:'text/markdown',fileExtension:'md',fileName:d.fileName}}}];"
+      }
+    },
+    {
+      "id": "c586eae8-ac29-4c9d-922e-c52379957d03",
+      "name": "Executive explainer",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -144,
+        112
+      ],
+      "parameters": {
+        "content": "## 1. Business performance\n**For:** Net and gross sales, refunds, orders, renewal versus non-renewal revenue, and comparison with the previous week.\n\n**Connection pattern:** Metorik revenue + order-type reports → Markdown → collected with the other reports → delivery. Costs, profit and ad spend are not connected.\n\nFixed example week • timezone and currency from Settings",
+        "height": 230,
+        "width": 760,
+        "color": 3
+      }
+    },
+    {
+      "id": "c3b2292b-d0b8-434e-bc58-fbd067c44b71",
+      "name": "Marketing | Reporting period",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        704,
+        784
+      ],
+      "parameters": {
+        "jsCode": "const s=$('Settings').first().json;return [{json:{\"start\": \"2026-10-14\", \"end\": \"2026-10-20\", \"previousStart\": \"2026-10-07\", \"previousEnd\": \"2026-10-13\", \"currency\": s.currency, \"timeZone\": s.timeZone, \"locale\": s.locale, \"storeName\": s.storeName}}];"
+      }
+    },
+    {
+      "id": "66b30a29-ee67-43c5-8903-5f61ba7409fa",
+      "name": "Marketing | Verify store",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        928,
+        784
+      ],
+      "parameters": {
+        "jsCode": "// Synthetic fixture. No network request.\nconst p=$('Marketing | Reporting period').first().json;return [{json:{name:p.storeName,currency:p.currency,timezone:p.timeZone}}];"
+      },
+      "onError": "continueErrorOutput"
+    },
+    {
+      "id": "4704635f-a3d8-4bcc-8f3a-853b905a76bc",
+      "name": "Marketing | Check store identity",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1152,
+        784
+      ],
+      "parameters": {
+        "jsCode": "const s=$input.first().json,p=$('Marketing | Reporting period').first().json;if(s.name!==p.storeName||s.currency!==p.currency||s.timezone!==p.timeZone)throw Error('Wrong store/currency/timezone: expected '+p.storeName+', '+p.currency+', '+p.timeZone+'; got '+s.name+', '+s.currency+', '+s.timezone);return [{json:s}];"
+      },
+      "onError": "continueErrorOutput"
+    },
+    {
+      "id": "91c32e24-9676-4cf6-9591-392ad97e9215",
+      "name": "Marketing | Order sources",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1376,
+        784
+      ],
+      "parameters": {
+        "jsCode": "// Synthetic fixture. No network request.\nreturn [{json:{\"data\": [{\"utm_source\": \"google\", \"utm_medium\": \"cpc\", \"count\": 20, \"net\": 6000}, {\"utm_source\": \"newsletter\", \"utm_medium\": \"email\", \"count\": 25, \"net\": 7500}, {\"utm_source\": \"google\", \"utm_medium\": \"organic\", \"count\": 15, \"net\": 4500}]}}];"
+      },
+      "onError": "continueErrorOutput"
+    },
+    {
+      "id": "8caeb6bc-e3de-410d-81fe-62b0c3fb342c",
+      "name": "Marketing | All orders",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1600,
+        784
+      ],
+      "parameters": {
+        "jsCode": "// Synthetic fixture. No network request.\nreturn [{json:{\"totals\": {\"orders\": 80, \"net\": 24000}}}];"
+      },
+      "onError": "continueErrorOutput"
+    },
+    {
+      "id": "babf3000-b603-485e-80bb-59f0c8aa84b1",
+      "name": "Marketing | Compose review",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1824,
+        784
+      ],
+      "parameters": {
+        "jsCode": "const p=$('Marketing | Reporting period').first().json;const money=v=>new Intl.NumberFormat(p.locale,{style:'currency',currency:p.currency,maximumFractionDigits:0}).format(Number(v));const pct=(a,b)=>b?((a-b)/b*100).toFixed(1)+'%':'N/A';const safe=v=>String(v??'Unknown').replace(/[<>&|\\r\\n]/g,' ');const lines=['DEMO — SYNTHETIC DATA | Example Store — Marketing source review',p.start+'–'+p.end+' | '+p.currency+' | '+p.timeZone,'Synthetic example data; no real business figures. Previous period: '+p.previousStart+'–'+p.previousEnd,''];const rows=$('Marketing | Order sources').first().json.data,t=$('Marketing | All orders').first().json.totals;if(!Array.isArray(rows)||!t)throw Error('Source report missing');const count=rows.reduce((s,r)=>s+Number(r.count),0),net=rows.reduce((s,r)=>s+Number(r.net),0);lines.push('• Total store orders: '+t.orders+'; order-cohort net sales: '+money(t.net)+'.','• Source report represents '+count+' orders ('+(100*count/t.orders).toFixed(1)+'%) and '+money(net)+' net sales.','• '+(t.orders-count)+' orders are not represented in these source rows; do not classify them as Direct.','','Recorded source / medium → orders → net sales');for(const r of [...rows].sort((a,b)=>b.net-a.net).slice(0,10))lines.push('• '+safe(r.utm_source)+' / '+safe(r.utm_medium)+' → '+r.count+' → '+money(r.net));lines.push('','These are sources stored on orders, not GA4 session channels or proof of incremental sales. Google without a paid medium is not Google Ads.','Ad spend, ROAS, sessions and email-capture rate: unavailable from this connection.','Review: investigate missing attribution and separate paid vs organic before shifting spend.');const markdown=lines.join('\\n')+'\\n';return [{json:{markdown,slackText:markdown,fileName:'marketing-'+p.start+'-to-'+p.end+'.md',period:p}}];"
+      },
+      "onError": "continueErrorOutput"
+    },
+    {
+      "id": "2376cf73-b723-4ff9-a752-6d7677efe866",
+      "name": "Marketing | Create Markdown BEFORE Slack",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2048,
+        784
+      ],
+      "parameters": {
+        "jsCode": "const d=$input.first().json;return [{json:d,binary:{report:{data:Buffer.from(d.markdown,'utf8').toString('base64'),mimeType:'text/markdown',fileExtension:'md',fileName:d.fileName}}}];"
+      }
+    },
+    {
+      "id": "e0a06468-697a-43b5-baa1-ae7604dd1a58",
+      "name": "Marketing explainer",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -144,
+        592
+      ],
+      "parameters": {
+        "content": "## 2. Where sales come from\n**For:** Revenue and orders by recorded marketing source, plus how much of the store is covered by source attribution.\n\n**Connection pattern:** Metorik order-source + order reports → Markdown → collected with the other reports → delivery. This is store attribution, not GA4 or ad-platform ROAS.\n\nFixed example week • timezone and currency from Settings",
+        "height": 230,
+        "width": 760,
+        "color": 4
+      }
+    },
+    {
+      "id": "cbfce79e-1925-48f6-89fa-781e942608d9",
+      "name": "Products | Reporting period",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        704,
+        1264
+      ],
+      "parameters": {
+        "jsCode": "const s=$('Settings').first().json;return [{json:{\"start\": \"2026-10-14\", \"end\": \"2026-10-20\", \"previousStart\": \"2026-10-07\", \"previousEnd\": \"2026-10-13\", \"currency\": s.currency, \"timeZone\": s.timeZone, \"locale\": s.locale, \"storeName\": s.storeName}}];"
+      }
+    },
+    {
+      "id": "d8f678e8-d366-4986-b8cb-a9bdbaf4b3a8",
+      "name": "Products | Verify store",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        928,
+        1264
+      ],
+      "parameters": {
+        "jsCode": "// Synthetic fixture. No network request.\nconst p=$('Products | Reporting period').first().json;return [{json:{name:p.storeName,currency:p.currency,timezone:p.timeZone}}];"
+      },
+      "onError": "continueErrorOutput"
+    },
+    {
+      "id": "40f1911e-30d1-4a46-ae00-482318e0eadf",
+      "name": "Products | Check store identity",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1152,
+        1264
+      ],
+      "parameters": {
+        "jsCode": "const s=$input.first().json,p=$('Products | Reporting period').first().json;if(s.name!==p.storeName||s.currency!==p.currency||s.timezone!==p.timeZone)throw Error('Wrong store/currency/timezone: expected '+p.storeName+', '+p.currency+', '+p.timeZone+'; got '+s.name+', '+s.currency+', '+s.timezone);return [{json:s}];"
+      },
+      "onError": "continueErrorOutput"
+    },
+    {
+      "id": "394d5f8e-2391-47e2-9708-3fdcf2b4f313",
+      "name": "Products | Top products",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1376,
+        1264
+      ],
+      "parameters": {
+        "jsCode": "// Synthetic fixture. No network request.\nreturn [{json:{\"data\": [{\"title\": \"Annual learning plan\", \"net_sales\": 12000, \"net_orders\": 20, \"net_items_sold\": 20, \"status\": \"publish\", \"type\": \"subscription\", \"permalink\": \"https://example.com/products/annual\"}, {\"title\": \"Quarterly learning plan\", \"net_sales\": 6000, \"net_orders\": 30, \"net_items_sold\": 30, \"status\": \"publish\", \"type\": \"subscription\", \"permalink\": \"https://example.com/products/quarterly\"}, {\"title\": \"Analytics foundations\", \"net_sales\": 4000, \"net_orders\": 20, \"net_items_sold\": 20, \"status\": \"publish\", \"type\": \"simple\", \"permalink\": \"https://example.com/products/analytics\"}, {\"title\": \"Email essentials\", \"net_sales\": 2000, \"net_orders\": 10, \"net_items_sold\": 10, \"status\": \"publish\", \"type\": \"simple\", \"permalink\": \"https://example.com/products/email\"}]}}];"
+      },
+      "onError": "continueErrorOutput"
+    },
+    {
+      "id": "c52ca3ff-a10a-4559-8f5f-e213cfcd5ad5",
+      "name": "Products | Compose review",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1600,
+        1264
+      ],
+      "parameters": {
+        "jsCode": "const p=$('Products | Reporting period').first().json;const money=v=>new Intl.NumberFormat(p.locale,{style:'currency',currency:p.currency,maximumFractionDigits:0}).format(Number(v));const pct=(a,b)=>b?((a-b)/b*100).toFixed(1)+'%':'N/A';const safe=v=>String(v??'Unknown').replace(/[<>&|\\r\\n]/g,' ');const lines=['DEMO — SYNTHETIC DATA | Example Store — Top product review',p.start+'–'+p.end+' | '+p.currency+' | '+p.timeZone,'Synthetic example data; no real business figures. Previous period: '+p.previousStart+'–'+p.previousEnd,''];const d=$('Products | Top products').first().json;if(!Array.isArray(d.data))throw Error('Product response missing');lines.push('Products ranked by net sales (subscription renewals included):','');for(const [i,r] of d.data.entries()){if(!Number.isFinite(Number(r.net_sales)))throw Error('Product net sales missing');lines.push((i+1)+'. '+safe(r.title)+' — '+money(r.net_sales)+' | '+r.net_orders+' orders | '+r.net_items_sold+' units','   Catalog status: '+safe(r.status)+' | '+safe(r.type),r.permalink||'No product URL');}lines.push('','Ranking is sales, not conversion rate. Units can include seats; product order counts can overlap.','Subscription product names do not identify the course that persuaded someone to subscribe.','Catalog status and links come from WooCommerce via Metorik; checkout availability has not been independently tested.','Review: inspect the linked pages and distinguish subscription plans from one-off course demand.');const markdown=lines.join('\\n')+'\\n';return [{json:{markdown,slackText:markdown,fileName:'products-'+p.start+'-to-'+p.end+'.md',period:p}}];"
+      },
+      "onError": "continueErrorOutput"
+    },
+    {
+      "id": "02c4c001-8c69-4bc6-9f47-e8559f72c7df",
+      "name": "Products | Create Markdown BEFORE Slack",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1824,
+        1264
+      ],
+      "parameters": {
+        "jsCode": "const d=$input.first().json;return [{json:d,binary:{report:{data:Buffer.from(d.markdown,'utf8').toString('base64'),mimeType:'text/markdown',fileExtension:'md',fileName:d.fileName}}}];"
+      }
+    },
+    {
+      "id": "35eba520-0f20-4d94-b322-071f5997230d",
+      "name": "Products explainer",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -144,
+        1072
+      ],
+      "parameters": {
+        "content": "## 3. What is selling\n**For:** Rank products and plans by sales, units and orders; include available product links and publication status.\n\n**Connection pattern:** Metorik product report → Markdown → collected with the other reports → delivery. Published status does not verify the live checkout.\n\nFixed example week • timezone and currency from Settings",
+        "height": 230,
+        "width": 760,
+        "color": 5
+      }
+    },
+    {
+      "id": "4d77c7c4-4f79-4487-bb1e-bd60b8678f79",
+      "name": "How to demonstrate",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -816,
+        -128
+      ],
+      "parameters": {
+        "content": "## Nick's demo, v2\nFour weekly reviews on made-up data: no logins, no API calls. **Settings** holds the store, currency and timezone. Each review is a group: open one block at a time.\n\nAfter the four lanes, **Collect all reports** gathers them, **Summary** writes a week at a glance (plain code, every figure quoted), and **Deliver: Slack** posts them, switched off until you connect Slack.\n\nEvery number is invented and fixed. The store reviews show a fixed example week; traffic uses the last 7 days.",
+        "height": 400,
+        "width": 480,
+        "color": 2
+      }
+    },
+    {
+      "id": "3979757e-ca68-475d-8d20-8f685863d1c1",
+      "name": "Traffic | Reporting period",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        704,
+        1744
+      ],
+      "parameters": {
+        "jsCode": "const s=$('Settings').first().json,timeZone=s.timeZone;\nconst today=new Intl.DateTimeFormat('en-CA',{timeZone,year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date());\nconst day=n=>{const d=new Date(today+'T12:00:00Z');d.setUTCDate(d.getUTCDate()-n);return d.toISOString().slice(0,10)};\nreturn [{json:{propertyId:s.ga4PropertyId,timeZone,current:{start:day(7),end:day(1)},previous:{start:day(14),end:day(8)},events:s.ga4Events}}];"
+      }
+    },
+    {
+      "id": "da3f7974-b6bc-4f36-a52e-c4c2508a3450",
+      "name": "Traffic | Build GA4 request",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        928,
+        1744
+      ],
+      "parameters": {
+        "jsCode": "const c=$input.first().json;\nconst dateRanges=[{startDate:c.current.start,endDate:c.current.end,name:'current'},{startDate:c.previous.start,endDate:c.previous.end,name:'previous'}];\nconst req=(dims,metrics,extra={})=>({dateRanges,dimensions:dims.map(name=>({name})),metrics:metrics.map(name=>({name})),...extra});\nconst requests=[req([],['sessions','engagedSessions','engagementRate']),req(['sessionSourceMedium'],['sessions','engagedSessions','engagementRate'],{limit:'100',orderBys:[{metric:{metricName:'sessions'},desc:true}]}),req(['landingPage'],['sessions','engagedSessions','engagementRate'],{limit:'20',orderBys:[{metric:{metricName:'sessions'},desc:true}]}),req(['eventName'],['eventCount'],{dimensionFilter:{filter:{fieldName:'eventName',inListFilter:{values:c.events}}}})];\nreturn [{json:{...c,body:{requests}}}];"
+      }
+    },
+    {
+      "id": "03e91aef-b76f-401a-864a-5f4facc26fa4",
+      "name": "Traffic | Synthetic GA4 response",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1152,
+        1744
+      ],
+      "parameters": {
+        "jsCode": "return [{json:{\"reports\": [{\"dimensionHeaders\": [{\"name\": \"dateRange\"}], \"metricHeaders\": [{\"name\": \"sessions\"}, {\"name\": \"engagedSessions\"}, {\"name\": \"engagementRate\"}], \"rows\": [{\"dimensionValues\": [{\"value\": \"current\"}], \"metricValues\": [{\"value\": \"12000\"}, {\"value\": \"7200\"}, {\"value\": \"0.6\"}]}, {\"dimensionValues\": [{\"value\": \"previous\"}], \"metricValues\": [{\"value\": \"10000\"}, {\"value\": \"5500\"}, {\"value\": \"0.55\"}]}], \"rowCount\": 2}, {\"dimensionHeaders\": [{\"name\": \"sessionSourceMedium\"}, {\"name\": \"dateRange\"}], \"metricHeaders\": [{\"name\": \"sessions\"}, {\"name\": \"engagedSessions\"}, {\"name\": \"engagementRate\"}], \"rows\": [{\"dimensionValues\": [{\"value\": \"google / organic\"}, {\"value\": \"current\"}], \"metricValues\": [{\"value\": \"5000\"}, {\"value\": \"3250\"}, {\"value\": \"0.65\"}]}, {\"dimensionValues\": [{\"value\": \"google / organic\"}, {\"value\": \"previous\"}], \"metricValues\": [{\"value\": \"4200\"}, {\"value\": \"2730\"}, {\"value\": \"0.65\"}]}, {\"dimensionValues\": [{\"value\": \"google / cpc\"}, {\"value\": \"current\"}], \"metricValues\": [{\"value\": \"3000\"}, {\"value\": \"1500\"}, {\"value\": \"0.5\"}]}, {\"dimensionValues\": [{\"value\": \"google / cpc\"}, {\"value\": \"previous\"}], \"metricValues\": [{\"value\": \"2600\"}, {\"value\": \"1300\"}, {\"value\": \"0.5\"}]}, {\"dimensionValues\": [{\"value\": \"(direct) / (none)\"}, {\"value\": \"current\"}], \"metricValues\": [{\"value\": \"2500\"}, {\"value\": \"1500\"}, {\"value\": \"0.6\"}]}, {\"dimensionValues\": [{\"value\": \"(direct) / (none)\"}, {\"value\": \"previous\"}], \"metricValues\": [{\"value\": \"2000\"}, {\"value\": \"1200\"}, {\"value\": \"0.6\"}]}, {\"dimensionValues\": [{\"value\": \"newsletter / email\"}, {\"value\": \"current\"}], \"metricValues\": [{\"value\": \"1500\"}, {\"value\": \"949\"}, {\"value\": \"0.633333\"}]}, {\"dimensionValues\": [{\"value\": \"newsletter / email\"}, {\"value\": \"previous\"}], \"metricValues\": [{\"value\": \"1200\"}, {\"value\": \"759\"}, {\"value\": \"0.633333\"}]}], \"rowCount\": 8}, {\"dimensionHeaders\": [{\"name\": \"landingPage\"}, {\"name\": \"dateRange\"}], \"metricHeaders\": [{\"name\": \"sessions\"}, {\"name\": \"engagedSessions\"}, {\"name\": \"engagementRate\"}], \"rows\": [{\"dimensionValues\": [{\"value\": \"/\"}, {\"value\": \"current\"}], \"metricValues\": [{\"value\": \"4000\"}, {\"value\": \"2400\"}, {\"value\": \"0.6\"}]}, {\"dimensionValues\": [{\"value\": \"/\"}, {\"value\": \"previous\"}], \"metricValues\": [{\"value\": \"3500\"}, {\"value\": \"2100\"}, {\"value\": \"0.6\"}]}, {\"dimensionValues\": [{\"value\": \"/programs/example-course\"}, {\"value\": \"current\"}], \"metricValues\": [{\"value\": \"3000\"}, {\"value\": \"1800\"}, {\"value\": \"0.6\"}]}, {\"dimensionValues\": [{\"value\": \"/programs/example-course\"}, {\"value\": \"previous\"}], \"metricValues\": [{\"value\": \"2400\"}, {\"value\": \"1440\"}, {\"value\": \"0.6\"}]}, {\"dimensionValues\": [{\"value\": \"/webinar\"}, {\"value\": \"current\"}], \"metricValues\": [{\"value\": \"2000\"}, {\"value\": \"1200\"}, {\"value\": \"0.6\"}]}, {\"dimensionValues\": [{\"value\": \"/webinar\"}, {\"value\": \"previous\"}], \"metricValues\": [{\"value\": \"1500\"}, {\"value\": \"900\"}, {\"value\": \"0.6\"}]}], \"rowCount\": 6}, {\"dimensionHeaders\": [{\"name\": \"eventName\"}, {\"name\": \"dateRange\"}], \"metricHeaders\": [{\"name\": \"eventCount\"}], \"rows\": [{\"dimensionValues\": [{\"value\": \"purchase\"}, {\"value\": \"current\"}], \"metricValues\": [{\"value\": \"80\"}]}, {\"dimensionValues\": [{\"value\": \"purchase\"}, {\"value\": \"previous\"}], \"metricValues\": [{\"value\": \"70\"}]}, {\"dimensionValues\": [{\"value\": \"generate_lead\"}, {\"value\": \"current\"}], \"metricValues\": [{\"value\": \"240\"}]}, {\"dimensionValues\": [{\"value\": \"generate_lead\"}, {\"value\": \"previous\"}], \"metricValues\": [{\"value\": \"160\"}]}], \"rowCount\": 4}], \"synthetic\": true}}];"
+      },
+      "onError": "continueErrorOutput"
+    },
+    {
+      "id": "bc351a1e-fa48-4de3-922b-6d3825af862e",
+      "name": "Traffic | Compose review",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1376,
+        1744
+      ],
+      "parameters": {
+        "jsCode": "const data=$input.first().json,c=$('Traffic | Reporting period').first().json;\nif(!Array.isArray(data.reports)||data.reports.length!==4)throw Error('Expected four GA4 reports; configure the connection first.');\nconst warnings=[];\nconst tables=data.reports.map((r,i)=>{\n if(r.metadata?.subjectToThresholding||r.metadata?.samplingMetadatas?.length||r.metadata?.dataLossFromOtherRow)warnings.push('Report '+(i+1)+': thresholding, sampling or aggregated rows may affect results.');\n if(r.rowCount>(r.rows||[]).length)warnings.push('Report '+(i+1)+': limited rows; this is not a complete breakdown.');\n return (r.rows||[]).map(row=>{const o={};(r.dimensionHeaders||[]).forEach((h,j)=>o[h.name]=row.dimensionValues[j].value);(r.metricHeaders||[]).forEach((h,j)=>o[h.name]=Number(row.metricValues[j].value));return o;});\n});\nconst current=tables[0].find(r=>r.dateRange==='current'),prior=tables[0].find(r=>r.dateRange==='previous');\nif(!current||!prior)throw Error('Missing current/prior totals; do not interpret missing GA4 data as zero.');\nconst delta=(a,b)=>b?((a-b)/b*100).toFixed(1)+'%':'n/a (prior zero)';\nconst pct=x=>(100*x).toFixed(1)+'%';\nconst sections=[];\nfor(const [index,key,title] of [[1,'sessionSourceMedium','Sources / mediums'],[2,'landingPage','Top landing pages']]){\n const now=tables[index].filter(r=>r.dateRange==='current').sort((a,b)=>b.sessions-a.sessions).slice(0,10);\n sections.push('## '+title+'\\n| '+key+' | Sessions | Previous | Change | Engagement |\\n|---|---:|---:|---:|---:|\\n'+now.map(r=>{const old=tables[index].find(v=>v.dateRange==='previous'&&v[key]===r[key]);return '| '+String(r[key]).replaceAll('|',' / ')+' | '+r.sessions+' | '+(old?.sessions??'unavailable')+' | '+(old?delta(r.sessions,old.sessions):'n/a')+' | '+pct(r.engagementRate)+' |';}).join('\\n'));\n}\nconst events=c.events.map(name=>{const a=tables[3].find(r=>r.dateRange==='current'&&r.eventName===name),b=tables[3].find(r=>r.dateRange==='previous'&&r.eventName===name);return '- '+name+': '+(a?.eventCount??'not returned')+' vs '+(b?.eventCount??'not returned')+' events';}).join('\\n');\nconst label=data.synthetic?'SYNTHETIC DATA — invented workshop example':'LIVE GA4 — private data';\nconst markdown='# Website traffic review\\n\\n'+label+'\\n\\n'+c.current.start+'–'+c.current.end+' vs '+c.previous.start+'–'+c.previous.end+' ('+c.timeZone+').\\n\\nSessions: '+current.sessions+' vs '+prior.sessions+' ('+delta(current.sessions,prior.sessions)+'). Engagement rate: '+pct(current.engagementRate)+' vs '+pct(prior.engagementRate)+'.\\n\\n'+sections.join('\\n\\n')+'\\n\\n## Tracked events\\n'+events+'\\n\\n## Readout\\nTraffic '+(current.sessions>=prior.sessions?'increased':'decreased')+'; engagement rate changed by '+((current.engagementRate-prior.engagementRate)*100).toFixed(1)+' percentage points. Review the source mix and landing pages before choosing an action. Event counts are not unique buyers or proof of incremental sales. Your store or CRM remains the revenue source.\\n\\n'+(warnings.length?'Warnings: '+warnings.join(' '):'No API quality flags returned; this does not guarantee complete tracking.')+'\\n';\nreturn [{json:{markdown,slackText:markdown,fileName:'traffic-'+c.current.start+'-to-'+c.current.end+'.md'}}];"
+      },
+      "onError": "continueErrorOutput"
+    },
+    {
+      "id": "25a88f30-325a-4c4b-ad05-3736d49f1ba1",
+      "name": "Traffic | Create Markdown BEFORE Slack",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1600,
+        1744
+      ],
+      "parameters": {
+        "jsCode": "const d=$input.first().json;return [{json:d,binary:{report:{data:Buffer.from(d.markdown,'utf8').toString('base64'),mimeType:'text/markdown',fileExtension:'md',fileName:d.fileName}}}];"
+      }
+    },
+    {
+      "id": "4c45b0f0-3d2a-473d-bf72-790e196f5e99",
+      "name": "Website traffic explainer",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -144,
+        1552
+      ],
+      "parameters": {
+        "content": "## 4. Website traffic review (GA4)\n**For:** traffic quality, channel mix, landing pages and purchase/lead events. Last 7 completed days vs prior 7.\n**Demo:** fictional GA4 response → review → Markdown file → collected with the other reports → delivery (switched off).\n**Real connection:** select GA4 OAuth and property ID in Settings (connection template). Revenue stays in your store or CRM.",
+        "height": 224,
+        "width": 758,
+        "color": 5
+      }
+    },
+    {
+      "id": "workshop-slack-setup-guide",
+      "name": "Slack app setup guide",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        4032,
+        304
+      ],
+      "parameters": {
+        "content": "## Slack setup\n1. Create and install a Slack app with the bot scope `chat:write`.\n2. Save its token as an n8n Slack credential.\n3. Invite the bot to a test channel.\n4. Put the channel ID in Settings (`slackChannel`).\n5. Select the credential on Deliver | Slack and switch it on. It posts one formatted message per review and one for the summary.\n\nApp installation may need workspace approval.",
+        "width": 520,
+        "height": 440,
+        "color": 4
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "// Edit these before the first run. Every lane reads its settings from here.\nreturn [{json:{\n  storeName:'Demo Store',            // the made-up store; keep it for the demo\n  currency:'USD',                    // ISO code, for example EUR or GBP\n  timeZone:'America/Chicago',        // reporting timezone, for example Europe/London\n  locale:'en-US',                    // number and money format, for example en-GB or de-DE\n  ga4PropertyId:'NOT_NEEDED_FOR_THE_DEMO', // the demo's traffic data is made up\n  ga4Events:['purchase','generate_lead'], // events the traffic review lists\n  slackChannel:'SELECT_YOUR_TEST_CHANNEL', // Slack delivery: the channel ID (right-click the channel, Copy link: the part after /archives/)\n  emailTo:'YOU@EXAMPLE.COM',         // only if you swap Slack for email\n  n8nUrl:'https://YOUR-INSTANCE.app.n8n.cloud' // your n8n address, for the workflow links in Slack\n}}];"
+      },
+      "id": "6c36bdd6-d38f-42aa-948c-b65d778f55ab",
+      "name": "Settings",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        160,
+        920
+      ],
+      "notes": "Edit before the first run: currency, timezone, number format and the Slack channel.",
+      "notesInFlow": true
+    },
+    {
+      "parameters": {
+        "jsCode": "const p=$('Executive | Reporting period').first().json;const j=$input.first().json,e=j.error??j;const reason=String(typeof e==='string'?e:(e.message||e.description||JSON.stringify(e))).replace(/[\\r\\n]+/g,' ').slice(0,300);const setup=/switched off|configure the connection first|did not load: no response|got undefined/.test(reason);const markdown=['INCOMPLETE | '+p.storeName+' | Executive business review',p.start+' to '+p.end+' | '+p.currency+' | '+p.timeZone,'','This review did not run, so it reports no figures this week. Missing figures are not zero.','Failed step: '+$prevNode.name,'Reason: '+reason,'',...(setup?['First run before setup? The source nodes stay switched off until you connect them, so this is expected.']:[]),'Review: fix the connection or setting named above, then run the workflow again.'].join('\\n')+'\\n';return [{json:{markdown,slackText:markdown,fileName:'executive-'+p.start+'-to-'+p.end+'-incomplete.md',incomplete:true}}];"
+      },
+      "id": "4cf1f604-3689-47dc-abea-1c8a1cc2e021",
+      "name": "Executive | Incomplete report",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2048,
+        496
+      ],
+      "notes": "Runs only when a step in this lane fails. Writes an INCOMPLETE report so the other reviews still go out.",
+      "notesInFlow": true
+    },
+    {
+      "parameters": {
+        "jsCode": "const p=$('Marketing | Reporting period').first().json;const j=$input.first().json,e=j.error??j;const reason=String(typeof e==='string'?e:(e.message||e.description||JSON.stringify(e))).replace(/[\\r\\n]+/g,' ').slice(0,300);const setup=/switched off|configure the connection first|did not load: no response|got undefined/.test(reason);const markdown=['INCOMPLETE | '+p.storeName+' | Marketing source review',p.start+' to '+p.end+' | '+p.currency+' | '+p.timeZone,'','This review did not run, so it reports no figures this week. Missing figures are not zero.','Failed step: '+$prevNode.name,'Reason: '+reason,'',...(setup?['First run before setup? The source nodes stay switched off until you connect them, so this is expected.']:[]),'Review: fix the connection or setting named above, then run the workflow again.'].join('\\n')+'\\n';return [{json:{markdown,slackText:markdown,fileName:'marketing-'+p.start+'-to-'+p.end+'-incomplete.md',incomplete:true}}];"
+      },
+      "id": "39408280-8f91-4574-99f9-a25219adc567",
+      "name": "Marketing | Incomplete report",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1824,
+        976
+      ],
+      "notes": "Runs only when a step in this lane fails. Writes an INCOMPLETE report so the other reviews still go out.",
+      "notesInFlow": true
+    },
+    {
+      "parameters": {
+        "jsCode": "const p=$('Products | Reporting period').first().json;const j=$input.first().json,e=j.error??j;const reason=String(typeof e==='string'?e:(e.message||e.description||JSON.stringify(e))).replace(/[\\r\\n]+/g,' ').slice(0,300);const setup=/switched off|configure the connection first|did not load: no response|got undefined/.test(reason);const markdown=['INCOMPLETE | '+p.storeName+' | Top product review',p.start+' to '+p.end+' | '+p.currency+' | '+p.timeZone,'','This review did not run, so it reports no figures this week. Missing figures are not zero.','Failed step: '+$prevNode.name,'Reason: '+reason,'',...(setup?['First run before setup? The source nodes stay switched off until you connect them, so this is expected.']:[]),'Review: fix the connection or setting named above, then run the workflow again.'].join('\\n')+'\\n';return [{json:{markdown,slackText:markdown,fileName:'products-'+p.start+'-to-'+p.end+'-incomplete.md',incomplete:true}}];"
+      },
+      "id": "08cedad0-ee37-4dda-a89c-d4ae2a637583",
+      "name": "Products | Incomplete report",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1600,
+        1456
+      ],
+      "notes": "Runs only when a step in this lane fails. Writes an INCOMPLETE report so the other reviews still go out.",
+      "notesInFlow": true
+    },
+    {
+      "parameters": {
+        "jsCode": "const c=$('Traffic | Reporting period').first().json;const p={start:c.current.start,end:c.current.end};const s=$('Settings').first().json;const j=$input.first().json,e=j.error??j;const reason=String(typeof e==='string'?e:(e.message||e.description||JSON.stringify(e))).replace(/[\\r\\n]+/g,' ').slice(0,300);const setup=/switched off|configure the connection first|did not load: no response|got undefined/.test(reason);const markdown=['INCOMPLETE | '+s.storeName+' | Website traffic review',p.start+' to '+p.end+' | '+'GA4 | '+c.timeZone,'','This review did not run, so it reports no figures this week. Missing figures are not zero.','Failed step: '+$prevNode.name,'Reason: '+reason,'',...(setup?['First run before setup? The source nodes stay switched off until you connect them, so this is expected.']:[]),'Review: fix the connection or setting named above, then run the workflow again.'].join('\\n')+'\\n';return [{json:{markdown,slackText:markdown,fileName:'traffic-'+p.start+'-to-'+p.end+'-incomplete.md',incomplete:true}}];"
+      },
+      "id": "6c7dd163-270e-4bde-95fe-3e3879915a1c",
+      "name": "Traffic | Incomplete report",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1376,
+        1936
+      ],
+      "notes": "Runs only when a step in this lane fails. Writes an INCOMPLETE report so the other reviews still go out.",
+      "notesInFlow": true
+    },
+    {
+      "parameters": {
+        "numberInputs": 4
+      },
+      "id": "d798acb1-0dca-4030-94fa-144b112408fe",
+      "name": "Collect all reports",
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        2752,
+        784
+      ]
+    },
+    {
+      "id": "a5811887-00bd-458a-8525-eaaf3601d556",
+      "name": "Deliver | Slack",
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 2.3,
+      "position": [
+        4320,
+        784
+      ],
+      "parameters": {
+        "select": "channel",
+        "channelId": {
+          "__rl": true,
+          "value": "={{ $('Settings').first().json.slackChannel }}",
+          "mode": "id"
+        },
+        "text": "={{ $json.slackText }}",
+        "otherOptions": {
+          "unfurl_links": false,
+          "unfurl_media": false,
+          "includeLinkToWorkflow": false
+        }
+      },
+      "disabled": true,
+      "notes": "One formatted message per review and one for the summary. Select your Slack credential, set slackChannel in Settings, then switch on.",
+      "notesInFlow": true
+    },
+    {
+      "parameters": {
+        "jsCode": "// Turns each review's Markdown into a Slack message: an emoji title, bold labels,\n// a dashed rule between parts, and table rows as bullet lines (Slack can't show\n// Markdown tables). The Markdown file itself is unchanged; only slackText is rewritten.\nconst s = $('Settings').first().json;\nconst base = String(s.n8nUrl || '').replace(/\\/+$/, '');\nconst linked = /^https?:\\/\\//.test(base) && !base.includes('YOUR-INSTANCE');\nconst wfUrl = linked ? base + '/workflow/' + $workflow.id : '';\nconst icon = { executive: '📊', marketing: '📣', products: '🛍️', traffic: '🌐', email: '✉️', ads: '🎯', summary: '🧠', glance: '🗓️' };\nconst title = { executive: 'Executive business review', marketing: 'Marketing source review', products: 'Top product review', traffic: 'Website traffic review', email: 'Email review (Customer.io)', ads: 'Ads review (Google Ads and Meta)', summary: 'Weekly summary', glance: 'Week at a glance' };\nconst rule = '------------------------------';\nconst esc = t => String(t).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');\nconst isContext = l => /^(DEMO|PRIVATE LIVE|SYNTHETIC DATA|SAMPLE DATA|LIVE GA4|INCOMPLETE \\|)/.test(l) || /^\\d{4}-\\d{2}-\\d{2}/.test(l) || /^(Synthetic example data|Sample data:|Live Metorik data|Live data from|Written by an AI model)/.test(l);\nconst cells = l => l.replace(/^\\|/, '').replace(/\\|\\s*$/, '').split('|').map(c => c.trim());\n\nreturn $input.all().map(item => {\n  const j = item.json;\n  const lane = String(j.fileName || '').split('-')[0];\n  const head = (j.incomplete ? '⚠️' : (icon[lane] || '📄')) + ' *' + (title[lane] || esc(j.fileName || 'Review')) + (j.incomplete ? ': incomplete' : '') + '*';\n  const context = [], body = [];\n  let header = null;\n  for (const raw of String(j.markdown || '').split('\\n')) {\n    const l = raw.trim();\n    if (!l) { if (body.length && body[body.length - 1] !== '') body.push(''); continue; }\n    if (l.startsWith('# ')) continue;\n    if (!body.length && isContext(l)) { context.push('_' + esc(l.replace(/\\s*\\|\\s*/g, ' · ')) + '_'); continue; }\n    if (l.startsWith('## ')) { if (body.length && body[body.length - 1] !== '') body.push(''); body.push('*' + esc(l.slice(3)) + '*'); header = null; continue; }\n    if (l.startsWith('|')) {\n      const c = cells(l);\n      if (c.every(x => /^:?-+:?$/.test(x))) continue;\n      if (!header) { header = c; continue; }\n      body.push('• *' + esc(c[0]) + '*' + c.slice(1).map((v, k) => ' · ' + esc(header[k + 1]) + ' ' + esc(v)).join(''));\n      continue;\n    }\n    header = null;\n    let m;\n    if ((m = l.match(/^Review:\\s*(.*)$/))) { body.push('👉 *Review:* ' + esc(m[1])); continue; }\n    if ((m = l.match(/^([•-])\\s+([^:]{1,45}):\\s+(.*)$/))) { body.push('• *' + esc(m[2]) + ':* ' + esc(m[3]).replace(/\\s*\\|\\s*/g, ' · ')); continue; }\n    if ((m = l.match(/^(\\d+)\\.\\s+(.+?)\\s+—\\s+(.*)$/))) { body.push(m[1] + '. *' + esc(m[2]) + '* · ' + esc(m[3]).replace(/\\s*\\|\\s*/g, ' · ')); continue; }\n    if ((m = l.match(/^(Failed step|Reason):\\s*(.*)$/))) { body.push('*' + m[1] + ':* ' + esc(m[2])); continue; }\n    if (/^[^:]{3,60}:$/.test(l)) { body.push('*' + esc(l) + '*'); continue; }\n    body.push(esc(l).replace(/\\s*\\|\\s*/g, ' · '));\n  }\n  while (body.length && body[body.length - 1] === '') body.pop();\n  const parts = [head, ...context, rule, ...body];\n  if (linked) parts.push(rule, '<' + wfUrl + '|Open the workflow> · <' + wfUrl + '/executions/' + $execution.id + '|This run>');\n  return { json: { ...j, slackText: parts.join('\\n') }, binary: item.binary };\n});\n"
+      },
+      "id": "3c0d4d97-b7aa-460c-9801-03dc6fb3826f",
+      "name": "Slack | Format for Slack",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        4096,
+        784
+      ],
+      "notes": "Rewrites each review for Slack: emoji title, bold labels, tables as bullet lines.",
+      "notesInFlow": true
+    },
+    {
+      "parameters": {
+        "jsCode": "// Week at a glance: one line per review, quoted from its report, and the reviews that did not run.\n// Plain code, no AI and no new arithmetic: every figure here is copied from a review.\nconst items=$('Collect all reports').all(), s=$('Settings').first().json, p=$('Executive | Reporting period').first().json;\nconst lines=md=>String(md||'').split('\\n').map(x=>x.trim());\nconst pick={executive:/^\\u2022 Net revenue:/,marketing:/^\\u2022 Source report represents/,products:/^1\\. /,traffic:/^Sessions:/,email:/^\\u2022 Emails sent:/};\nconst label={executive:'Sales',marketing:'Sources',products:'Top product',traffic:'Traffic',email:'Email'}; // add a lane here when you add a review\nconst lane=i=>String(i.json.fileName).split('-')[0];\nconst done=items.filter(i=>!i.json.incomplete), missing=items.filter(i=>i.json.incomplete);\nconst out=['# Week at a glance',p.start+' to '+p.end+' | '+s.storeName+' | '+done.length+' of '+items.length+' reviews complete',''];\nfor(const i of done){const l=lines(i.json.markdown).find(x=>(pick[lane(i)]||/^\\u2022/).test(x));out.push('\\u2022 '+(label[lane(i)]||lane(i))+': '+(l?l.replace(/^\\u2022\\s*/,''):'see the review'));}\nif(missing.length){out.push('','Did not run (missing, not zero):');for(const i of missing){const f=lines(i.json.markdown).find(x=>/^Failed step:/.test(x));out.push('\\u2022 '+(label[lane(i)]||lane(i))+': '+(f||'see the review'));}}\nout.push('','Every figure above is quoted from its review. The reviews follow.');\nconst markdown=out.join('\\n')+'\\n', fileName='glance-'+p.start+'-to-'+p.end+'.md';\nconst facts={period:{start:p.start,end:p.end,previousStart:p.previousStart,previousEnd:p.previousEnd},currency:s.currency,\n  reviews:{complete:done.map(i=>i.json.fileName),incomplete:missing.map(i=>i.json.fileName),complete_count:done.length,total_count:items.length},\n  reports:items.map(i=>({file:i.json.fileName,incomplete:!!i.json.incomplete,markdown:i.json.markdown}))};\nreturn [{json:{markdown,slackText:markdown,fileName,facts},binary:{report:{data:Buffer.from(markdown,'utf8').toString('base64'),mimeType:'text/markdown',fileExtension:'md',fileName}}}];"
+      },
+      "name": "Summary | Week at a glance",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "notes": "One line per review, quoted. No AI.",
+      "notesInFlow": true,
+      "id": "e8e8a21c-2aee-4c22-88e3-0ba4fd9d8a92",
+      "position": [
+        2976,
+        784
+      ]
+    },
+    {
+      "name": "Summary | AI summary",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [
+        3200,
+        784
+      ],
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ 'Facts (JSON):\\n' + JSON.stringify($json.facts, null, 1) }}",
+        "options": {
+          "systemMessage": "You write a short weekly summary for a marketing team from the facts you are given, and nothing else.\n\nRules:\n1. Every number you write must appear in the facts. You may round to whole numbers. Never calculate a new number.\n2. How many reviews ran comes only from reviews.complete_count and reviews.total_count. Name the incomplete ones from reviews.incomplete.\n3. A report marked incomplete, or a value that is missing or null, is missing data, not zero. Say it is missing and name the failed step.\n4. Keep facts, hypotheses and missing data apart. Label every hypothesis as a hypothesis.\n5. If the reports say DEMO or SYNTHETIC DATA, say once, first, that the figures are made up.\n6. Order sources are not incrementality, event counts are not unique people, and non-renewal revenue is not first-time buyer revenue.\n7. Plain US English, short lines, no em dashes, no all caps.\n\nOutput Markdown with exactly these sections:\n## Headline (two lines)\n## Flags\n## Working\n## Not working\n## Missing data\n## Check next (at most three items, each tied to a line in a report)",
+          "maxIterations": 3
+        }
+      },
+      "onError": "continueRegularOutput",
+      "disabled": true,
+      "id": "90d7d316-65e6-4ab0-9695-34e219d6226a"
+    },
+    {
+      "name": "Summary | Claude model",
+      "type": "@n8n/n8n-nodes-langchain.lmChatAnthropic",
+      "typeVersion": 1.6,
+      "position": [
+        3200,
+        1008
+      ],
+      "parameters": {
+        "model": {
+          "__rl": true,
+          "mode": "id",
+          "value": "claude-sonnet-5-5"
+        },
+        "options": {
+          "maxTokensToSample": 6000
+        }
+      },
+      "id": "5f59944d-1d80-4788-98d0-6a0cacde64bf"
+    },
+    {
+      "parameters": {
+        "jsCode": "// The AI summary as one more file. While the AI node is switched off it passes the glance through,\n// so this step marks the summary skipped and nothing extra is delivered.\nconst j=$input.first().json, p=$('Summary | Week at a glance').first().json.facts.period;\nif(!j.output&&!j.error)return [{json:{skipped:true,fileName:'summary-'+p.start+'-to-'+p.end+'-skipped.md',markdown:'',slackText:''}}];\nconst ok=!j.error&&j.output;\nconst body=ok?String(j.output).replace(/\\s*\\u2014\\s*/g,', '):'INCOMPLETE: the AI summary did not run, so there is no AI summary this week. The reviews are unaffected.\\nReason: '+String(j.error?.message||j.error||'no output').slice(0,300);\nconst fileName='summary-'+p.start+'-to-'+p.end+(ok?'':'-incomplete')+'.md';\nconst markdown='# Weekly summary\\n'+p.start+' to '+p.end+'\\nWritten by an AI model from this run\\'s reviews. Check a number against its review before acting on it.\\n\\n'+body+'\\n';\nreturn [{json:{markdown,slackText:markdown,fileName,incomplete:!ok},binary:{report:{data:Buffer.from(markdown,'utf8').toString('base64'),mimeType:'text/markdown',fileExtension:'md',fileName}}}];"
+      },
+      "name": "Summary | AI summary report",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "id": "7be99d9a-0330-4f94-a0d3-880ccb1b408f",
+      "position": [
+        3424,
+        784
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// The four reviews, the week at a glance and, when it is switched on, the AI summary.\nreturn [...$('Collect all reports').all(), $('Summary | Week at a glance').first(), ...$('Summary | AI summary report').all().filter(i => !i.json.skipped)];"
+      },
+      "name": "All reports and summary",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "id": "8e56941d-39ba-4266-ac71-40b8743f8c1b",
+      "position": [
+        3648,
+        784
+      ]
+    },
+    {
+      "parameters": {
+        "content": "## Summary\n**Week at a glance** (on): one line per review, quoted from the review, and any review that did not run. Plain code, no API key.\n\n**AI summary** (off): an AI Agent with a Claude model reads the reviews and writes flags, what is working and what to check. It may not invent a number. To switch it on: add an Anthropic credential to Summary | Claude model, then switch on Summary | AI summary.",
+        "width": 960,
+        "height": 300,
+        "color": 6
+      },
+      "name": "Summary explainer",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "id": "463724d5-56ec-4fb9-b1f8-1ebab6d8f878",
+      "position": [
+        2912,
+        444
+      ]
+    },
+    {
+      "parameters": {
+        "content": "## Your task\nGet the reviews out of n8n, one of two ways:\n\n**A. Slack:** create a Slack app with the bot scope `chat:write`, save its token as an n8n Slack credential, invite the bot to a test channel, put the channel ID in Settings (`slackChannel`), select the credential on Deliver | Slack, switch it on, run.\n\n**B. Email instead:** replace Deliver | Slack with a Gmail node that sends the reports (ask Claude to swap it), set `emailTo` in Settings, run, then `/reporting-agent:get-email-reports` saves them into your OS.",
+        "width": 520,
+        "height": 470,
+        "color": 3
+      },
+      "name": "Your task",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "id": "2478c3e4-a76c-4d36-88f9-2f259b8f3367",
+      "position": [
+        4032,
+        984
+      ]
+    }
+  ],
+  "connections": {
+    "Executive | Reporting period": {
+      "main": [
+        [
+          {
+            "node": "Executive | Verify store",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Executive | Verify store": {
+      "main": [
+        [
+          {
+            "node": "Executive | Check store identity",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Executive | Incomplete report",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Executive | Check store identity": {
+      "main": [
+        [
+          {
+            "node": "Executive | Current revenue",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Executive | Incomplete report",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Executive | Current revenue": {
+      "main": [
+        [
+          {
+            "node": "Executive | Previous revenue",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Executive | Incomplete report",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Executive | Previous revenue": {
+      "main": [
+        [
+          {
+            "node": "Executive | Order types",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Executive | Incomplete report",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Executive | Order types": {
+      "main": [
+        [
+          {
+            "node": "Executive | Compose review",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Executive | Incomplete report",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Executive | Compose review": {
+      "main": [
+        [
+          {
+            "node": "Executive | Create Markdown BEFORE Slack",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Executive | Incomplete report",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Executive | Create Markdown BEFORE Slack": {
+      "main": [
+        [
+          {
+            "node": "Collect all reports",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Marketing | Reporting period": {
+      "main": [
+        [
+          {
+            "node": "Marketing | Verify store",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Marketing | Verify store": {
+      "main": [
+        [
+          {
+            "node": "Marketing | Check store identity",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Marketing | Incomplete report",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Marketing | Check store identity": {
+      "main": [
+        [
+          {
+            "node": "Marketing | Order sources",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Marketing | Incomplete report",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Marketing | Order sources": {
+      "main": [
+        [
+          {
+            "node": "Marketing | All orders",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Marketing | Incomplete report",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Marketing | All orders": {
+      "main": [
+        [
+          {
+            "node": "Marketing | Compose review",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Marketing | Incomplete report",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Marketing | Compose review": {
+      "main": [
+        [
+          {
+            "node": "Marketing | Create Markdown BEFORE Slack",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Marketing | Incomplete report",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Marketing | Create Markdown BEFORE Slack": {
+      "main": [
+        [
+          {
+            "node": "Collect all reports",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Products | Reporting period": {
+      "main": [
+        [
+          {
+            "node": "Products | Verify store",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Products | Verify store": {
+      "main": [
+        [
+          {
+            "node": "Products | Check store identity",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Products | Incomplete report",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Products | Check store identity": {
+      "main": [
+        [
+          {
+            "node": "Products | Top products",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Products | Incomplete report",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Products | Top products": {
+      "main": [
+        [
+          {
+            "node": "Products | Compose review",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Products | Incomplete report",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Products | Compose review": {
+      "main": [
+        [
+          {
+            "node": "Products | Create Markdown BEFORE Slack",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Products | Incomplete report",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Products | Create Markdown BEFORE Slack": {
+      "main": [
+        [
+          {
+            "node": "Collect all reports",
+            "type": "main",
+            "index": 2
+          }
+        ]
+      ]
+    },
+    "Traffic | Reporting period": {
+      "main": [
+        [
+          {
+            "node": "Traffic | Build GA4 request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Traffic | Build GA4 request": {
+      "main": [
+        [
+          {
+            "node": "Traffic | Synthetic GA4 response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Traffic | Synthetic GA4 response": {
+      "main": [
+        [
+          {
+            "node": "Traffic | Compose review",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Traffic | Incomplete report",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Traffic | Compose review": {
+      "main": [
+        [
+          {
+            "node": "Traffic | Create Markdown BEFORE Slack",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Traffic | Incomplete report",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Traffic | Create Markdown BEFORE Slack": {
+      "main": [
+        [
+          {
+            "node": "Collect all reports",
+            "type": "main",
+            "index": 3
+          }
+        ]
+      ]
+    },
+    "Settings": {
+      "main": [
+        [
+          {
+            "node": "Executive | Reporting period",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Marketing | Reporting period",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Products | Reporting period",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Traffic | Reporting period",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Run all four reviews": {
+      "main": [
+        [
+          {
+            "node": "Settings",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Executive | Incomplete report": {
+      "main": [
+        [
+          {
+            "node": "Executive | Create Markdown BEFORE Slack",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Marketing | Incomplete report": {
+      "main": [
+        [
+          {
+            "node": "Marketing | Create Markdown BEFORE Slack",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Products | Incomplete report": {
+      "main": [
+        [
+          {
+            "node": "Products | Create Markdown BEFORE Slack",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Traffic | Incomplete report": {
+      "main": [
+        [
+          {
+            "node": "Traffic | Create Markdown BEFORE Slack",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Slack | Format for Slack": {
+      "main": [
+        [
+          {
+            "node": "Deliver | Slack",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Collect all reports": {
+      "main": [
+        [
+          {
+            "node": "Summary | Week at a glance",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Summary | Week at a glance": {
+      "main": [
+        [
+          {
+            "node": "Summary | AI summary",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Summary | Claude model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Summary | AI summary",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Summary | AI summary": {
+      "main": [
+        [
+          {
+            "node": "Summary | AI summary report",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Summary | AI summary report": {
+      "main": [
+        [
+          {
+            "node": "All reports and summary",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "All reports and summary": {
+      "main": [
+        [
+          {
+            "node": "Slack | Format for Slack",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "active": false,
+  "nodeGroups": [
+    {
+      "id": "1eca9fe7-48dd-5227-8dce-34d5837aeaa4",
+      "name": "1. Executive review",
+      "nodeNames": [
+        "Executive | Reporting period",
+        "Executive | Verify store",
+        "Executive | Check store identity",
+        "Executive | Current revenue",
+        "Executive | Previous revenue",
+        "Executive | Order types",
+        "Executive | Compose review",
+        "Executive | Create Markdown BEFORE Slack",
+        "Executive | Incomplete report"
+      ],
+      "description": "Sales, refunds and orders this week vs last, on made-up data."
+    },
+    {
+      "id": "899cbac7-fb39-5fdf-8d6b-d9cd34356154",
+      "name": "2. Marketing source review",
+      "nodeNames": [
+        "Marketing | Reporting period",
+        "Marketing | Verify store",
+        "Marketing | Check store identity",
+        "Marketing | Order sources",
+        "Marketing | All orders",
+        "Marketing | Compose review",
+        "Marketing | Create Markdown BEFORE Slack",
+        "Marketing | Incomplete report"
+      ],
+      "description": "Orders and net sales by recorded source, on made-up data."
+    },
+    {
+      "id": "09000370-207b-51df-b073-bb8e962fb71f",
+      "name": "3. Top product review",
+      "nodeNames": [
+        "Products | Reporting period",
+        "Products | Verify store",
+        "Products | Check store identity",
+        "Products | Top products",
+        "Products | Compose review",
+        "Products | Create Markdown BEFORE Slack",
+        "Products | Incomplete report"
+      ],
+      "description": "Top products and plans by net sales, on made-up data."
+    },
+    {
+      "id": "576448ca-834c-5096-8e86-1ba30a564d84",
+      "name": "4. Website traffic review",
+      "nodeNames": [
+        "Traffic | Reporting period",
+        "Traffic | Build GA4 request",
+        "Traffic | Synthetic GA4 response",
+        "Traffic | Compose review",
+        "Traffic | Create Markdown BEFORE Slack",
+        "Traffic | Incomplete report"
+      ],
+      "description": "Sessions, sources, landing pages and events, on a made-up GA4 response."
+    },
+    {
+      "id": "618d75c5-f029-5e66-826d-0f87200e0801",
+      "name": "Summary",
+      "nodeNames": [
+        "Summary | Week at a glance",
+        "Summary | AI summary",
+        "Summary | Claude model",
+        "Summary | AI summary report",
+        "All reports and summary"
+      ],
+      "description": "Week at a glance in code (on) and the AI summary (off), then every report together."
+    },
+    {
+      "id": "b227ae5d-30b4-5d99-907b-18d3b1a6c99b",
+      "name": "Deliver: Slack",
+      "nodeNames": [
+        "Deliver | Slack",
+        "Slack | Format for Slack"
+      ],
+      "description": "One formatted message per review and one for the summary."
+    }
+  ]
+}

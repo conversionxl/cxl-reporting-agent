@@ -1,0 +1,480 @@
+{
+  "name": "Workshop | Ads review from Nick Christensen's starter | v1",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "days",
+              "daysInterval": 1,
+              "triggerAtHour": 9
+            }
+          ]
+        }
+      },
+      "name": "Daily 9am",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        256,
+        400
+      ],
+      "id": "a4fe02d3-b143-4f7f-adf5-84b9d73b3662"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Edit these before the first run. Every step reads its settings from here.\nreturn [{json:{\n  storeName:'YOUR_BUSINESS',         // printed on the review\n  currency:'USD',                    // ISO code, for example EUR or GBP\n  timeZone:'America/Chicago',        // reporting timezone, for example Europe/London\n  locale:'en-US',                    // number and money format, for example en-GB or de-DE\n  slackChannel:'SELECT_YOUR_TEST_CHANNEL', // Slack delivery: the channel ID (right-click the channel, Copy link: the part after /archives/)\n  emailTo:'YOU@EXAMPLE.COM',         // Email delivery: where the review goes\n  n8nUrl:'https://YOUR-INSTANCE.app.n8n.cloud' // your n8n address, for the workflow links in email and Slack\n}}];"
+      },
+      "name": "Settings",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "notes": "Edit before the first run: business name, currency, timezone and delivery.",
+      "notesInFlow": true,
+      "id": "56061cd0-5afe-4243-b7ae-2ef20d515e79",
+      "position": [
+        480,
+        400
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Yesterday, in the Settings timezone: Nick's digest is a daily read.\nconst s=$('Settings').first().json;\nconst d=$now.setZone(s.timeZone).startOf('day').minus({days:1}).toISODate();\nreturn [{json:{start:d,end:d}}];"
+      },
+      "name": "Ads | Reporting period",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "id": "77ffd16b-cb6f-4bc8-a7fd-96078ca3b41c",
+      "position": [
+        704,
+        400
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// From Nick Christensen's ads reporting starter (MIT), workshop \"Ship ICP-driven ad campaigns and automated monitoring\".\n// Source: https://github.com/nickyc1/ship-icp-ads-automate-monitoring (n8n-ads-reporting/starter-workflow.json).\n// Carried unchanged below this header.\n// Mock Google Ads daily metrics. Swap this node for an HTTP Request / google-ads-mcp call later.\n// Shape stays the same so nothing downstream changes.\nconst campaigns = [\n  { campaign: \"Brand - Search\",        platform: \"google\", spend: 820,  conversions: 41, conversion_value: 3120, cpa: 20.0, historical_cpa: 19.0, ctr: 0.112, clicks: 612, impressions: 5460 },\n  { campaign: \"Competitor - Search\",   platform: \"google\", spend: 1450, conversions: 22, conversion_value: 1980, cpa: 65.9, historical_cpa: 31.0, ctr: 0.041, clicks: 410, impressions: 9900 },\n  { campaign: \"PMax - All Products\",   platform: \"google\", spend: 2100, conversions: 78, conversion_value: 6890, cpa: 26.9, historical_cpa: 28.0, ctr: 0.066, clicks: 880, impressions: 13300 },\n  { campaign: \"Generic - High Intent\", platform: \"google\", spend: 240,  conversions: 14, conversion_value: 1510, cpa: 17.1, historical_cpa: 18.0, ctr: 0.094, clicks: 168, impressions: 1780 },\n  { campaign: \"Display - Remarketing\", platform: \"google\", spend: 560,  conversions: 6,  conversion_value: 430,  cpa: 93.3, historical_cpa: 88.0, ctr: 0.008, clicks: 240, impressions: 30000 }\n];\nreturn campaigns.map(c => ({ json: c }));"
+      },
+      "name": "Ads | Google Ads (sample data)",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        928,
+        400
+      ],
+      "id": "ae3c072e-0d49-4b15-bf7b-9bf2af2e2215"
+    },
+    {
+      "parameters": {
+        "jsCode": "// From Nick Christensen's ads reporting starter (MIT), workshop \"Ship ICP-driven ad campaigns and automated monitoring\".\n// Source: https://github.com/nickyc1/ship-icp-ads-automate-monitoring (n8n-ads-reporting/starter-workflow.json).\n// Carried unchanged below this header.\n// Mock Meta daily metrics. Swap for the Meta Ads CLI/MCP later (one OAuth, no third-party app).\n// frequency is Meta-specific and feeds fatigue checks.\nconst campaigns = [\n  { campaign: \"Prospecting - Broad\",    platform: \"meta\", spend: 1300, conversions: 47, conversion_value: 2010, cpa: 27.7, historical_cpa: 25.0, ctr: 0.014, clicks: 980,  impressions: 70000, frequency: 1.8 },\n  { campaign: \"Retargeting - 7d\",       platform: \"meta\", spend: 430,  conversions: 33, conversion_value: 1890, cpa: 13.0, historical_cpa: 14.0, ctr: 0.022, clicks: 410,  impressions: 18600, frequency: 3.9 },\n  { campaign: \"Lookalike - Buyers 1%\",  platform: \"meta\", spend: 760,  conversions: 18, conversion_value: 720,  cpa: 42.2, historical_cpa: 39.0, ctr: 0.010, clicks: 520,  impressions: 52000, frequency: 2.1 },\n  { campaign: \"Creator - Whitelisting\", platform: \"meta\", spend: 290,  conversions: 16, conversion_value: 1240, cpa: 18.1, historical_cpa: 21.0, ctr: 0.031, clicks: 300,  impressions: 9700,  frequency: 1.4 }\n];\nreturn campaigns.map(c => ({ json: c }));"
+      },
+      "name": "Ads | Meta Ads (sample data)",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        928,
+        592
+      ],
+      "id": "c26799db-8457-4895-aa24-2a6b19d2e957"
+    },
+    {
+      "parameters": {
+        "numberInputs": 2
+      },
+      "name": "Ads | Merge",
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3,
+      "position": [
+        1152,
+        400
+      ],
+      "id": "65fb9c20-e123-4863-83b8-156d816eb715"
+    },
+    {
+      "parameters": {
+        "jsCode": "// From Nick Christensen's ads reporting starter (MIT), workshop \"Ship ICP-driven ad campaigns and automated monitoring\".\n// Source: https://github.com/nickyc1/ship-icp-ads-automate-monitoring (n8n-ads-reporting/starter-workflow.json).\n// Carried unchanged below this header.\n// Grade every campaign on profit-to-spend, flag anomalies, and write a plain-language digest.\n// Profit, not ROAS, is the hero number. Edit the targets to match your business.\nconst TARGET = { google: 1.5, meta: 0.5 };\n\nconst rows = $input.all().map(i => i.json);\nconst totalSpend = rows.reduce((s, r) => s + r.spend, 0);\nconst totalValue = rows.reduce((s, r) => s + r.conversion_value, 0);\nconst avgSpend = totalSpend / rows.length;\n\nconst graded = rows.map(r => {\n  const ptos = r.conversion_value / r.spend;            // profit-to-spend proxy\n  const target = TARGET[r.platform] ?? 1.0;\n  const grade = ptos >= target ? \"green\" : \"red\";\n  const anomaly = r.cpa > 2 * r.historical_cpa;\n  let decision;\n  if (grade === \"red\") decision = \"Investigate or pause\";\n  else if (r.spend < avgSpend && r.conversions > 0) decision = \"Scale (underfunded winner)\";\n  else decision = \"Hold\";\n  return { ...r, ptos: Number(ptos.toFixed(2)), grade, decision, anomaly };\n});\n\nconst attention = graded.filter(g => g.grade === \"red\" || g.anomaly);\nconst blended = (totalValue / totalSpend).toFixed(2);\n\nconst fmt = g => `${g.grade === \"green\" ? \"🟢\" : \"🔴\"} *${g.campaign}* (${g.platform}) — $${g.spend} spend, ${g.ptos}x value/spend → ${g.decision}${g.anomaly ? \"  ⚠️ CPA 2x+ historical\" : \"\"}`;\n\nlet digest = `📊 *Daily Paid Media Digest*\\n`;\ndigest += `Spend $${totalSpend.toLocaleString()} · Value $${totalValue.toLocaleString()} · Blended ${blended}x\\n\\n`;\ndigest += `*Needs attention (${attention.length})*\\n`;\ndigest += attention.length ? attention.map(fmt).join(\"\\n\") : \"Nothing flagged. All campaigns at or above target.\";\ndigest += `\\n\\n*All campaigns*\\n`;\ndigest += graded.sort((a, b) => b.ptos - a.ptos).map(fmt).join(\"\\n\");\ndigest += `\\n\\n_You make the call. This is the analyst, not the boss._`;\n\nreturn [{ json: { digest, campaign_count: graded.length, flagged: attention.length } }];"
+      },
+      "name": "Ads | Analyze",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1376,
+        400
+      ],
+      "id": "1a353a2a-5e8f-412b-a328-0cfb1c26c510",
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Wraps the ads digest from Ads | Analyze (Nick Christensen's grading) into the report contract.\nconst p=$('Ads | Reporting period').first().json, s=$('Settings').first().json;\n// A sample node that ran means sample rows reached the grading; once both are replaced (renamed), this is false.\nconst isSample=n=>{try{const j=$(n).first().json;return !!(j&&j.campaign!==undefined&&j.platform!==undefined);}catch(e){return false;}};\nconst sample=isSample('Ads | Google Ads (sample data)')||isSample('Ads | Meta Ads (sample data)');\nconst a=$('Ads | Analyze').first().json;\nif(!a||typeof a.digest!=='string'||!a.campaign_count)throw Error('No ad data: Ads | Analyze returned no campaigns. Connect your ad platforms, or keep the two sample nodes switched on.');\nif(/NaN|undefined/.test(a.digest))throw Error('Ad rows are missing fields: each row needs campaign, platform, spend, conversions, conversion_value, cpa and historical_cpa.');\nconst lines=[(sample?'SAMPLE DATA':'PRIVATE LIVE REVIEW')+' | '+s.storeName+' | Ads review (Google Ads and Meta)',p.start+' to '+p.end+' | '+s.currency,\n  sample?'Sample data: the example campaigns from Nick Christensen\\'s ads workshop, not your ad accounts. Replace the two sample nodes with your Google Ads and Meta data (same fields) to make this review live.':'Live data from your ad platforms.',\n  '',a.digest,'',\n  'Campaigns graded: '+a.campaign_count+'; flagged: '+a.flagged+'.',\n  'Grades use value-to-spend against the targets at the top of Ads | Analyze. Platform-reported conversion value is not profit: set the targets from your margins.',\n  'Review: check the flagged campaigns in the ad platform before changing any budget.'];\nconst markdown=lines.join('\\n')+'\\n';\nreturn [{json:{markdown,slackText:markdown,fileName:'ads-'+p.start+'-to-'+p.end+'.md',period:p,sample}}];"
+      },
+      "name": "Ads | Compose review",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "onError": "continueErrorOutput",
+      "id": "fc16340e-a62f-4a0e-bb67-e471951900e1",
+      "position": [
+        1600,
+        400
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const p=$('Ads | Reporting period').first().json,s=$('Settings').first().json;const j=$input.first().json,e=j.error??j;const reason=String(typeof e==='string'?e:(e.message||e.description||JSON.stringify(e))).replace(/[\\r\\n]+/g,' ').slice(0,300);const markdown=['INCOMPLETE | '+s.storeName+' | Ads review (Google Ads and Meta)',p.start+' to '+p.end+' | '+s.currency,'','This review did not run, so it reports no figures this week. Missing figures are not zero.','Failed step: '+$prevNode.name,'Reason: '+reason,'','Review: fix the connection or setting named above, then run the workflow again.'].join('\\n')+'\\n';return [{json:{markdown,slackText:markdown,fileName:'ads-'+p.start+'-to-'+p.end+'-incomplete.md',incomplete:true}}];"
+      },
+      "name": "Ads | Incomplete report",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "notes": "Runs only when a step fails. Writes an INCOMPLETE review instead of stopping the run.",
+      "notesInFlow": true,
+      "id": "5b13bcd6-cb80-4854-b25d-e0f4741124b3",
+      "position": [
+        1600,
+        592
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const d=$input.first().json;return [{json:d,binary:{report:{data:Buffer.from(d.markdown,'utf8').toString('base64'),mimeType:'text/markdown',fileExtension:'md',fileName:d.fileName}}}];"
+      },
+      "name": "Ads | Create Markdown BEFORE Slack",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "id": "c6cbcbdd-84e2-418a-bdd8-fe76c68ba570",
+      "position": [
+        1824,
+        400
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Turns each review's Markdown into a Slack message: an emoji title, bold labels,\n// a dashed rule between parts, and table rows as bullet lines (Slack can't show\n// Markdown tables). The Markdown file itself is unchanged; only slackText is rewritten.\nconst s = $('Settings').first().json;\nconst base = String(s.n8nUrl || '').replace(/\\/+$/, '');\nconst linked = /^https?:\\/\\//.test(base) && !base.includes('YOUR-INSTANCE');\nconst wfUrl = linked ? base + '/workflow/' + $workflow.id : '';\nconst icon = { executive: '📊', marketing: '📣', products: '🛍️', traffic: '🌐', email: '✉️', ads: '🎯', summary: '🧠', glance: '🗓️' };\nconst title = { executive: 'Executive business review', marketing: 'Marketing source review', products: 'Top product review', traffic: 'Website traffic review', email: 'Email review (Customer.io)', ads: 'Ads review (Google Ads and Meta)', summary: 'Weekly summary', glance: 'Week at a glance' };\nconst rule = '------------------------------';\nconst esc = t => String(t).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');\nconst isContext = l => /^(DEMO|PRIVATE LIVE|SYNTHETIC DATA|SAMPLE DATA|LIVE GA4|INCOMPLETE \\|)/.test(l) || /^\\d{4}-\\d{2}-\\d{2}/.test(l) || /^(Synthetic example data|Sample data:|Live Metorik data|Live data from|Written by an AI model)/.test(l);\nconst cells = l => l.replace(/^\\|/, '').replace(/\\|\\s*$/, '').split('|').map(c => c.trim());\n\nreturn $input.all().map(item => {\n  const j = item.json;\n  const lane = String(j.fileName || '').split('-')[0];\n  const head = (j.incomplete ? '⚠️' : (icon[lane] || '📄')) + ' *' + (title[lane] || esc(j.fileName || 'Review')) + (j.incomplete ? ': incomplete' : '') + '*';\n  const context = [], body = [];\n  let header = null;\n  for (const raw of String(j.markdown || '').split('\\n')) {\n    const l = raw.trim();\n    if (!l) { if (body.length && body[body.length - 1] !== '') body.push(''); continue; }\n    if (l.startsWith('# ')) continue;\n    if (!body.length && isContext(l)) { context.push('_' + esc(l.replace(/\\s*\\|\\s*/g, ' · ')) + '_'); continue; }\n    if (l.startsWith('## ')) { if (body.length && body[body.length - 1] !== '') body.push(''); body.push('*' + esc(l.slice(3)) + '*'); header = null; continue; }\n    if (l.startsWith('|')) {\n      const c = cells(l);\n      if (c.every(x => /^:?-+:?$/.test(x))) continue;\n      if (!header) { header = c; continue; }\n      body.push('• *' + esc(c[0]) + '*' + c.slice(1).map((v, k) => ' · ' + esc(header[k + 1]) + ' ' + esc(v)).join(''));\n      continue;\n    }\n    header = null;\n    let m;\n    if ((m = l.match(/^Review:\\s*(.*)$/))) { body.push('👉 *Review:* ' + esc(m[1])); continue; }\n    if ((m = l.match(/^([•-])\\s+([^:]{1,45}):\\s+(.*)$/))) { body.push('• *' + esc(m[2]) + ':* ' + esc(m[3]).replace(/\\s*\\|\\s*/g, ' · ')); continue; }\n    if ((m = l.match(/^(\\d+)\\.\\s+(.+?)\\s+—\\s+(.*)$/))) { body.push(m[1] + '. *' + esc(m[2]) + '* · ' + esc(m[3]).replace(/\\s*\\|\\s*/g, ' · ')); continue; }\n    if ((m = l.match(/^(Failed step|Reason):\\s*(.*)$/))) { body.push('*' + m[1] + ':* ' + esc(m[2])); continue; }\n    if (/^[^:]{3,60}:$/.test(l)) { body.push('*' + esc(l) + '*'); continue; }\n    body.push(esc(l).replace(/\\s*\\|\\s*/g, ' · '));\n  }\n  while (body.length && body[body.length - 1] === '') body.pop();\n  const parts = [head, ...context, rule, ...body];\n  if (linked) parts.push(rule, '<' + wfUrl + '|Open the workflow> · <' + wfUrl + '/executions/' + $execution.id + '|This run>');\n  return { json: { ...j, slackText: parts.join('\\n') }, binary: item.binary };\n});\n"
+      },
+      "name": "Slack | Format for Slack",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "notes": "Rewrites the review for Slack: emoji title, bold labels.",
+      "notesInFlow": true,
+      "id": "9952054d-2880-4698-85fe-8e70a8848e4f",
+      "position": [
+        2272,
+        400
+      ]
+    },
+    {
+      "parameters": {
+        "select": "channel",
+        "channelId": {
+          "__rl": true,
+          "value": "={{ $('Settings').first().json.slackChannel }}",
+          "mode": "id"
+        },
+        "text": "={{ $json.slackText }}",
+        "otherOptions": {
+          "unfurl_links": false,
+          "unfurl_media": false,
+          "includeLinkToWorkflow": false
+        }
+      },
+      "name": "Deliver | Slack",
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 2.3,
+      "disabled": true,
+      "webhookId": "81cb4ef5-714a-5ad3-98d3-f1c41656ba40",
+      "notes": "One formatted message with the review. Select your Slack credential, set slackChannel in Settings, then switch on.",
+      "notesInFlow": true,
+      "id": "89821b0e-e705-4c7d-b00f-98f9cd588983",
+      "position": [
+        2496,
+        400
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "const items=$input.all(),s=$('Settings').first().json;\nconst runDate=$now.setZone(s.timeZone).toISODate();\nconst done=items.filter(i=>!i.json.incomplete).length;\nconst base=String(s.n8nUrl||'').replace(/\\/+$/,''),linked=/^https?:\\/\\//.test(base)&&!base.includes('YOUR-INSTANCE'),wfUrl=linked?base+'/workflow/'+$workflow.id:'';\nconst body=['Weekly reports, run '+runDate+'. '+done+' of '+items.length+' reviews complete.',...(linked?['Workflow: '+wfUrl,'This run: '+wfUrl+'/executions/'+$execution.id]:[]),'',\n ...items.map(i=>'-----BEGIN REPORT '+i.json.fileName+'-----\\n'+i.json.markdown+'-----END REPORT-----\\n')].join('\\n');\nconst exact=items.map(i=>'-----BEGIN FILE '+i.json.fileName+'-----\\n'+Buffer.from(i.json.markdown,'utf8').toString('base64').match(/.{1,76}/g).join('\\n')+'\\n-----END FILE-----').join('\\n');\nconst binary={};items.forEach((i,k)=>{if(i.binary?.report)binary['report_'+k]=i.binary.report;});\nreturn [{json:{subject:'Weekly reports '+runDate+(done<items.length?' (incomplete)':''),body:body+'\\n\\nExact copies for /get-email-reports (base64, do not edit):\\n'+exact+'\\n',attachmentNames:Object.keys(binary).join(',')},binary}];"
+      },
+      "name": "Email | Combine reports",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "id": "bf8d5864-346e-4bb9-9bae-c8ccc0f68764",
+      "position": [
+        2272,
+        656
+      ]
+    },
+    {
+      "parameters": {
+        "resource": "message",
+        "operation": "send",
+        "sendTo": "={{ $('Settings').first().json.emailTo }}",
+        "subject": "={{ $json.subject }}",
+        "emailType": "text",
+        "message": "={{ $json.body }}",
+        "options": {
+          "appendAttribution": false,
+          "attachmentsUi": {
+            "attachmentsBinary": [
+              {
+                "property": "={{ $json.attachmentNames }}"
+              }
+            ]
+          }
+        }
+      },
+      "name": "Deliver | Email",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "disabled": true,
+      "notes": "One email with the review in the body and attached. Set emailTo in Settings, select a Gmail credential, then switch on.",
+      "notesInFlow": true,
+      "id": "b3172d68-aa1d-4e78-8a79-c3f03b0fb5ea",
+      "position": [
+        2496,
+        656
+      ]
+    },
+    {
+      "parameters": {
+        "content": "## Ads review (Nick Christensen's starter)\n**For:** every Google Ads and Meta campaign graded on value-to-spend, flagged when below target or when CPA runs above 2x its usual level, with a plain call: scale, hold, or investigate. A daily read of yesterday.\n\n**Source:** Nick Christensen's ads reporting starter (MIT), from his workshop \"Ship ICP-driven ad campaigns and automated monitoring\". It ships with his sample campaigns, labelled SAMPLE DATA, so it runs with nothing connected.\n\n**Make it live:** replace the two sample nodes with your own rows in the same fields: campaign, platform, spend, conversions, conversion_value, cpa, historical_cpa, ctr, clicks, impressions. Then set the targets at the top of Ads | Analyze.",
+        "width": 760,
+        "height": 340,
+        "color": 1
+      },
+      "name": "Ads review explainer",
+      "position": [
+        640,
+        20
+      ],
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "id": "81b3fddf-014e-4ed7-808d-3691a43c80d0"
+    },
+    {
+      "parameters": {
+        "content": "## Connect your ad platforms\n**Meta:** a Facebook Graph API credential (access token with `ads_read`) on the insights edge of `act_<your ad account id>`, level campaign: one request for yesterday, one for the last 30 days (for historical CPA). Pick the conversion `action_type` your funnel uses (purchase, lead, complete_registration).\n\n**Google Ads:** the Google Ads node, or an HTTP Request to the Google Ads API. Both need a Google Ads developer token as well as the Google login.\n\n**Any other channel:** fetch its campaign report and map each row to the same fields in a Code node.\n\n**Name the replacement nodes** `Ads | Google Ads` and `Ads | Meta Ads` (no \"sample data\") and wire them into Ads | Merge where the sample nodes were. The SAMPLE DATA label goes away once no sample node runs.",
+        "width": 700,
+        "height": 340,
+        "color": 4
+      },
+      "name": "Connect your ad platforms",
+      "position": [
+        1440,
+        20
+      ],
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "id": "9fbfea10-85dd-456c-9f85-da03a515dc4e"
+    },
+    {
+      "parameters": {
+        "content": "## Slack setup\n1. Create and install a Slack app with the bot scope `chat:write`.\n2. Save its token as an n8n Slack credential.\n3. Invite the bot to a test channel and put its channel ID in Settings.\n4. Select the credential on Deliver | Slack and switch it on. It posts one formatted message.\n\nPrefer email? Switch on Deliver | Email instead, with a Gmail credential and `emailTo` in Settings.",
+        "width": 560,
+        "height": 360,
+        "color": 4
+      },
+      "name": "Slack setup guide",
+      "position": [
+        2208,
+        0
+      ],
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "id": "84aec2da-45c0-4f40-a283-305f1d4db4fd"
+    }
+  ],
+  "connections": {
+    "Daily 9am": {
+      "main": [
+        [
+          {
+            "node": "Settings",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Settings": {
+      "main": [
+        [
+          {
+            "node": "Ads | Reporting period",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Ads | Reporting period": {
+      "main": [
+        [
+          {
+            "node": "Ads | Google Ads (sample data)",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Ads | Meta Ads (sample data)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Ads | Google Ads (sample data)": {
+      "main": [
+        [
+          {
+            "node": "Ads | Merge",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Ads | Meta Ads (sample data)": {
+      "main": [
+        [
+          {
+            "node": "Ads | Merge",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Ads | Merge": {
+      "main": [
+        [
+          {
+            "node": "Ads | Analyze",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Ads | Analyze": {
+      "main": [
+        [
+          {
+            "node": "Ads | Compose review",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Ads | Incomplete report",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Ads | Compose review": {
+      "main": [
+        [
+          {
+            "node": "Ads | Create Markdown BEFORE Slack",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Ads | Incomplete report",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Ads | Incomplete report": {
+      "main": [
+        [
+          {
+            "node": "Ads | Create Markdown BEFORE Slack",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Ads | Create Markdown BEFORE Slack": {
+      "main": [
+        [
+          {
+            "node": "Slack | Format for Slack",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Email | Combine reports",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Slack | Format for Slack": {
+      "main": [
+        [
+          {
+            "node": "Deliver | Slack",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Email | Combine reports": {
+      "main": [
+        [
+          {
+            "node": "Deliver | Email",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "nodeGroups": [
+    {
+      "id": "03bba354-9ee4-5392-a25d-a89928f1f1cc",
+      "name": "Ads review",
+      "nodeNames": [
+        "Ads | Reporting period",
+        "Ads | Google Ads (sample data)",
+        "Ads | Meta Ads (sample data)",
+        "Ads | Merge",
+        "Ads | Analyze",
+        "Ads | Compose review",
+        "Ads | Incomplete report",
+        "Ads | Create Markdown BEFORE Slack"
+      ],
+      "description": "Google Ads and Meta campaigns graded on value-to-spend, from Nick Christensen's starter (sample data until connected)."
+    },
+    {
+      "id": "40049744-693c-5853-b92b-1374ba5d0031",
+      "name": "Deliver: Slack",
+      "nodeNames": [
+        "Slack | Format for Slack",
+        "Deliver | Slack"
+      ],
+      "description": "One formatted message with the review."
+    },
+    {
+      "id": "5ebf570f-53ad-5a42-abe4-987c75a1008d",
+      "name": "Deliver: Email",
+      "nodeNames": [
+        "Email | Combine reports",
+        "Deliver | Email"
+      ],
+      "description": "One email with the review in the body and attached."
+    }
+  ]
+}
