@@ -40,7 +40,7 @@ Read `wc/v3/orders` with statuses `processing,completed,refunded`, `per_page=100
 
 Refunds then count against the order they belong to (order date): say so in `refundNote`. The meta key names come from the store's multi-currency plugin; check one foreign-currency order before relying on them.
 
-The full template (`four-reviews-connection-template-v1.2.json`) has this built in for all three store reviews:
+The WooCommerce worked example (`four-reviews-connection-template-v1.2.json`) does this for all three store reviews:
 
 | Review | WooCommerce source | Contract node |
 |---|---|---|
@@ -76,11 +76,15 @@ In the Metorik template, Trends reads four Metorik revenue reports instead (`rev
 
 ## Website traffic review
 
-The traffic lane uses the GA4 Data API response as it comes (`batchRunReports`, four reports: totals, source and medium, landing pages, events). Connect GA4 in the connection template; no conversion step is needed. A Google Service Account credential (predefined type `googleApi`, scope `analytics.readonly`, its email a Viewer on the property) is the simplest login; a Search Console login has no Analytics access.
+The traffic lane uses the GA4 Data API response as it comes (`batchRunReports`, four reports: totals, source and medium, landing pages, events). Connect GA4 on the traffic lane's request node; no conversion step is needed. A Google Service Account credential (predefined type `googleApi`, scope `analytics.readonly`, its email a Viewer on the property) is the simplest login; a Search Console login has no Analytics access.
 
-## Email review (Customer.io, full template)
+## Email review (Customer.io, both worked examples)
 
 The Customer.io App API (`cioApiUrl` in Settings) gives each running campaign's and each recent broadcast's daily metrics (`/v1/campaigns/{id}/metrics`, `/v1/newsletters/{id}/metrics`, `period=days&steps=15`). The series end with today, which is partial: the review sums the 7 complete days before it against the 7 before those, in UTC. Fields used: `sent`, `delivered`, `human_opened`, `human_clicked`, `converted`, `unsubscribed`, `topic_unsubscribed`, `bounced`, `spammed`. Counts are messages, not people. Email capture is a segment's size (`/v1/segments/{id}/customer_count`, the segment set in `cioCaptureSegmentId`) against the last saved week in the history table, so it is net growth; the App API cannot count people by the date they were created.
+
+## Ads review (lane 6, Nick Christensen's ads starter)
+
+Each ad row, one per campaign, from any platform: `{ campaign, platform, spend, conversions, conversion_value, cpa, historical_cpa, ctr, clicks, impressions }` (`frequency` too for Meta). `platform` is `google` or `meta`, and picks the target in **Ads | Analyze** (Google 1.5x and Meta 0.5x value-to-spend by default: set them from your margins). Analyze returns `{ digest, campaign_count, flagged }`; Compose review wraps the digest into the report. The two sample nodes, `Ads | Google Ads (sample data)` and `Ads | Meta Ads (sample data)`, emit Nick's example rows; replace them with your own nodes producing the same fields, and the SAMPLE DATA label goes away by itself. A row missing a field throws, so the review goes INCOMPLETE instead of grading on gaps. Platform-reported conversion value is not profit, and the platforms' attribution won't match your store's: reconcile spend and conversions against each ad platform, not revenue against the store. `adsEnabled:false` in Settings makes the lane send a skipped item that every step after Collect leaves out.
 
 ## Mapping a CRM instead of a store
 
