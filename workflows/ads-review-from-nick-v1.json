@@ -20,7 +20,18 @@
         256,
         400
       ],
-      "id": "a4fe02d3-b143-4f7f-adf5-84b9d73b3662"
+      "id": "b132222c-5fda-4255-8703-7ceffc73729d"
+    },
+    {
+      "parameters": {},
+      "name": "Run now",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "id": "8eaf7953-c542-4391-bb6d-0d187c72ef08",
+      "position": [
+        256,
+        592
+      ]
     },
     {
       "parameters": {
@@ -31,7 +42,7 @@
       "typeVersion": 2,
       "notes": "Edit before the first run: business name, currency, timezone and delivery.",
       "notesInFlow": true,
-      "id": "56061cd0-5afe-4243-b7ae-2ef20d515e79",
+      "id": "264235b9-9ade-43f5-a653-0065849dcabb",
       "position": [
         480,
         400
@@ -44,7 +55,7 @@
       "name": "Ads | Reporting period",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "id": "77ffd16b-cb6f-4bc8-a7fd-96078ca3b41c",
+      "id": "be0f4178-08b9-4be2-ba52-a6f7cd781d06",
       "position": [
         704,
         400
@@ -61,7 +72,7 @@
         928,
         400
       ],
-      "id": "ae3c072e-0d49-4b15-bf7b-9bf2af2e2215"
+      "id": "bf221622-8da4-48c2-917f-10574679c7e9"
     },
     {
       "parameters": {
@@ -74,7 +85,7 @@
         928,
         592
       ],
-      "id": "c26799db-8457-4895-aa24-2a6b19d2e957"
+      "id": "262c0aab-32f4-467e-b53b-bd692df03353"
     },
     {
       "parameters": {
@@ -87,7 +98,7 @@
         1152,
         400
       ],
-      "id": "65fb9c20-e123-4863-83b8-156d816eb715"
+      "id": "f308f755-526c-4f05-8d99-5993d25e4064"
     },
     {
       "parameters": {
@@ -100,7 +111,7 @@
         1376,
         400
       ],
-      "id": "1a353a2a-5e8f-412b-a328-0cfb1c26c510",
+      "id": "80c4d73c-d397-4348-bf31-14d3261edbfa",
       "onError": "continueErrorOutput"
     },
     {
@@ -111,7 +122,7 @@
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "onError": "continueErrorOutput",
-      "id": "fc16340e-a62f-4a0e-bb67-e471951900e1",
+      "id": "d52705ba-52f2-40f3-bce0-89badf99587d",
       "position": [
         1600,
         400
@@ -126,7 +137,7 @@
       "typeVersion": 2,
       "notes": "Runs only when a step fails. Writes an INCOMPLETE review instead of stopping the run.",
       "notesInFlow": true,
-      "id": "5b13bcd6-cb80-4854-b25d-e0f4741124b3",
+      "id": "f01f27c8-83d2-4498-93fb-8a8998367ef3",
       "position": [
         1600,
         592
@@ -139,7 +150,7 @@
       "name": "Ads | Create Markdown BEFORE Slack",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "id": "c6cbcbdd-84e2-418a-bdd8-fe76c68ba570",
+      "id": "f3dbf86f-8833-400b-85b5-7b5a5deb60b5",
       "position": [
         1824,
         400
@@ -154,7 +165,7 @@
       "typeVersion": 2,
       "notes": "Rewrites the review for Slack: emoji title, bold labels.",
       "notesInFlow": true,
-      "id": "9952054d-2880-4698-85fe-8e70a8848e4f",
+      "id": "784d5452-e587-42f2-b969-c91f9c6286a6",
       "position": [
         2272,
         400
@@ -182,7 +193,7 @@
       "webhookId": "81cb4ef5-714a-5ad3-98d3-f1c41656ba40",
       "notes": "One formatted message with the review. Select your Slack credential, set slackChannel in Settings, then switch on.",
       "notesInFlow": true,
-      "id": "89821b0e-e705-4c7d-b00f-98f9cd588983",
+      "id": "a1057af0-260d-4ed6-a6dd-b6fbaa176f7f",
       "position": [
         2496,
         400
@@ -195,7 +206,7 @@
       "name": "Email | Combine reports",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "id": "bf8d5864-346e-4bb9-9bae-c8ccc0f68764",
+      "id": "f4b1832b-b091-4ed9-a398-330418efb313",
       "position": [
         2272,
         656
@@ -226,7 +237,7 @@
       "disabled": true,
       "notes": "One email with the review in the body and attached. Set emailTo in Settings, select a Gmail credential, then switch on.",
       "notesInFlow": true,
-      "id": "b3172d68-aa1d-4e78-8a79-c3f03b0fb5ea",
+      "id": "3cce6e00-9738-4aaa-9944-fb6eafc06119",
       "position": [
         2496,
         656
@@ -246,7 +257,7 @@
       ],
       "type": "n8n-nodes-base.stickyNote",
       "typeVersion": 1,
-      "id": "81b3fddf-014e-4ed7-808d-3691a43c80d0"
+      "id": "2c468385-6d8c-4633-b718-7689746c3ee0"
     },
     {
       "parameters": {
@@ -262,7 +273,7 @@
       ],
       "type": "n8n-nodes-base.stickyNote",
       "typeVersion": 1,
-      "id": "9fbfea10-85dd-456c-9f85-da03a515dc4e"
+      "id": "43f70c09-be71-400b-81cf-a4f94e6a910c"
     },
     {
       "parameters": {
@@ -278,11 +289,22 @@
       ],
       "type": "n8n-nodes-base.stickyNote",
       "typeVersion": 1,
-      "id": "84aec2da-45c0-4f40-a283-305f1d4db4fd"
+      "id": "8eebe0d8-737e-4e03-9d74-20ecbdd3dbc1"
     }
   ],
   "connections": {
     "Daily 9am": {
+      "main": [
+        [
+          {
+            "node": "Settings",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Run now": {
       "main": [
         [
           {

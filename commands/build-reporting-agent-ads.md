@@ -7,7 +7,7 @@ argument-hint: "[step number to resume from, optional]"
 
 You are a patient coach. In this command Claude builds **the ads review** in the learner's n8n as its own workflow, separate from their weekly reviews: Nick Christensen's ads reporting starter from his workshop "Ship ICP-driven ad campaigns and automated monitoring" (MIT, https://github.com/nickyc1/ship-icp-ads-automate-monitoring). It runs on Nick's sample campaigns first, then on their own ad accounts.
 
-**What the workflow is.** `ads-review-from-nick-v1.json`: Nick's chain, with his credit kept on every node that carries his code. **Daily 9am** (his schedule) → **Settings** → **Ads | Reporting period** (yesterday) → his two sample-data nodes, **Ads | Google Ads (sample data)** and **Ads | Meta Ads (sample data)** → **Ads | Merge** → **Ads | Analyze** (his code, unchanged: grades every campaign on value-to-spend against a target, flags it when below target or when CPA runs above 2x its usual level, and writes the call) → **Ads | Compose review**, which wraps his digest in the same report format as the weekly reviews (`ads-<date>-to-<date>.md`, labelled SAMPLE DATA until the sample nodes are replaced) → an **INCOMPLETE** review when a step fails → **Deliver: Slack** and **Deliver: Email**, both switched off. Nick's webhook and SMTP steps were replaced by those two, so it delivers like the other reviews and `/reporting-agent:get-email-reports` can save it. Grouped into three blocks.
+**What the workflow is.** `ads-review-from-nick-v1.json`: Nick's chain, with his credit kept on every node that carries his code. **Daily 9am** (his schedule) and **Run now** (a manual trigger, so Claude can run it through the connector), both into **Settings** → **Ads | Reporting period** (yesterday) → his two sample-data nodes, **Ads | Google Ads (sample data)** and **Ads | Meta Ads (sample data)** → **Ads | Merge** → **Ads | Analyze** (his code, unchanged: grades every campaign on value-to-spend against a target, flags it when below target or when CPA runs above 2x its usual level, and writes the call) → **Ads | Compose review**, which wraps his digest in the same report format as the weekly reviews (`ads-<date>-to-<date>.md`, labelled SAMPLE DATA until the sample nodes are replaced) → an **INCOMPLETE** review when a step fails → **Deliver: Slack** and **Deliver: Email**, both switched off. Nick's webhook and SMTP steps were replaced by those two, so it delivers like the other reviews and `/reporting-agent:get-email-reports` can save it. Grouped into three blocks.
 
 <!-- preflight: identical in every build command; tests/static.py checks it -->
 ## Before anything: your folder and n8n (every time)
@@ -49,13 +49,13 @@ Do both checks first, every time, and say what you found in one line each. Nothi
 2. Follow the n8n server's own instructions (its preferences call, its SDK reference). Convert the shipped file: `python3 -I "${CLAUDE_PLUGIN_ROOT}/plugin/to_sdk.py" projects/reporting-agent/n8n/ads-review-from-nick-v1.json <scratchpad>/ads.js` (the plugin's `workflows/` copy if the project one is missing), validate it, create it, and apply the `setNodeGroups` operation from `<scratchpad>/ads.js.groups.json`. Say which n8n project it is in.
 3. Set `storeName`, `currency`, `timeZone`, `locale` and `n8nUrl` in **Settings**. Check **Deliver | Slack** and **Deliver | Email** are switched off.
 **Prompt:** "Build Nick's ads review in my n8n as its own workflow and give me the link."
-**What you should see:** a link; on the canvas the **Daily 9am** trigger, **Settings**, an **Ads review** block and two delivery blocks, with Nick's credit in the notes. Under a minute.
+**What you should see:** a link; on the canvas the **Daily 9am** and **Run now** triggers, **Settings**, an **Ads review** block and two delivery blocks, with Nick's credit in the notes. Under a minute.
 **Tell me when:** "I see it".
 
 ## Step 2: Run it on Nick's sample data (I do this)
 
 **What this step does:** grades Nick's nine sample campaigns and writes the review. Nothing is sent.
-**What I do:** run it with the n8n tools (if the connector can't start a workflow from a schedule trigger, ask them to click **Execute workflow** once and tell me when it's done), read the run, and show them the review from **Ads | Create Markdown BEFORE Slack**, with the run's link. Explain the call on two campaigns: value-to-spend against the target for its platform (Nick's examples: 1.5 for Google, 0.5 for Meta), and CPA against its usual level.
+**What I do:** run it with the n8n tools from the **Run now** trigger (only if that fails, ask them to click **Execute workflow** on the canvas as a last resort), read the run, and show them the review from **Ads | Create Markdown BEFORE Slack**, with the run's link. Explain the call on two campaigns: value-to-spend against the target for its platform (Nick's examples: 1.5 for Google, 0.5 for Meta), and CPA against its usual level.
 **Prompt:** "Run the ads review on Nick's sample data and explain two of the calls."
 **What you should see:** one review, `ads-<yesterday>-to-<yesterday>.md`, starting `SAMPLE DATA`, with the campaigns graded and the flagged ones first. Seconds.
 **Tell me when:** "sample review".
@@ -87,4 +87,4 @@ Do both checks first, every time, and say what you found in one line each. Nothi
 
 ## Step 5: Turn on the schedule
 
-Nick's trigger runs it daily at 9:00 (the workflow's timezone). With real data and a private destination, and on their yes, publish the workflow so the schedule runs. Tick "Ads review built" and its parts in the project file and add a dated line to its log, with no figures. Credit Nick when they show it: his starter, his grading code.
+Nick's trigger runs it daily at 9:00 (the workflow's timezone); **Run now** stays for runs on demand. With real data and a private destination, and on their yes, publish the workflow so the schedule runs. Tick "Ads review built" and its parts in the project file and add a dated line to its log, with no figures. Credit Nick when they show it: his starter, his grading code.

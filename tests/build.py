@@ -435,6 +435,7 @@ ADS_CREDIT = ("// From Nick Christensen's ads reporting starter (MIT), workshop 
 ADS_FROM = {"Mock Google Ads": "Ads | Google Ads (sample data)", "Mock Meta Ads": "Ads | Meta Ads (sample data)",
             "Merge": "Ads | Merge", "Analyze": "Ads | Analyze"}
 ADS_TRIGGER = "Daily 9am"
+ADS_RUN_NOW = "Run now"
 ADS_SETTINGS = """// Edit these before the first run. Every step reads its settings from here.
 return [{json:{
   storeName:'YOUR_BUSINESS',         // printed on the review
@@ -514,6 +515,8 @@ def build_ads():
     t = copy.deepcopy(by[ADS_TRIGGER])
     t.pop("id", None)
     add(t)
+    # A manual trigger beside Nick's schedule, so the n8n MCP can run it on demand; both start the same chain
+    add({"parameters": {}, "name": ADS_RUN_NOW, "type": "n8n-nodes-base.manualTrigger", "typeVersion": 1})
     add({"parameters": {"jsCode": ADS_SETTINGS}, "name": "Settings", "type": "n8n-nodes-base.code", "typeVersion": 2,
          "notes": "Edit before the first run: business name, currency, timezone and delivery.", "notesInFlow": True})
     add({"parameters": {"jsCode": ADS_PERIOD}, "name": "Ads | Reporting period", "type": "n8n-nodes-base.code", "typeVersion": 2})
@@ -537,6 +540,7 @@ def build_ads():
     add(gmail_node("One email with the review in the body and attached. Set emailTo in Settings, select a Gmail credential, then switch on."))
     m = lambda target, index=0: {"node": target, "type": "main", "index": index}
     conns[ADS_TRIGGER] = {"main": [[m("Settings")]]}
+    conns[ADS_RUN_NOW] = {"main": [[m("Settings")]]}
     conns["Settings"] = {"main": [[m("Ads | Reporting period")]]}
     conns["Ads | Reporting period"] = {"main": [[m("Ads | Google Ads (sample data)"), m("Ads | Meta Ads (sample data)")]]}
     conns["Ads | Google Ads (sample data)"] = {"main": [[m("Ads | Merge", 0)]]}
@@ -553,6 +557,7 @@ def build_ads():
              "Ads | Create Markdown BEFORE Slack"]
     x0, y0, step = 704, 400, 224
     nodes[ADS_TRIGGER]["position"] = [256, y0]
+    nodes[ADS_RUN_NOW]["position"] = [256, y0 + 192]
     nodes["Settings"]["position"] = [480, y0]
     for k, name in enumerate(chain):
         nodes[name]["position"] = [x0 + k * step, y0]

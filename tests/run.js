@@ -133,7 +133,8 @@ async function run(path, opts = {}) {
     nodes[name].type = 'n8n-nodes-base.code';
     nodes[name].parameters = { jsCode: code };
   }
-  const trigger = wf.nodes.find(n => n.type === 'n8n-nodes-base.manualTrigger' || n.type === 'n8n-nodes-base.scheduleTrigger').name;
+  // A manual trigger wins when a workflow has both (the ads review keeps Nick's schedule beside "Run now")
+  const trigger = (wf.nodes.find(n => n.type === 'n8n-nodes-base.manualTrigger') || wf.nodes.find(n => n.type === 'n8n-nodes-base.scheduleTrigger')).name;
   await exec(trigger, [{ json: {} }], 0, null);
   // `merged` leaves out any item marked skipped (none in the shipped workflows today).
   const collected = runData['Collect all four reports'] || runData['Collect all reports'] || [];

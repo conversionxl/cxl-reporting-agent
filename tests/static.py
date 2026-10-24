@@ -106,6 +106,8 @@ for old,new in {"Mock Google Ads":"Ads | Google Ads (sample data)","Mock Meta Ad
     js=A[new]["parameters"]["jsCode"]
     check(js.endswith(ads_code[old]) and "Nick Christensen" in js and "MIT" in js and "nickyc1/ship-icp-ads-automate-monitoring" in js,"ads: "+new+": Nick's code carried unchanged under a credit header")
 check(A["Daily 9am"]["type"]=="n8n-nodes-base.scheduleTrigger" and A["Ads | Merge"]["type"]=="n8n-nodes-base.merge","ads: Nick's daily schedule and merge kept")
+trig=[n for n in a["nodes"] if n["type"].endswith("Trigger")]
+check(sorted((n["name"],n["type"]) for n in trig)==[("Daily 9am","n8n-nodes-base.scheduleTrigger"),("Run now","n8n-nodes-base.manualTrigger")] and all(a["connections"][n["name"]]=={"main":[[{"node":"Settings","type":"main","index":0}]]} for n in trig),"ads: exactly one manual trigger (Run now) beside the schedule, both starting Settings")
 check("hooks.slack.com" not in json.dumps(a) and not [n for n in a["nodes"] if n["type"]=="n8n-nodes-base.emailSend"],"ads: Nick's webhook and SMTP nodes replaced by the shared Slack and Gmail delivery")
 check("fileName:'ads-'" in A["Ads | Compose review"]["parameters"]["jsCode"] and "SAMPLE DATA" in A["Ads | Compose review"]["parameters"]["jsCode"],"ads: compose writes the report contract with a SAMPLE DATA label")
 
