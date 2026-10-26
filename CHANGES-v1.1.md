@@ -1,5 +1,14 @@
 # Four reviews workflow: v1.1 changes
 
+## 0.4.1 (26 October 2026)
+
+**Aligned with the workshop deck, and existing installs pick up a newer version.**
+
+| # | Change | Why |
+|---|---|---|
+| 38 | The WooCommerce worked example's **Executive \| Compose review** prints a total the source leaves out (refunds or items from a CRM) as "not available", and its change as N/A, instead of "NaN" or "undefined". The report contract and `/reporting-agent:build-reporting-agent` say to leave such a field out and copy that Compose node for a live executive review. Test T11b covers it. | The deck promises "missing, never zero" for a CRM's refunds; the contract mapped them to 0 and a missing field printed NaN. |
+| 39 | `plugin/setup.sh` also runs when the project file already exists. It still never overwrites: it adds the files a newer version brought, and prints an `UPDATE:` line when the Reporting agent section in `CLAUDE.md` lacks a current command or the project file has no Progress list. The preflight in the three build commands then offers to bring either up to date, and changes it only on a yes. | Folders set up with 0.1.0 kept the old command table in `CLAUDE.md`, the old project file and the v1.1 workflow files. |
+
 ## 0.4.0 (24 October 2026)
 
 **Three build commands instead of one, and no up-front questions before the demo.** Every build command starts with the same two checks: the folder is set up (the setup script runs if the project file is missing), and n8n is connected to Claude through n8n's MCP connector. Without the connector the command fixes that first and goes no further: there is no manual route any more, so attendees are not asked to choose one.

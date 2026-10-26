@@ -1,4 +1,4 @@
-# Reporting agent (test build 0.4.0)
+# Reporting agent (test build 0.4.1)
 
 A module for the CXL AI Native Marketer cohort, for the Reporting agent workshop (sprint day 3, 12 November 2026). You start from Nick Christensen's demo on made-up data, then build your own n8n workflow on your own GA4, store or CRM, and email platform, one review at a time, with Claude building through the n8n MCP and every review reconciled against a number you trust before the next. It delivers the reviews, and a personal OS command saves them so Claude can read them with you. Nick's ads review is a separate workflow with its own command.
 

@@ -1130,6 +1130,14 @@ def build_full():
     set_code("Trends | Revenue by period", rep(code("Trends | Revenue by period"), "const num=v=>Number(v)||0;",
              "if(raw.some(o=>o&&Object.keys(o).length&&o.id===undefined))return [{json:{available:false,reason:'the WooCommerce request node is switched off, or returned something that is not orders'}}];\nconst num=v=>Number(v)||0;"))
 
+    # Executive review: a total the source can't supply (a CRM has no refunds or items) reads as missing, never NaN or 0
+    js = code("Executive | Compose review")
+    js = rep(js, "const money=v=>new Intl.NumberFormat(", "const na=v=>v===undefined||v===null||v==='';const money=v=>na(v)?'not available':new Intl.NumberFormat(")
+    js = rep(js, "const pct=(a,b)=>b?", "const pct=(a,b)=>na(a)||na(b)?'N/A':b?")
+    js = rep(js, "'• Orders: '+c.orders+' ('+pct(c.orders,b.orders)+'); items: '+c.items+'.'",
+             "'• Orders: '+(na(c.orders)?'not available':c.orders)+' ('+pct(c.orders,b.orders)+'); items: '+(na(c.items)?'not available':c.items)+'.'")
+    set_code("Executive | Compose review", js)
+
     # History: no "}}" inside an expression, which would end it early
     hv = nodes["History | Save this run"]["parameters"]["columns"]["value"]
     hv["facts_json"] = rep(hv["facts_json"], "|| {json:{}}).json", "|| { json: {} }).json")

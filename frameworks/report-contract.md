@@ -55,7 +55,7 @@ In the Metorik template, Trends reads four Metorik revenue reports instead (`rev
 | Node name (keep it) | Output (one item) | Notes |
 |---|---|---|
 | `Executive \| Verify store` | `{ name, currency, timezone }` | Checked against Settings `storeName`, `currency`, `timeZone`. Without a store record, return the Settings values from a Code node. |
-| `Executive \| Current revenue` | `{ totals: { net, gross, refunds, taxes, orders, items, discounts } }` | Numbers, for the current 7 days. `net` is required. The report prints all seven fields, so a missing one shows as "NaN": include each, with 0 only when 0 is true. |
+| `Executive \| Current revenue` | `{ totals: { net, gross, refunds, taxes, orders, items, discounts } }` | Numbers, for the current 7 days. `net` is required. Leave out a field your source can't supply: the worked example's **Executive \| Compose review** prints it as "not available" (Nick's demo Compose prints "NaN", so live reviews use the worked example's). 0 only when 0 is true. |
 | `Executive \| Previous revenue` | same shape | For the previous 7 days. |
 | `Executive \| Order types` | `{ data: [ { grouped_by, net } ] }` | One row per order type. `grouped_by: null` is shown as "Non-renewal orders". |
 
@@ -94,9 +94,9 @@ The reports say "orders" and "products". For a B2B CRM the closest mapping is be
 |---|---|---|
 | `totals.net` | Net sales | Closed-won amount in the period |
 | `totals.orders` | Orders | Deals won |
-| `totals.refunds` | Refunds | 0, or lost or churned amount if you track it; say which in the log |
+| `totals.refunds` | Refunds | Left out, so the review says "not available"; or the lost or churned amount if you track it. Say which in the log |
 | Order types `grouped_by` | Renewal vs new | Deal type: new business vs renewal or expansion |
 | Order sources | UTM source and medium on the order | Original source on the contact or deal |
 | Top products | Products by net sales | Products or line items on won deals, or deal pipelines |
 
-Never fill a field with a made-up number to make the report run. Leave it out, or return 0 only when 0 is true, and note it in the project file's log.
+Never fill a field with a made-up number to make the report run. Leave it out (the review then says "not available"), or return 0 only when 0 is true, and note it in the project file's log.

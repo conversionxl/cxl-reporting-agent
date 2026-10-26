@@ -262,6 +262,13 @@ const decoded = i => Buffer.from(i.binary.report.data, 'base64').toString('utf8'
   const e11 = r.merged.find(i => i.json.fileName.startsWith('executive-'));
   ok(e11 && !e11.json.incomplete && e11.json.markdown.includes('• Orders: 0 ('), 'an empty week is a true zero, reported as complete');
 
+  console.log('\n== T11b full template, a source without refunds or items (a CRM)');
+  const crmTotals = net => `return [{json:{totals:{net:${net},gross:${net},taxes:0,orders:3,discounts:0}}}];`;
+  r = await run(full, { fixtures: { ...fullFixtures, 'Executive | Current revenue': crmTotals(1200), 'Executive | Previous revenue': crmTotals(1000) }, history: lastWeek, ai, settings: fullSettings });
+  const e12 = r.merged.find(i => i.json.fileName.startsWith('executive-'));
+  ok(e12 && !e12.json.incomplete && e12.json.markdown.includes('refunds: not available') && e12.json.markdown.includes('items: not available'), 'a total the source leaves out reads "not available"');
+  ok(e12 && !/NaN|undefined/.test(e12.json.markdown), 'no NaN or undefined in the executive review');
+
   console.log('\n== T14 ads review (its own workflow) on Nick\'s sample data');
   r = await run(ads, { deliver: true, settings: { storeName: 'Demo Store' } });
   ok(!r.errors.length, 'no errors ' + r.errors.join('; '));

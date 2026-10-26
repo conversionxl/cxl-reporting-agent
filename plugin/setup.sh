@@ -53,6 +53,19 @@ else
   cm="added"
 fi
 
+# 4. A section or project file from an older version: reported here, changed only by the
+# command, on the user's yes.
+if [ "$cm" = "already there" ]; then
+  missing=""
+  for c in $(grep -o '/reporting-agent:[a-z-]*' "$ROOT/plugin/claude-md-section.md" | sort -u); do
+    grep -qF -- "$c" CLAUDE.md || missing="$missing ${c#/reporting-agent:}"
+  done
+  if [ -n "$missing" ]; then upd_cm="UPDATE: the Reporting agent section in CLAUDE.md is from an older version (commands missing:$missing)."; fi
+fi
+if ! grep -q '^## Progress' "$project/reporting-agent.md"; then
+  upd_pf="UPDATE: the project file is from an older version (no Progress list)."
+fi
+
 echo "Folder: $TARGET"
 echo ".gitignore block: $gi"
 echo "Files created: $created. Existing files kept: $kept."
@@ -62,6 +75,8 @@ echo "CLAUDE.md Reporting agent section: $cm"
 echo "Project file: ${project#"$PWD"/}/reporting-agent.md"
 echo "n8n workflows to import: ${project#"$PWD"/}/n8n/"
 echo "Saved reports (stay on this computer): ${reports#"$PWD"/}/"
+[ -n "${upd_cm:-}" ] && echo "$upd_cm"
+[ -n "${upd_pf:-}" ] && echo "$upd_pf"
 if git rev-parse --is-inside-work-tree >/dev/null 2>&1; then
   probe="$reports/probe-$$.md"; : > "$probe"
   if git check-ignore -q "$probe"; then echo "Check: saved reports are ignored by git."; else echo "WARNING: saved reports would be tracked by git. Check .gitignore before saving real reports."; fi
