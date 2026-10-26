@@ -77,7 +77,7 @@ Do both checks first, every time, and say what you found in one line each. Nothi
 **Prompt:** "I signed in to Slack in n8n as '<name>' and my member ID is <ID>. Send the reviews to me in Slack and run it."
 **What you should see:** five messages in a direct message from n8n's Slack app: one per review, each with an emoji title and bold labels and marked as made-up data, and the week at a glance. Under a minute. Not in your direct messages? Look under **Apps** in Slack's sidebar.
 
-**Fallback: Nick's Slack app.** For self-hosted n8n, a workspace that blocks the sign-in, or posting to a channel instead of a DM:
+**Fallback: Nick's Slack app.** For self-hosted n8n, a workspace that blocks the sign-in, or posting to a channel instead of a DM. The same seven steps are on the canvas, in the **Slack fallback: your own app** note beside the Slack note:
 1. **Create the app:** at https://api.slack.com/apps, **Create New App** → **From scratch**. Name it "Reporting Agent" and select the workspace.
 2. **Add permission:** **OAuth & Permissions** → **Bot Token Scopes**, add `chat:write`.
 3. **Install the app:** click **Install to Workspace** and approve (some workspaces need an admin's approval). Copy the **Bot User OAuth Token** (starts `xoxb-`). Never paste it here.

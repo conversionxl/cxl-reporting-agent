@@ -488,12 +488,58 @@ ADS_CONNECT_NOTE = """## Connect your ad platforms
 **Any other channel:** fetch its campaign report and map each row to the same fields in a Code node.
 
 **Name the replacement nodes** `Ads | Google Ads` and `Ads | Meta Ads` (no "sample data") and wire them into Ads | Merge where the sample nodes were. The SAMPLE DATA label goes away once no sample node runs."""
-ADS_SLACK_NOTE = """## Slack setup
-**Quick, a DM to yourself:** create a Slack OAuth2 credential with Connect my account, put your Slack member ID in Settings (`slackChannel`), set Deliver | Slack to OAuth2 with that credential, switch it on. It posts one formatted message.
+ADS_SLACK_NOTE = """## Slack, the quick way: a DM to yourself
+1. Create a Slack OAuth2 credential in this workflow's project: Connect my account, sign in.
+2. Put your Slack member ID in Settings (`slackChannel`). In Slack: your profile → ⋮ → Copy member ID.
+3. On Deliver | Slack, set Authentication to OAuth2 and select the credential.
+4. Switch on Deliver | Slack and run. It posts one formatted message.
 
-**Fallback (self-hosted n8n, sign-in blocked, or a channel):** a Slack app with the bot scope `chat:write`, its token in a Slack API credential, the app invited to a private channel, the channel ID in Settings.
+Sign-in blocked, or a team channel? See the fallback note."""
 
-Prefer email? Switch on Deliver | Email instead, with a Gmail credential and `emailTo` in Settings."""
+ADS_SLACK_FALLBACK = """## Slack fallback: your own Slack app
+For self-hosted n8n, a workspace that blocks the sign-in, or a team channel.
+1. **Create the app:** api.slack.com/apps → Create New App → From scratch. Name it "Reporting Agent" and select your workspace.
+2. **Add permission:** OAuth & Permissions → Bot Token Scopes, add `chat:write`.
+3. **Install the app:** Install to Workspace and approve. Copy the Bot User OAuth Token (xoxb-…).
+4. **Connect n8n:** create a Slack API credential in this workflow's project. Paste the token into Access Token and save.
+5. **Choose a channel:** a private one, invite your app, and copy the channel ID from its details.
+6. **Connect the workflow:** on Deliver | Slack, set Authentication to Access Token and select the credential. Put the channel ID in Settings (`slackChannel`).
+7. **Enable and test:** switch on Deliver | Slack and run. One message arrives.
+
+Slack blocked altogether? Switch on Deliver | Email instead, with a Gmail credential and `emailTo` in Settings."""
+DEMO_SLACK_FALLBACK = """## Slack fallback: your own Slack app
+For self-hosted n8n, a workspace that blocks the sign-in, or a team channel.
+1. **Create the app:** api.slack.com/apps → Create New App → From scratch. Name it "Reporting Agent" and select your workspace.
+2. **Add permission:** OAuth & Permissions → Bot Token Scopes, add `chat:write`.
+3. **Install the app:** Install to Workspace and approve. Copy the Bot User OAuth Token (xoxb-…).
+4. **Connect n8n:** create a Slack API credential in this workflow's project. Paste the token into Access Token and save.
+5. **Choose a channel:** create one such as #reporting-agent-test, invite your app, and copy the channel ID from its details.
+6. **Connect the workflow:** on Deliver | Slack, set Authentication to Access Token and select the credential. Put the channel ID in Settings (`slackChannel`).
+7. **Enable and test:** switch on Deliver | Slack and run. Five messages arrive: four reviews plus the summary, all marked as made-up data.
+
+Slack blocked altogether? Swap Slack for email (Your task, B)."""
+SLACK_FALLBACK = """## Slack fallback: your own Slack app
+For self-hosted n8n, a workspace that blocks the sign-in, or a team channel.
+1. **Create the app:** api.slack.com/apps → Create New App → From scratch. Name it "Reporting Agent" and select your workspace.
+2. **Add permission:** OAuth & Permissions → Bot Token Scopes, add `chat:write`.
+3. **Install the app:** Install to Workspace and approve. Copy the Bot User OAuth Token (xoxb-…).
+4. **Connect n8n:** create a Slack API credential in this workflow's project. Paste the token into Access Token and save.
+5. **Choose a channel:** a private one, since live reports hold revenue, invite your app, and copy the channel ID from its details.
+6. **Connect the workflow:** on Deliver | Slack, set Authentication to Access Token and select the credential. Put the channel ID in Settings (`slackChannel`).
+7. **Enable and test:** review the reports, then switch on Deliver | Slack and run.
+
+Slack blocked altogether? Use the email delivery."""
+
+
+def add_slack_fallback(wf, guide, quick, fallback, height):
+    """The quick Slack route on the existing note, Nick's app steps on a second note to its right."""
+    g = next(n for n in wf["nodes"] if n["name"] == guide)
+    g["parameters"]["content"] = quick
+    x, y = g["position"]
+    wf["nodes"].append({"parameters": {"content": fallback, "width": g["parameters"]["width"], "height": height,
+                                       "color": g["parameters"].get("color", 4)},
+                        "id": nid(), "name": "Slack fallback: your own app", "type": "n8n-nodes-base.stickyNote",
+                        "typeVersion": 1, "position": [x + g["parameters"]["width"] + 32, y]})
 
 
 def build_ads():
@@ -573,6 +619,7 @@ def build_ads():
             ("Slack setup guide", ADS_SLACK_NOTE, [dx - 64, y0 - 400], 560, 360, 4)]:
         add({"parameters": {"content": text, "width": w, "height": h, "color": color}, "name": name, "position": pos,
              "type": "n8n-nodes-base.stickyNote", "typeVersion": 1})
+    add_slack_fallback(wf, "Slack setup guide", ADS_SLACK_NOTE, ADS_SLACK_FALLBACK, 500)
     add_groups(wf, "ads", ADS_GROUP_DESC, override={"Slack | Format for Slack": "Deliver: Slack"})
     out = f"{OUT}/ads-review-from-nick-v1.json"
     json.dump(wf, open(out, "w"), indent=2, ensure_ascii=False)
@@ -774,6 +821,7 @@ def build(fn, demo, full):
     txt = json.dumps(wf, ensure_ascii=False)
     wf = json.loads(rep(txt, "Collect all four reports", COLLECT, txt.count("Collect all four reports")))
     group_layout(wf, METORIK_CHAINS, METORIK_TRENDS_ROW)
+    add_slack_fallback(wf, "Slack app setup guide", SLACK_NOTE, SLACK_FALLBACK, 560)
     add_groups(wf, "metorik", METORIK_GROUP_DESC)
     wf["name"] = wf["name"] + " | v1.1"
     out = f"{OUT}/four-reviews-metorik-template-v1.1.json"
@@ -853,20 +901,20 @@ Every number is invented and fixed. The store reviews show a fixed example week;
 DEMO_TASK_NOTE = """## Your task
 Get the reviews out of n8n, one of two ways:
 
-**A. Slack, a DM to yourself:** create a Slack OAuth2 credential with Connect my account, put your Slack member ID in Settings (`slackChannel`), select the credential on Deliver | Slack (authentication OAuth2), switch it on, run. Fallback: a Slack app with the bot scope `chat:write` and a test channel (see the Slack note).
+**A. Slack, a DM to yourself:** create a Slack OAuth2 credential with Connect my account, put your Slack member ID in Settings (`slackChannel`), select the credential on Deliver | Slack (authentication OAuth2), switch it on, run. Fallback: your own Slack app (see the Slack fallback note).
 
 **B. Email instead:** replace Deliver | Slack with a Gmail node that sends the reports (ask Claude to swap it), set `emailTo` in Settings, run, then `/reporting-agent:get-email-reports` saves them into your OS."""
 DEMO_SUMMARY_NOTE = """## Summary
 **Week at a glance** (on): one line per review, quoted from the review, and any review that did not run. Plain code, no API key.
 
 **AI summary** (off): an AI Agent with a Claude model reads the reviews and writes flags, what is working and what to check. It may not invent a number. To switch it on: add an Anthropic credential to Summary | Claude model, then switch on Summary | AI summary."""
-DEMO_SLACK_NOTE = """## Slack setup
-**Quick, a DM to yourself:**
-1. Create a Slack OAuth2 credential: Connect my account, sign in.
-2. Put your Slack member ID in Settings (`slackChannel`).
-3. On Deliver | Slack, set authentication to OAuth2, select the credential, switch it on. Five messages: four reviews and the summary.
+DEMO_SLACK_NOTE = """## Slack, the quick way: a DM to yourself
+1. Create a Slack OAuth2 credential in this workflow's project: Connect my account, sign in.
+2. Put your Slack member ID in Settings (`slackChannel`). In Slack: your profile → ⋮ → Copy member ID.
+3. On Deliver | Slack, set Authentication to OAuth2 and select the credential.
+4. Switch on Deliver | Slack and run. Five messages: four reviews and the summary.
 
-**Fallback (self-hosted n8n, or sign-in blocked):** create a Slack app with the bot scope `chat:write`, save its token as a Slack API credential, invite the app to a test channel, put the channel ID in `slackChannel`. Or swap Slack for email."""
+Self-hosted n8n, or sign-in blocked? See the fallback note."""
 DEMO_GROUP_DESC = {
     "1. Executive review": "Sales, refunds and orders this week vs last, on made-up data.",
     "2. Marketing source review": "Orders and net sales by recorded source, on made-up data.",
@@ -966,6 +1014,7 @@ def build_demo_v2(full):
     nodes["Slack app setup guide"]["parameters"].update({"width": 520, "height": 440, "color": 4})
     nodes["Your task"]["position"] = [slack_x - 64, sy + 200]
     nodes["Your task"]["parameters"].update({"width": 520, "height": 470, "color": 3})
+    add_slack_fallback(wf, "Slack app setup guide", DEMO_SLACK_NOTE, DEMO_SLACK_FALLBACK, 560)
     add_groups(wf, "demo-v2", DEMO_GROUP_DESC, override={"All reports and summary": "Summary"})
     wf["name"] = "Workshop | Four reviews | Nick's demo | v2"
     out = f"{OUT}/four-reviews-demo-v2.json"
@@ -1064,14 +1113,14 @@ Every source, the AI summary and every delivery are switched off, and there are 
 Real requests put real data in the execution history. Do not run this on a shared screen; use the demo for the workshop.
 
 Switch on a delivery node only after choosing your own destination and reviewing the reports."""
-SLACK_NOTE = """## Slack setup, before delivery
-Live reports hold revenue: send them to your own DM or a private channel.
+SLACK_NOTE = """## Slack, the quick way: a DM to yourself
+Live reports hold revenue, and a DM to yourself is private by default.
+1. Create a Slack OAuth2 credential in this workflow's project: Connect my account, sign in.
+2. Put your Slack member ID in Settings (`slackChannel`). In Slack: your profile → ⋮ → Copy member ID.
+3. On Deliver | Slack, set Authentication to OAuth2 and select the credential.
+4. Review the reports, then switch on Deliver | Slack. It posts one formatted message per report and one for the summary.
 
-**Quick, a DM to yourself:** a Slack OAuth2 credential made with Connect my account, your Slack member ID in Settings (`slackChannel`), Deliver | Slack set to OAuth2 with that credential.
-
-**Fallback (self-hosted n8n, sign-in blocked, or a team channel):** a Slack app with the bot scope `chat:write`, its token in a Slack API credential, the app invited to a private channel, the channel ID in `slackChannel`.
-
-Review the reports, then switch on Deliver | Slack. It posts one formatted message per report and one for the summary."""
+Self-hosted n8n, sign-in blocked, or a team channel? See the fallback note."""
 
 
 def full_delivery_note():
@@ -1187,6 +1236,7 @@ def build_full():
     # Layout and collapsible groups (shared with the Metorik template)
     nodes["AI | Claude model"]["parameters"]["options"]["maxTokensToSample"] = 6000
     group_layout(wf, LANE_CHAINS, TRENDS_CHAIN)
+    add_slack_fallback(wf, "Slack app setup guide", SLACK_NOTE, SLACK_FALLBACK, 560)
     add_groups(wf, "full", FULL_GROUP_DESC)
 
     wf["name"] = "Workshop | Weekly business reviews | full template | v1.2"
