@@ -489,10 +489,9 @@ ADS_CONNECT_NOTE = """## Connect your ad platforms
 
 **Name the replacement nodes** `Ads | Google Ads` and `Ads | Meta Ads` (no "sample data") and wire them into Ads | Merge where the sample nodes were. The SAMPLE DATA label goes away once no sample node runs."""
 ADS_SLACK_NOTE = """## Slack setup
-1. Create and install a Slack app with the bot scope `chat:write`.
-2. Save its token as an n8n Slack credential.
-3. Invite the bot to a test channel and put its channel ID in Settings.
-4. Select the credential on Deliver | Slack and switch it on. It posts one formatted message.
+**Quick, a DM to yourself:** create a Slack OAuth2 credential with Connect my account, put your Slack member ID in Settings (`slackChannel`), set Deliver | Slack to OAuth2 with that credential, switch it on. It posts one formatted message.
+
+**Fallback (self-hosted n8n, sign-in blocked, or a channel):** a Slack app with the bot scope `chat:write`, its token in a Slack API credential, the app invited to a private channel, the channel ID in Settings.
 
 Prefer email? Switch on Deliver | Email instead, with a Gmail credential and `emailTo` in Settings."""
 
@@ -854,7 +853,7 @@ Every number is invented and fixed. The store reviews show a fixed example week;
 DEMO_TASK_NOTE = """## Your task
 Get the reviews out of n8n, one of two ways:
 
-**A. Slack:** create a Slack app with the bot scope `chat:write`, save its token as an n8n Slack credential, invite the bot to a test channel, put the channel ID in Settings (`slackChannel`), select the credential on Deliver | Slack, switch it on, run.
+**A. Slack, a DM to yourself:** create a Slack OAuth2 credential with Connect my account, put your Slack member ID in Settings (`slackChannel`), select the credential on Deliver | Slack (authentication OAuth2), switch it on, run. Fallback: a Slack app with the bot scope `chat:write` and a test channel (see the Slack note).
 
 **B. Email instead:** replace Deliver | Slack with a Gmail node that sends the reports (ask Claude to swap it), set `emailTo` in Settings, run, then `/reporting-agent:get-email-reports` saves them into your OS."""
 DEMO_SUMMARY_NOTE = """## Summary
@@ -862,13 +861,12 @@ DEMO_SUMMARY_NOTE = """## Summary
 
 **AI summary** (off): an AI Agent with a Claude model reads the reviews and writes flags, what is working and what to check. It may not invent a number. To switch it on: add an Anthropic credential to Summary | Claude model, then switch on Summary | AI summary."""
 DEMO_SLACK_NOTE = """## Slack setup
-1. Create and install a Slack app with the bot scope `chat:write`.
-2. Save its token as an n8n Slack credential.
-3. Invite the bot to a test channel.
-4. Put the channel ID in Settings (`slackChannel`).
-5. Select the credential on Deliver | Slack and switch it on. It posts one formatted message per review and one for the summary.
+**Quick, a DM to yourself:**
+1. Create a Slack OAuth2 credential: Connect my account, sign in.
+2. Put your Slack member ID in Settings (`slackChannel`).
+3. On Deliver | Slack, set authentication to OAuth2, select the credential, switch it on. Five messages: four reviews and the summary.
 
-App installation may need workspace approval."""
+**Fallback (self-hosted n8n, or sign-in blocked):** create a Slack app with the bot scope `chat:write`, save its token as a Slack API credential, invite the app to a test channel, put the channel ID in `slackChannel`. Or swap Slack for email."""
 DEMO_GROUP_DESC = {
     "1. Executive review": "Sales, refunds and orders this week vs last, on made-up data.",
     "2. Marketing source review": "Orders and net sales by recorded source, on made-up data.",
@@ -1067,13 +1065,13 @@ Real requests put real data in the execution history. Do not run this on a share
 
 Switch on a delivery node only after choosing your own destination and reviewing the reports."""
 SLACK_NOTE = """## Slack setup, before delivery
-1. Create and install a Slack app with the bot scope `chat:write`.
-2. Save its token as an n8n Slack credential.
-3. Invite the bot to a private test channel. Live reports hold revenue.
-4. Select the credential and the channel By ID on Deliver | Slack.
-5. Review the reports, then switch on Deliver | Slack. It posts one formatted message per report and one for the summary.
+Live reports hold revenue: send them to your own DM or a private channel.
 
-App installation may need workspace approval."""
+**Quick, a DM to yourself:** a Slack OAuth2 credential made with Connect my account, your Slack member ID in Settings (`slackChannel`), Deliver | Slack set to OAuth2 with that credential.
+
+**Fallback (self-hosted n8n, sign-in blocked, or a team channel):** a Slack app with the bot scope `chat:write`, its token in a Slack API credential, the app invited to a private channel, the channel ID in `slackChannel`.
+
+Review the reports, then switch on Deliver | Slack. It posts one formatted message per report and one for the summary."""
 
 
 def full_delivery_note():

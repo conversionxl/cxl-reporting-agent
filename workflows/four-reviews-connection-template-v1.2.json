@@ -331,7 +331,7 @@
     },
     {
       "parameters": {
-        "content": "## Slack setup, before delivery\n1. Create and install a Slack app with the bot scope `chat:write`.\n2. Save its token as an n8n Slack credential.\n3. Invite the bot to a private test channel. Live reports hold revenue.\n4. Select the credential and the channel By ID on Deliver | Slack.\n5. Review the reports, then switch on Deliver | Slack. It posts one formatted message per report and one for the summary.\n\nApp installation may need workspace approval.",
+        "content": "## Slack setup, before delivery\nLive reports hold revenue: send them to your own DM or a private channel.\n\n**Quick, a DM to yourself:** a Slack OAuth2 credential made with Connect my account, your Slack member ID in Settings (`slackChannel`), Deliver | Slack set to OAuth2 with that credential.\n\n**Fallback (self-hosted n8n, sign-in blocked, or a team channel):** a Slack app with the bot scope `chat:write`, its token in a Slack API credential, the app invited to a private channel, the channel ID in `slackChannel`.\n\nReview the reports, then switch on Deliver | Slack. It posts one formatted message per report and one for the summary.",
         "height": 420,
         "width": 550,
         "color": 4

@@ -277,7 +277,7 @@
     },
     {
       "parameters": {
-        "content": "## Slack setup\n1. Create and install a Slack app with the bot scope `chat:write`.\n2. Save its token as an n8n Slack credential.\n3. Invite the bot to a test channel and put its channel ID in Settings.\n4. Select the credential on Deliver | Slack and switch it on. It posts one formatted message.\n\nPrefer email? Switch on Deliver | Email instead, with a Gmail credential and `emailTo` in Settings.",
+        "content": "## Slack setup\n**Quick, a DM to yourself:** create a Slack OAuth2 credential with Connect my account, put your Slack member ID in Settings (`slackChannel`), set Deliver | Slack to OAuth2 with that credential, switch it on. It posts one formatted message.\n\n**Fallback (self-hosted n8n, sign-in blocked, or a channel):** a Slack app with the bot scope `chat:write`, its token in a Slack API credential, the app invited to a private channel, the channel ID in Settings.\n\nPrefer email? Switch on Deliver | Email instead, with a Gmail credential and `emailTo` in Settings.",
         "width": 560,
         "height": 360,
         "color": 4

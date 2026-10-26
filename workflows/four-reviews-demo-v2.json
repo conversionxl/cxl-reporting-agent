@@ -457,7 +457,7 @@
         304
       ],
       "parameters": {
-        "content": "## Slack setup\n1. Create and install a Slack app with the bot scope `chat:write`.\n2. Save its token as an n8n Slack credential.\n3. Invite the bot to a test channel.\n4. Put the channel ID in Settings (`slackChannel`).\n5. Select the credential on Deliver | Slack and switch it on. It posts one formatted message per review and one for the summary.\n\nApp installation may need workspace approval.",
+        "content": "## Slack setup\n**Quick, a DM to yourself:**\n1. Create a Slack OAuth2 credential: Connect my account, sign in.\n2. Put your Slack member ID in Settings (`slackChannel`).\n3. On Deliver | Slack, set authentication to OAuth2, select the credential, switch it on. Five messages: four reviews and the summary.\n\n**Fallback (self-hosted n8n, or sign-in blocked):** create a Slack app with the bot scope `chat:write`, save its token as a Slack API credential, invite the app to a test channel, put the channel ID in `slackChannel`. Or swap Slack for email.",
         "width": 520,
         "height": 440,
         "color": 4
@@ -692,7 +692,7 @@
     },
     {
       "parameters": {
-        "content": "## Your task\nGet the reviews out of n8n, one of two ways:\n\n**A. Slack:** create a Slack app with the bot scope `chat:write`, save its token as an n8n Slack credential, invite the bot to a test channel, put the channel ID in Settings (`slackChannel`), select the credential on Deliver | Slack, switch it on, run.\n\n**B. Email instead:** replace Deliver | Slack with a Gmail node that sends the reports (ask Claude to swap it), set `emailTo` in Settings, run, then `/reporting-agent:get-email-reports` saves them into your OS.",
+        "content": "## Your task\nGet the reviews out of n8n, one of two ways:\n\n**A. Slack, a DM to yourself:** create a Slack OAuth2 credential with Connect my account, put your Slack member ID in Settings (`slackChannel`), select the credential on Deliver | Slack (authentication OAuth2), switch it on, run. Fallback: a Slack app with the bot scope `chat:write` and a test channel (see the Slack note).\n\n**B. Email instead:** replace Deliver | Slack with a Gmail node that sends the reports (ask Claude to swap it), set `emailTo` in Settings, run, then `/reporting-agent:get-email-reports` saves them into your OS.",
         "width": 520,
         "height": 470,
         "color": 3

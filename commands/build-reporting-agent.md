@@ -95,7 +95,8 @@ This is the order Hesh followed for every review in the worked examples. Follow 
 | Analytics Data API in Google Cloud | https://console.cloud.google.com/apis/library/analyticsdata.googleapis.com |
 | WooCommerce REST keys | `<store address>/wp-admin/admin.php?page=wc-settings&tab=advanced&section=keys` |
 | Customer.io App API keys | https://fly.customer.io/settings/api_credentials (App API keys tab) |
-| Slack apps | https://api.slack.com/apps |
+| Their Slack member ID (for a DM to themselves) | Slack: profile picture → Profile → ⋮ → Copy member ID |
+| Slack apps (the fallback) | https://api.slack.com/apps |
 | GitHub token | https://github.com/settings/personal-access-tokens/new |
 | Anthropic API keys | https://console.anthropic.com/settings/keys |
 
@@ -178,7 +179,10 @@ Then add the lane to **Collect all reports** (one more input, five in all) and w
 **What this step does:** gets the reviews out of n8n. Real reviews carry revenue now, so every destination must be private before its first send. Ask about each in turn, set up the ones they want, test once, then switch it off until step 7. If they did the demo task, that delivery is already proven: reuse its credential.
 
 **6a. Slack, or Microsoft Teams.** Ask: "Slack, Teams, or neither?"
-- **Slack:** the demo's **Deliver: Slack** block is already there. A Slack app with the bot scope `chat:write` (at https://api.slack.com/apps), its Bot User OAuth Token saved as a **Slack API** credential in the workflow's project, the bot invited to a **private** channel, the channel ID in `slackChannel`. Attach, switch on, run, check, switch off.
+- **Slack:** the demo's **Deliver: Slack** block is already there. If the demo task used Slack, reuse that login. Otherwise:
+  - **Quick: a direct message to yourself.** A **Slack OAuth2 API** credential in the workflow's project, made with **Connect my account** (sign in to the workspace, **Allow**). Their member ID (Slack: profile picture → **Profile** → **⋮** → **Copy member ID**, starts `U`) in `slackChannel`. Set **Deliver | Slack**'s `authentication` to `oAuth2` and attach the credential by id. A DM is private by default, which suits real revenue. The messages come from n8n's Slack app.
+  - **Fallback: Nick's Slack app,** for self-hosted n8n, a workspace that blocks the sign-in, or a team channel. At https://api.slack.com/apps: **Create New App** → **From scratch**, named "Reporting Agent". **OAuth & Permissions** → **Bot Token Scopes**: `chat:write`. **Install to Workspace**, copy the **Bot User OAuth Token** (`xoxb-`). A **Slack API** credential in the workflow's project with the token in **Access Token**. Invite the app to a **private** channel and put the channel ID (from the channel's details) in `slackChannel`. Set `authentication` to `accessToken` and attach.
+  - Then switch on, run, check, switch off. If Slack is blocked altogether, use email (6b).
 - **Teams:** replace **Deliver | Slack** with n8n's **Microsoft Teams** node (Create message, in a channel or a chat) and a **Microsoft Teams OAuth2** credential in the workflow's project; group it as "Deliver: Teams". Teams shows `*text*` as italics, so post each report's `markdown`, check one message, and adjust the format step if tables or labels read badly. Private channel only.
 
 **6b. Email into your OS.** Ask: "Do you want the reviews by email, so they land in this folder as files?" Copy the worked example's **Deliver: Email** group (**Email | Combine reports** and **Deliver | Email**), wired from **All reports and summary**: one email per run, every report in the body and attached, plus an exact copy of each. A **Gmail OAuth2** credential in the workflow's project, `emailTo` in Settings. Then explain the command that brings them in: **`/reporting-agent:get-email-reports`** finds the latest "Weekly reports" emails with Claude's Gmail connector, saves each exact copy into `raw/performance/reporting-agent/` (kept out of git, because real reports hold revenue), never overwrites a saved report, and reads the newest run with them: what changed, what is missing, what to check next. Without the Gmail connector, it takes the attachments from Downloads. Run it once now.
@@ -191,7 +195,7 @@ Then add the lane to **Collect all reports** (one more input, five in all) and w
 ## Step 7: One live run, then a schedule
 
 **What this step does:** the first run with real reviews delivered.
-1. **Check every destination first:** the Slack or Teams channel is private to people who may see revenue, `emailTo` is theirs, the GitHub repo is private.
+1. **Check every destination first:** Slack goes to their own DM or a channel private to people who may see revenue, the Teams channel is private to them too, `emailTo` is theirs, the GitHub repo is private.
 2. Switch on the outputs they chose, run once, and check what arrived. Read it with `/reporting-agent:get-email-reports`.
 3. **Switch the outputs off again** for any further test run, so tests never send real reviews. Switch them on for good only with a schedule: replace the manual trigger with a **Schedule Trigger** (for example Mondays at 8:00 in their timezone) and publish the workflow, with their yes.
 **Prompt:** "Switch on my outputs, do one live run, show me what was sent, then switch them off again."
