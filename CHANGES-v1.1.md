@@ -1,5 +1,15 @@
 # Four reviews workflow: v1.1 changes
 
+## 0.4.2 (26 October 2026)
+
+**Slack, the quick way: a direct message to yourself.** Nick asked for the Slack setup to be in the commands; Hesh suggested a DM to yourself first, so most people only sign in, and the Slack app becomes the fallback.
+
+| # | Change | Why |
+|---|---|---|
+| 40 | `/reporting-agent:build-reporting-demo`, step 3A: first a **Slack OAuth2 API** credential made with n8n's **Connect my account**, the learner's member ID in `slackChannel`, and **Deliver \| Slack** set to OAuth2. Then Nick's steps as the fallback (an app named "Reporting Agent", `chat:write`, install, a **Slack API** credential with the token in Access Token, a test channel with the app invited, the channel ID from its details), for self-hosted n8n, a workspace that blocks the sign-in, or a channel. Then email (B) if Slack is blocked altogether. The troubleshooting list adds the wrong-project login and a node whose authentication doesn't match the credential. | No Slack app, channel or invite for most people, and a DM is private by default, so the same setup suits real reviews. |
+| 41 | The same two routes in `/reporting-agent:build-reporting-agent` (step 6a, plus the step 7 destination check and the links table), `/reporting-agent:build-reporting-agent-ads` (step 4) and `/reporting-agent:how-to-build-yourself` (the Slack branch and a "post to a team channel" row). `/reporting-agent:get-email-reports` has no Slack step. | One Slack story in every command. |
+| 42 | On every canvas (demo, ads, both worked examples) the Slack note is now the quick route, a DM to yourself, and a new **Slack fallback: your own app** note to its right carries Nick's seven steps. The demo's "Your task" note points to both. The Metorik example's old note, which pointed to a SLACK-SETUP.md that no longer ships, is replaced. No other node changes. | The canvas and the commands say the same thing, and the fallback is there when the sign-in is blocked. |
+
 ## 0.4.1 (26 October 2026)
 
 **Aligned with the workshop deck, and existing installs pick up a newer version.**

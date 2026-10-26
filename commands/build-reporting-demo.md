@@ -68,16 +68,26 @@ Do both checks first, every time, and say what you found in one line each. Nothi
 
 ## Step 3: Your task, get the reviews out of n8n
 
-**What this step does:** the demo task. n8n can't write to their computer, so the reviews have to travel. Ask once: **A. Slack** (the delivery already in the demo) or **B. email instead** (swap the Slack block for an email; with `/reporting-agent:get-email-reports` the reviews then land in their OS as files). Email needs only a Google account. The data is made up, so sending it anywhere is safe.
+**What this step does:** the demo task. n8n can't write to their computer, so the reviews have to travel. Ask once: **A. Slack** (the delivery already in the demo; a message to themselves needs only a sign-in) or **B. email instead** (swap the Slack block for an email; with `/reporting-agent:get-email-reports` the reviews then land in their OS as files). Email needs only a Google account. The data is made up, so sending it anywhere is safe.
 
-**A. Slack, one sub-step per message:**
-1. **A Slack app.** At https://api.slack.com/apps: **Create New App** → From scratch, pick the workspace. Under **OAuth & Permissions**, add the bot scope `chat:write`, then **Install to Workspace** (some workspaces need an admin's approval) and copy the **Bot User OAuth Token** (starts `xoxb-`). Never paste it here.
-2. **The login in n8n.** In [their credentials](<n8n>/home/credentials), create a **Slack API** credential with that token, **in the same project as the workflow**. Tell me its name.
-3. **A test channel.** In Slack, open or create a test channel, type `/invite @<app name>`, then right-click the channel → **Copy link**: the ID is the part after `/archives/` (starts with `C`). Send me the ID (an ID is not a secret).
-4. **I wire it:** list their credentials with the n8n tools (names and types only), attach the Slack one to **Deliver | Slack** by its id, set `slackChannel` in **Settings**, switch **Deliver | Slack** on, and run.
+**A. Slack, one sub-step per message.** The quick way is a direct message to yourself: no Slack app, no channel, just a sign-in. A DM is private by default, so the same setup still suits real reviews later. Use Nick's Slack app steps below only as the fallback.
+1. **Sign in to Slack from n8n.** In [their credentials](<n8n>/home/credentials), **in the same project as the workflow**: **Create credential** → **Slack OAuth2 API** → **Connect my account**, sign in to their workspace and click **Allow**. Tell me its name. This sign-in is on n8n Cloud; on self-hosted n8n, or if the workspace blocks n8n's Slack app, go to the fallback.
+2. **Your member ID.** In Slack, click your profile picture → **Profile** → **⋮** (More) → **Copy member ID**. It starts with `U`. Send it to me (an ID is not a secret).
+3. **I wire it:** list their credentials with the n8n tools (names and types only), set **Deliver | Slack**'s `authentication` to `oAuth2`, attach the Slack OAuth2 credential by its id, set `slackChannel` in **Settings** to their member ID, switch **Deliver | Slack** on, and run.
+**Prompt:** "I signed in to Slack in n8n as '<name>' and my member ID is <ID>. Send the reviews to me in Slack and run it."
+**What you should see:** five messages in a direct message from n8n's Slack app: one per review, each with an emoji title and bold labels and marked as made-up data, and the week at a glance. Under a minute. Not in your direct messages? Look under **Apps** in Slack's sidebar.
+
+**Fallback: Nick's Slack app.** For self-hosted n8n, a workspace that blocks the sign-in, or posting to a channel instead of a DM. The same seven steps are on the canvas, in the **Slack fallback: your own app** note beside the Slack note:
+1. **Create the app:** at https://api.slack.com/apps, **Create New App** → **From scratch**. Name it "Reporting Agent" and select the workspace.
+2. **Add permission:** **OAuth & Permissions** → **Bot Token Scopes**, add `chat:write`.
+3. **Install the app:** click **Install to Workspace** and approve (some workspaces need an admin's approval). Copy the **Bot User OAuth Token** (starts `xoxb-`). Never paste it here.
+4. **Connect n8n:** create a **Slack API** credential **in the same n8n project as the workflow**, paste the token into **Access Token** and save. Tell me its name.
+5. **Choose a test channel:** create a channel such as `#reporting-agent-test`, invite the app (`/invite @Reporting Agent`), and copy the channel ID from the channel's details (starts with `C`). Send me the ID. Their member ID works here too: the app then sends them a direct message, and no channel or invite is needed.
+6. **I wire it:** set **Deliver | Slack**'s `authentication` to `accessToken`, attach the Slack API credential by its id, set `slackChannel` in **Settings**, switch **Deliver | Slack** on, and run.
 **Prompt:** "I made the Slack login '<name>' and the channel is <ID>. Connect Deliver | Slack and run it."
-**What you should see:** five messages in the channel: one per review, each with an emoji title and bold labels, and the week at a glance. Under a minute.
-**Could go wrong:** `not_in_channel`: invite the bot to the channel. `channel_not_found`: the ID is wrong, or the channel is private and the bot isn't in it. `invalid_auth`: the token was copied wrong; make the credential again.
+**What you should see:** the same five messages, in the channel or the DM.
+
+**Could go wrong:** the sign-in says the app needs approval: ask a workspace admin, or use the fallback, or take B. `Credential is not usable in this workflow's project`: the login was made in their personal project; make it again in the workflow's project, or share it with that project. `not_in_channel`: invite the app to the channel. `channel_not_found`: the ID is wrong, or the channel is private and the app isn't in it. `invalid_auth`: the token was copied wrong, or the node's authentication doesn't match the credential type; make the credential again or switch `authentication`. Slack not allowed at all: take B.
 
 **B. Email instead, one sub-step per message:**
 1. **I swap the block:** with the n8n tools, remove **Deliver | Slack** and **Slack | Format for Slack**, and copy the **Deliver: Email** group from the WooCommerce worked example (`projects/reporting-agent/n8n/four-reviews-connection-template-v1.2.json`): **Email | Combine reports** and **Deliver | Email** (Gmail), wired from **All reports and summary**, switched off, grouped as "Deliver: Email". It sends one email with every report in the body, an exact copy of each for get-email-reports, and every file attached.

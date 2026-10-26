@@ -15,7 +15,7 @@
 
 | Command | What it does |
 |---|---|
-| `/reporting-agent:build-reporting-demo` | Builds Nick's v2 demo in your n8n and runs it on made-up data; your task is to get the reviews to Slack, or to email and into this OS. |
+| `/reporting-agent:build-reporting-demo` | Builds Nick's v2 demo in your n8n and runs it on made-up data; your task is to get the reviews to Slack (a message to yourself), or to email and into this OS. |
 | `/reporting-agent:build-reporting-agent [step]` | Builds your own version from a copy of the demo: GA4, your store or CRM, an optional email review, extras, then the outputs, each review run with delivery off and reconciled against a number you trust. |
 | `/reporting-agent:build-reporting-agent-ads [step]` | Builds Nick's ads review as its own workflow, on his sample data first, then on your ad accounts. |
 | `/reporting-agent:get-email-reports [save\|read]` | Saves the reports from the latest emails into `raw/performance/reporting-agent/`, then reads them with you. Also reads reports merged in from a GitHub pull request. |

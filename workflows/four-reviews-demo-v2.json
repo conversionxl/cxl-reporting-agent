@@ -457,7 +457,7 @@
         304
       ],
       "parameters": {
-        "content": "## Slack setup\n1. Create and install a Slack app with the bot scope `chat:write`.\n2. Save its token as an n8n Slack credential.\n3. Invite the bot to a test channel.\n4. Put the channel ID in Settings (`slackChannel`).\n5. Select the credential on Deliver | Slack and switch it on. It posts one formatted message per review and one for the summary.\n\nApp installation may need workspace approval.",
+        "content": "## Slack, the quick way: a DM to yourself\n1. Create a Slack OAuth2 credential in this workflow's project: Connect my account, sign in.\n2. Put your Slack member ID in Settings (`slackChannel`). In Slack: your profile → ⋮ → Copy member ID.\n3. On Deliver | Slack, set Authentication to OAuth2 and select the credential.\n4. Switch on Deliver | Slack and run. Five messages: four reviews and the summary.\n\nSelf-hosted n8n, or sign-in blocked? See the fallback note.",
         "width": 520,
         "height": 440,
         "color": 4
@@ -692,7 +692,7 @@
     },
     {
       "parameters": {
-        "content": "## Your task\nGet the reviews out of n8n, one of two ways:\n\n**A. Slack:** create a Slack app with the bot scope `chat:write`, save its token as an n8n Slack credential, invite the bot to a test channel, put the channel ID in Settings (`slackChannel`), select the credential on Deliver | Slack, switch it on, run.\n\n**B. Email instead:** replace Deliver | Slack with a Gmail node that sends the reports (ask Claude to swap it), set `emailTo` in Settings, run, then `/reporting-agent:get-email-reports` saves them into your OS.",
+        "content": "## Your task\nGet the reviews out of n8n, one of two ways:\n\n**A. Slack, a DM to yourself:** create a Slack OAuth2 credential with Connect my account, put your Slack member ID in Settings (`slackChannel`), select the credential on Deliver | Slack (authentication OAuth2), switch it on, run. Fallback: your own Slack app (see the Slack fallback note).\n\n**B. Email instead:** replace Deliver | Slack with a Gmail node that sends the reports (ask Claude to swap it), set `emailTo` in Settings, run, then `/reporting-agent:get-email-reports` saves them into your OS.",
         "width": 520,
         "height": 470,
         "color": 3
@@ -704,6 +704,22 @@
       "position": [
         4032,
         984
+      ]
+    },
+    {
+      "parameters": {
+        "content": "## Slack fallback: your own Slack app\nFor self-hosted n8n, a workspace that blocks the sign-in, or a team channel.\n1. **Create the app:** api.slack.com/apps → Create New App → From scratch. Name it \"Reporting Agent\" and select your workspace.\n2. **Add permission:** OAuth & Permissions → Bot Token Scopes, add `chat:write`.\n3. **Install the app:** Install to Workspace and approve. Copy the Bot User OAuth Token (xoxb-…).\n4. **Connect n8n:** create a Slack API credential in this workflow's project. Paste the token into Access Token and save.\n5. **Choose a channel:** create one such as #reporting-agent-test, invite your app, and copy the channel ID from its details.\n6. **Connect the workflow:** on Deliver | Slack, set Authentication to Access Token and select the credential. Put the channel ID in Settings (`slackChannel`).\n7. **Enable and test:** switch on Deliver | Slack and run. Five messages arrive: four reviews plus the summary, all marked as made-up data.\n\nSlack blocked altogether? Swap Slack for email (Your task, B).",
+        "width": 520,
+        "height": 560,
+        "color": 4
+      },
+      "id": "3bce13a5-1b66-4f28-8478-6a452ebed3b0",
+      "name": "Slack fallback: your own app",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        4584,
+        304
       ]
     }
   ],
