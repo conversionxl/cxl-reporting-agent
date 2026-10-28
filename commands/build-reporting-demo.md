@@ -109,6 +109,7 @@ Do both checks first, every time, and say what you found in one line each. Nothi
 **Prompt:** "Switch on the AI summary with my Anthropic login '<name>' and show me what it wrote."
 **What you should see:** a sixth file, `summary-2026-10-14-to-2026-10-20.md`, and one more Slack message or one more report in the email. It says first that the figures are made up. Check two of its numbers against the reviews.
 **Say once:** the summary is written by a model: a starting point to read with the reviews, not a replacement for them. The API is billed by Anthropic per use.
+**How to check it** (from Ken Fleischer's demo, 28 October 2026): read it against the reviews line by line. Every number matches a review; it never invents a cause ("revenue is up because traffic is up"); a guess is labelled as one; missing costs stay missing, never zero. If it suggests rerunning traffic so the weeks line up, that is by design: the traffic review always reads the last 7 completed days, while the made-up store data has fixed dates.
 **Tell me when:** "summary on" or "skip".
 
 ## Step 5: Done, and what's next

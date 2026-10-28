@@ -1,5 +1,16 @@
 # Four reviews workflow: v1.1 changes
 
+## 0.5.2 (28 October 2026)
+
+**Ken Fleischer's tips from his demo** ([Circle, 28 October](https://ai-native.cxl.com/c/help-and-demos/reporting-agent-demo-with-email-delivery-and-ai-summary)).
+
+| # | Change | Why |
+|---|---|---|
+| 47 | `/reporting-agent:setup` and `/reporting-agent:build-reporting-demo` step 4: how to check the AI summary against the reviews (numbers match, no invented cause, guesses labelled, missing costs missing), and why a "rerun traffic so the weeks line up" suggestion is by design: traffic reads the last 7 completed days, the demo's store data has fixed dates. | Ken read his summary line by line and found it honest, plus one suggestion that looked like a fix but wasn't. |
+| 48 | Setup says n8n is often already on the member's Claude account: skip every connection step, `claude mcp add` included, when the tools are there. | Ken's was already connected. |
+| 49 | Setup and `/reporting-agent:get-email-reports`: retry a Gmail connector error ("service unavailable", "quota exhausted") once before troubleshooting. | Ken's failed twice, then worked on the retry. |
+| 50 | Setup, own data: it needs enough history (a few weeks of GA4 and no store data won't say much), and it can run for a client as a weekly brief once they sign off on connecting their data. | Ken held off for that reason, and named the client use. |
+
 ## 0.5.1 (28 October 2026)
 
 | # | Change | Why |
