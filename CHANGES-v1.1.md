@@ -1,5 +1,15 @@
 # Four reviews workflow: v1.1 changes
 
+## 0.5.0 (28 October 2026)
+
+**One place to start: `/reporting-agent:setup`.** The workshop prep on Circle shrinks to installing the plugins; the coaching moves into each plugin's setup command, as in the Marketing Brain, the Campaign Engine and the personal OS.
+
+| # | Change | Why |
+|---|---|---|
+| 43 | New `/reporting-agent:setup`: the shared preflight (folder and n8n), the limits first, then the demo command's steps 1 to 3 (build, run, deliver to a Slack DM or email, `get-email-reports`), one step per message with the four blocks. It never duplicates a build step; it follows the build commands. | Members need one command to type, and the prep lessons can point to it alone. |
+| 44 | After the demo is delivered, setup says plainly that this is all the workshop needs, then offers the AI summary and the learner's own data (`/reporting-agent:build-reporting-agent`) as optional, stoppable at any step. | The workshop customises the agent live; nobody should think they must finish it beforehand. |
+| 45 | Setup resumes from the project file's Progress list, and recommends one folder for every module. `tests/static.py` checks that setup carries the same preflight block as the build commands. | Typing setup again always lands on the next step, in the folder the other modules use. |
+
 ## 0.4.2 (26 October 2026)
 
 **Slack, the quick way: a direct message to yourself.** Nick asked for the Slack setup to be in the commands; Hesh suggested a DM to yourself first, so most people only sign in, and the Slack app becomes the fallback.
