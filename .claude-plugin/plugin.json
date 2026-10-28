@@ -1,7 +1,7 @@
 {
   "name": "reporting-agent",
-  "version": "0.4.2",
-  "description": "Reporting agent module for the CXL AI Native Marketer cohort: weekly reviews (executive, marketing sources, products, website traffic, and optionally email) built in n8n by Claude through the n8n MCP, delivered by Slack or Microsoft Teams, email, or a GitHub pull request, and read in your personal OS. /reporting-agent:build-reporting-demo builds Nick Christensen's v2 demo on made-up data; /reporting-agent:build-reporting-agent turns a copy of it into your own, on your GA4, store or CRM and email platform, one reconciled review at a time; /reporting-agent:build-reporting-agent-ads builds Nick's ads review as its own workflow; /reporting-agent:get-email-reports saves each run into your OS and reads it with you; /reporting-agent:how-to-build-yourself explains every node. Every build command first checks your folder and your n8n connection. Test build for review.",
+  "version": "0.5.0",
+  "description": "Reporting agent module for the CXL AI Native Marketer cohort: weekly reviews (executive, marketing sources, products, website traffic, and optionally email) built in n8n by Claude through the n8n MCP, delivered by Slack or Microsoft Teams, email, or a GitHub pull request, and read in your personal OS. /reporting-agent:setup is the place to start: it sets up, connects n8n, and coaches you through the demo until the reviews reach you, which is all the workshop needs; /reporting-agent:build-reporting-demo builds Nick Christensen's v2 demo on made-up data; /reporting-agent:build-reporting-agent turns a copy of it into your own, on your GA4, store or CRM and email platform, one reconciled review at a time; /reporting-agent:build-reporting-agent-ads builds Nick's ads review as its own workflow; /reporting-agent:get-email-reports saves each run into your OS and reads it with you; /reporting-agent:how-to-build-yourself explains every node. Every build command first checks your folder and your n8n connection. Test build for review.",
   "author": {
     "name": "CXL",
     "email": "hesh@cxl.com"
@@ -17,6 +17,7 @@
     "ai-native-marketer"
   ],
   "commands": [
+    "./commands/setup.md",
     "./commands/build-reporting-demo.md",
     "./commands/build-reporting-agent.md",
     "./commands/build-reporting-agent-ads.md",

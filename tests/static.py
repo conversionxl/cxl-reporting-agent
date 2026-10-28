@@ -120,6 +120,7 @@ pre=lambda t:t[t.index("<!-- preflight:"):t.index("<!-- /preflight -->")] if "<!
 build=["build-reporting-demo.md","build-reporting-agent.md","build-reporting-agent-ads.md"]
 blocks={f:pre(cmds[f]) for f in build}
 check(all(blocks.values()) and len(set(blocks.values()))==1,"the three build commands carry the same preflight block")
+check(pre(cmds.get("setup.md",""))==blocks["build-reporting-demo.md"],"setup carries the same preflight block as the build commands")
 b=blocks["build-reporting-demo.md"] or ""
 check(all(k in b for k in ["projects/reporting-agent/reporting-agent.md","plugin/setup.sh","folders.json","contain `n8n`","get_user_preferences","Customize → Connectors","MCP access","Do not offer another way to build"]),"the preflight checks the folder (setup script, folder map) and the n8n MCP connection, and stops without it")
 check(all(cmds[f].index("<!-- preflight:")<cmds[f].index("## Step 1") for f in build),"the preflight comes before step 1 in every build command")

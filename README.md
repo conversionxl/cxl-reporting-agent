@@ -1,4 +1,4 @@
-# Reporting agent (test build 0.4.2)
+# Reporting agent (test build 0.5.0)
 
 A module for the CXL AI Native Marketer cohort, for the Reporting agent workshop (sprint day 3, 12 November 2026). You start from Nick Christensen's demo on made-up data, then build your own n8n workflow on your own GA4, store or CRM, and email platform, one review at a time, with Claude building through the n8n MCP and every review reconciled against a number you trust before the next. It delivers the reviews, and a personal OS command saves them so Claude can read them with you. Nick's ads review is a separate workflow with its own command.
 
@@ -10,6 +10,7 @@ Every build command first checks your folder setup and that n8n is connected to 
 
 | Command | What it does |
 |---|---|
+| `/reporting-agent:setup` | **Start here.** Sets up the module in your personal OS folder (the same folder as every other module), connects Claude to n8n, then coaches you through the demo until the reviews reach you in Slack or by email. That is all you need before the workshop. Afterwards it offers the AI summary and your own data, both optional. Type it again any time: it picks up where you left off. |
 | `/reporting-agent:build-reporting-demo` | Builds Nick's demo, v2, in your n8n and runs it on made-up data. Your task: connect Slack (quickest: a message to yourself, with only a sign-in), or swap Slack for email and save the reviews into your OS. Optional: switch on the AI summary. |
 | `/reporting-agent:build-reporting-agent` | Your own version: a copy of the demo, then GA4, your store or CRM in place of the made-up data, an optional email review on your own email platform, optional trends and AI summary, and the outputs (Slack or Microsoft Teams, email, a GitHub pull request only to a private repo). One build loop for every review: propose, login in the right n8n project, fetch with delivery off, convert, reconcile. |
 | `/reporting-agent:build-reporting-agent-ads` | Nick's ads review as its own workflow: runs on his sample campaigns first, then shows how to connect Meta, Google Ads, or any other ad channel in the same format. |
@@ -25,7 +26,7 @@ Every build command first checks your folder setup and that n8n is connected to 
 | `workflows/four-reviews-metorik-template-v1.1.json` | **Worked example: the same build on Metorik**, Nick's original source. Shipped switched off, no credentials. |
 | `workflows/ads-review-from-nick-v1.json` | **Nick's ads review, its own workflow**, from his MIT starter: his schedule plus a manual "Run now" trigger, sample campaigns, merge and Analyze code unchanged and credited, a Compose step that writes the same report format (labelled SAMPLE DATA until real ad data is connected), an INCOMPLETE path, and Slack and email delivery, both off. |
 | `workflows/sample-reports/` | What the workflows write, all on made-up data: the four demo reviews, the week at a glance, an INCOMPLETE review, the email body, an email review, the ads review on Nick's sample data and an INCOMPLETE summary. |
-| `commands/` | The five commands above. |
+| `commands/` | The six commands above. |
 | `plugin/setup.sh` | Adds the module to a personal OS: the `.gitignore` block for saved reports, the project file, the workflows and a CLAUDE.md section. Never overwrites a file. |
 | `plugin/to_sdk.py` | Converts a workflow file into n8n SDK code, so Claude can create it through the n8n MCP, plus `<out>.groups.json`, the operation that adds its collapsible groups afterwards. |
 | `frameworks/report-contract.md` | The format each review needs, guardrails for switching sources, the WooCommerce mapping, and the ads row format. |
