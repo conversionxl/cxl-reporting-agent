@@ -1,5 +1,11 @@
 # Four reviews workflow: v1.1 changes
 
+## 0.5.1 (28 October 2026)
+
+| # | Change | Why |
+|---|---|---|
+| 46 | The shared preflight (in setup and every build command) points to "Your own folders" in `/personal-os:setup` instead of `/personal-os:start`. | The personal-os plugin folded `/personal-os:start` into `/personal-os:setup` (0.4.0). |
+
 ## 0.5.0 (28 October 2026)
 
 **One place to start: `/reporting-agent:setup`.** The workshop prep on Circle shrinks to installing the plugins; the coaching moves into each plugin's setup command, as in the Marketing Brain, the Campaign Engine and the personal OS.
