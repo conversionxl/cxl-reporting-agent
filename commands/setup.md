@@ -10,6 +10,8 @@ The build itself lives in the other commands; this one never duplicates their st
 
 **One folder for every module.** The Reporting agent goes in the folder set up with `/personal-os:setup`, where the Marketing Brain and the Campaign Engine live too, so the saved reviews sit next to the daily logs. If this folder holds no personal OS but a sibling folder does (`.claude/personal-os.json` one level up or next to it), say so in one line and ask whether they meant to open that one, before the checks below.
 
+**Already connected? Don't set it up again.** Members often have n8n on their Claude account already, from an earlier workshop. The check below looks for the n8n tools first: if they are there, say "Connected to n8n" and skip every connection step, `claude mcp add` included (from Ken Fleischer's demo, 28 October 2026).
+
 <!-- preflight: identical in every build command; tests/static.py checks it -->
 ## Before anything: your folder and n8n (every time)
 
@@ -68,7 +70,7 @@ Follow step 2 of the demo command: four reviews and a week at a glance that says
 
 ## Step 4: get the reviews to you
 
-Follow step 3 of the demo command: ask once, **A. a Slack message to yourself** or **B. an email to yourself**, then its sub-steps one per message. For B, finish with `/reporting-agent:get-email-reports`, which saves the five files into `raw/performance/reporting-agent/` (that folder stays on this computer) and reads them with them: facts copied from a review, hypotheses labelled as such, and anything missing never read as zero. The data is made up, so sending it anywhere is safe. Tick "Demo task done" and note Slack or email in "My setup".
+Follow step 3 of the demo command: ask once, **A. a Slack message to yourself** or **B. an email to yourself**, then its sub-steps one per message. For B, finish with `/reporting-agent:get-email-reports`, which saves the five files into `raw/performance/reporting-agent/` (that folder stays on this computer) and reads them with them: facts copied from a review, hypotheses labelled as such, and anything missing never read as zero. If the Gmail connector fails with a passing error ("service unavailable", "quota exhausted"), retry once before troubleshooting: it usually works on the second try (from Ken Fleischer's demo, 28 October 2026). The data is made up, so sending it anywhere is safe. Tick "Demo task done" and note Slack or email in "My setup".
 
 **Tell me when:** "slack works" or "reports saved".
 
@@ -77,8 +79,8 @@ Follow step 3 of the demo command: ask once, **A. a Slack message to yourself** 
 Say it plainly, in bold: **"That is everything you need for the workshop. In the session we customise the agent together, live."** Screenshots of the demo are safe to post, because the data is made up. Add a dated line to the project file's log.
 
 Then two optional extras, as one question: **"Want to go further before the workshop? Nothing breaks if you stop here."**
-- **The AI summary:** step 4 of the demo command. It needs an Anthropic API key, billed per use.
-- **Your own data:** say first that this is optional, that it is what the workshop does together, and that they can go as far as they like and stop at any step. From here n8n shows their real figures: don't share the screen while it is open, and never paste real figures into anything committed. On a yes, follow `${CLAUDE_PLUGIN_ROOT}/commands/build-reporting-agent.md` from its step 1 (or the first unticked step under "Your agent"), with its build loop: GA4, then the executive review on their store or CRM, each reconciled against a number they trust before the next.
+- **The AI summary:** step 4 of the demo command. It needs an Anthropic API key, billed per use. Then read it against the reviews, line by line, before trusting it: every number matches a review, it never invents a cause ("revenue is up because traffic is up"), any guess is labelled as one, and missing costs stay missing, never zero. If it suggests rerunning traffic so the weeks line up, that is by design, not a bug: the traffic review always reads the last 7 completed days, and the demo's made-up store data has fixed dates (from Ken Fleischer's demo, 28 October 2026).
+- **Your own data:** say first that this is optional, that it is what the workshop does together, and that they can go as far as they like and stop at any step. It only tells them something with enough history: a few weeks of GA4 and no store or CRM data won't say much, so waiting is a fine choice. Consultants and agencies can also run it for a client, as a weekly brief during an engagement, once the client has signed off on connecting their data (from Ken Fleischer's demo, 28 October 2026). From here n8n shows their real figures: don't share the screen while it is open, and never paste real figures into anything committed. On a yes, follow `${CLAUDE_PLUGIN_ROOT}/commands/build-reporting-agent.md` from its step 1 (or the first unticked step under "Your agent"), with its build loop: GA4, then the executive review on their store or CRM, each reconciled against a number they trust before the next.
 - **Stop here:** fine. Typing `/reporting-agent:setup` again picks up at this point.
 
 **Stuck at any step?** Take a screenshot of the failed run in n8n, paste it here, and ask what broke. Building an automation is mostly troubleshooting, and that is normal. Each build command has a table of what broke in the real builds and the fix.
