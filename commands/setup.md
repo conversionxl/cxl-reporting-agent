@@ -74,14 +74,18 @@ Follow step 3 of the demo command: ask once, **A. a Slack message to yourself** 
 
 **Tell me when:** "slack works" or "reports saved".
 
-## Step 5: you're ready for the workshop
+## Step 5: you're set up for the workshops
 
-Say it plainly, in bold: **"That is everything you need for the workshop. In the session we customise the agent together, live."** Screenshots of the demo are safe to post, because the data is made up. Add a dated line to the project file's log.
+Show this first:
+
+> **You're set up for the workshops.** Your Reporting agent demo runs and the reviews reach you. With the personal OS, the Marketing Brain and the Campaign Engine done, that's every module. In the session we customise the agent together, live.
+
+Screenshots of the demo are safe to post, because the data is made up. Add a dated line to the project file's log. If the workshop path shows a module that is not done yet (`/personal-os:setup` shows it), name it in one line with its setup command.
 
 Then two optional extras, as one question: **"Want to go further before the workshop? Nothing breaks if you stop here."**
 - **The AI summary:** step 4 of the demo command. It needs an Anthropic API key, billed per use. Then read it against the reviews, line by line, before trusting it: every number matches a review, it never invents a cause ("revenue is up because traffic is up"), any guess is labelled as one, and missing costs stay missing, never zero. If it suggests rerunning traffic so the weeks line up, that is by design, not a bug: the traffic review always reads the last 7 completed days, and the demo's made-up store data has fixed dates (from Ken Fleischer's demo, 28 October 2026).
 - **Your own data:** say first that this is optional, that it is what the workshop does together, and that they can go as far as they like and stop at any step. It only tells them something with enough history: a few weeks of GA4 and no store or CRM data won't say much, so waiting is a fine choice. Consultants and agencies can also run it for a client, as a weekly brief during an engagement, once the client has signed off on connecting their data (from Ken Fleischer's demo, 28 October 2026). From here n8n shows their real figures: don't share the screen while it is open, and never paste real figures into anything committed. On a yes, follow `${CLAUDE_PLUGIN_ROOT}/commands/build-reporting-agent.md` from its step 1 (or the first unticked step under "Your agent"), with its build loop: GA4, then the executive review on their store or CRM, each reconciled against a number they trust before the next.
-- **Stop here:** fine. Typing `/reporting-agent:setup` again picks up at this point.
+- **Stop here:** say "**You're set up for the workshops.** See you in the session." and stop. Typing `/reporting-agent:setup` again picks up at this point.
 
 **Stuck at any step?** Take a screenshot of the failed run in n8n, paste it here, and ask what broke. Building an automation is mostly troubleshooting, and that is normal. Each build command has a table of what broke in the real builds and the fix.
 

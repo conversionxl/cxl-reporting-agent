@@ -114,4 +114,4 @@ Do both checks first, every time, and say what you found in one line each. Nothi
 
 ## Step 5: Done, and what's next
 
-Say in three lines: the demo is built, run and delivered; the reviews are made up, so screenshots are safe to post as their demo; next is `/reporting-agent:build-reporting-agent`, which copies this demo and connects it to their own GA4, store or CRM, and email platform, one review at a time. Nick's ads review is its own workflow: `/reporting-agent:build-reporting-agent-ads`. Add a dated line to the project file's log saying what works.
+If `/reporting-agent:setup` started this run, go back to its step 5. Otherwise close out in three lines: **"You're set up for the workshops."** The demo is built, run and delivered, and the reviews are made up, so screenshots are safe to post as their demo. Going further is optional: `/reporting-agent:build-reporting-agent` copies this demo and connects it to their own GA4, store or CRM, and email platform, one review at a time; the workshop does this together, live. Nick's ads review is its own workflow: `/reporting-agent:build-reporting-agent-ads`. Add a dated line to the project file's log saying what works.

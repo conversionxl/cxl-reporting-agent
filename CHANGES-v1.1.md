@@ -1,5 +1,11 @@
 # Four reviews workflow: v1.1 changes
 
+## 0.5.3 (29 October 2026)
+
+| # | Change | Why |
+|---|---|---|
+| 51 | `/reporting-agent:setup` step 5 and the end of `/reporting-agent:build-reporting-demo` close out with "You're set up for the workshops." The optional extras follow; stopping says it again. | After testing, Hesh and Phil asked every module to end the same way, handing on to the next one; the Reporting agent is the last, so it ends the chain. |
+
 ## 0.5.2 (28 October 2026)
 
 **Ken Fleischer's tips from his demo** ([Circle, 28 October](https://ai-native.cxl.com/c/help-and-demos/reporting-agent-demo-with-email-delivery-and-ai-summary)).
