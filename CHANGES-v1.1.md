@@ -1,5 +1,11 @@
 # Four reviews workflow: v1.1 changes
 
+## 0.5.4 (30 October 2026)
+
+| # | Change | Why |
+|---|---|---|
+| 52 | The README's Updating section recommends keeping automatic sync on, with Check for updates as the fallback. | Hesh, 30 October: updates should recommend auto update on, the same as the prep. |
+
 ## 0.5.3 (29 October 2026)
 
 | # | Change | Why |
