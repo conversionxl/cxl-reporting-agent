@@ -1,5 +1,5 @@
 ---
-description: Build your own Reporting agent on your own data, starting from Nick's v2 demo. Checks your folder and your n8n connection first and fixes them if needed. Then, one review at a time, connects GA4, replaces the made-up store data with your own store or CRM, offers an email review on your own email platform, and sets up the outputs (Slack or Microsoft Teams, email into your OS, a GitHub pull request only to a private repo). Claude builds through the n8n MCP; every review is run with delivery off and checked against a number you trust.
+description: "Build your own Reporting agent on your own data, starting from Nick's v2 demo. Checks your folder and n8n connection first. Then, one review at a time, connects GA4, your store or CRM, an optional email review, and the outputs (Slack or Microsoft Teams, email into your OS, or a GitHub pull request to a private repo). Claude builds through the n8n MCP; every review runs with delivery off and is checked against a number you trust."
 argument-hint: "[step number to resume from, optional]"
 ---
 
