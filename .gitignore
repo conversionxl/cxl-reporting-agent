@@ -1,2 +1,5 @@
 node_modules/
 .DS_Store
+
+# Built plugin ZIP (scripts/build-zip.sh)
+dist/

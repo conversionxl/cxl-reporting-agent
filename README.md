@@ -1,4 +1,4 @@
-# Reporting agent (test build 0.5.4)
+# Reporting agent (test build 0.5.5)
 
 A module for the CXL AI Native Marketer cohort, for the Reporting agent workshop (sprint day 3, 12 November 2026). You start from Nick Christensen's demo on made-up data, then build your own n8n workflow on your own GA4, store or CRM, and email platform, one review at a time, with Claude building through the n8n MCP and every review reconciled against a number you trust before the next. It delivers the reviews, and a personal OS command saves them so Claude can read them with you. Nick's ads review is a separate workflow with its own command.
 
@@ -73,6 +73,10 @@ Run → Settings → five lanes (Executive, Marketing, Products, Traffic, Email)
 1. In Claude, open **Customize**, then **Browse plugins**, **Personal**, **+**, **Add marketplace from GitHub**. Enter `https://github.com/conversionxl/cxl-reporting-agent`, then add **reporting-agent**. This is its own marketplace, separate from the ones for personal-os, marketing-brain and campaign-engine.
    (Terminal or VS Code instead: `/plugin marketplace add conversionxl/cxl-reporting-agent`, then `/plugin install reporting-agent@cxl-reporting-agent`.)
 2. Open your personal OS folder (or an empty folder) in Claude and run `/reporting-agent:build-reporting-demo`. It sets the module up, connects n8n if needed, and builds the demo.
+
+**No "Add marketplace" under Add, only "Upload plugin" and "Create with Claude"?** You're in the desktop app's **Code** mode. Switch to **Chat** mode (top left), then open **Settings → Plugins → Add** again. Add marketplace shows there. The plugin still syncs to the Code tab afterwards.
+
+**Still no "Add marketplace"? Upload the ZIP.** Download **[reporting-agent.zip](https://github.com/conversionxl/cxl-reporting-agent/releases/download/plugin-zips/reporting-agent.zip)** and upload it in **Settings → Plugins → Add → Upload plugin** as it is: don't unzip it. Don't use the green **Code → Download ZIP** button for this: that ZIP puts everything inside a `cxl-reporting-agent-main` folder, so the upload fails with "The archive must contain a .claude-plugin/plugin.json manifest". An uploaded plugin doesn't update itself: for a new version, remove it in **Settings → Plugins**, download the ZIP again and upload it.
 
 Keep automatic sync on in Claude and new versions reach you on their own. Not seeing an update yet? Go to **Plugins → Add → Manage marketplaces → ⋮** next to the marketplace → **Check for updates**. Your folder and saved reports are untouched.
 
