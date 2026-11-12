@@ -1,6 +1,6 @@
 {
   "name": "reporting-agent",
-  "version": "0.5.5",
+  "version": "0.5.6",
   "description": "Reporting agent module for the CXL AI Native Marketer cohort: weekly reviews (executive, marketing sources, products, website traffic, and optionally email) built in n8n by Claude through the n8n MCP, delivered by Slack, Teams, email or a GitHub pull request, and read in your personal OS. Start with /reporting-agent:setup: it connects n8n and coaches you through Nick Christensen's demo. Test build for review.",
   "author": {
     "name": "CXL",
