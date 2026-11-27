@@ -1,5 +1,11 @@
 # Four reviews workflow: v1.1 changes
 
+## 0.5.7 (27 November 2026)
+
+| # | Change | Why |
+|---|---|---|
+| 53 | The four workflows list each group's members by node id (`nodeIds`), as current n8n exports them, instead of by name. The files are renamed (`four-reviews-demo-v3.json`, `four-reviews-connection-template-v1.3.json`, `four-reviews-metorik-template-v1.2.json`, `ads-review-from-nick-v2.json`) and their n8n names carry the same version; the old files are removed. `tests/build.py` writes the new format, `plugin/to_sdk.py` maps the ids back to names for `setNodeGroups`, and the commands, README and report contract point at the new files. Nothing else in the workflows changed. | Phil's export from a current n8n (PR 12), tested by Phil. |
+
 ## 0.5.4 (30 October 2026)
 
 | # | Change | Why |

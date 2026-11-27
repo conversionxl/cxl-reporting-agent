@@ -1,15 +1,15 @@
 """Build every shipped workflow.
 
 Usage: python3 -I build.py <src_dir> <out_dir>
-build_demo_v2(): Nick's v2 demo, four-reviews-demo-v2.json, from Nick's v1.0 demo export
+build_demo_v2(): Nick's v2 demo, four-reviews-demo-v3.json, from Nick's v1.0 demo export
 (tests/fixtures/nick-v1.0): Settings, the four lanes on made-up data, Collect, the
 summaries (week at a glance in code; the AI summary shipped off) and Slack only.
-build(): the Metorik worked example, four-reviews-metorik-template-v1.1.json, from
+build(): the Metorik worked example, four-reviews-metorik-template-v1.2.json, from
 Nick's connection template export.
-build_full(): the WooCommerce worked example, four-reviews-connection-template-v1.2.json,
+build_full(): the WooCommerce worked example, four-reviews-connection-template-v1.3.json,
 from the sanitized export of the workflow tested live on 23 October 2026
 (tests/fixtures/full-template-source.json), plus the plugin edits.
-build_ads(): the ads review, ads-review-from-nick-v1.json, its own workflow, from Nick
+build_ads(): the ads review, ads-review-from-nick-v2.json, its own workflow, from Nick
 Christensen's MIT ads starter (tests/fixtures/nick-ads-starter).
 Every string replacement asserts the exact number of matches, so a changed
 source fails loudly instead of producing a half-edited workflow.
@@ -34,7 +34,7 @@ def nid():
 COLLECT = "Collect all reports"
 
 # Collapsible canvas groups. n8n stores them as the workflow's top-level `nodeGroups`
-# (id, name, nodeNames, description). A trigger cannot be in a group. The trigger,
+# (id, name, nodeIds, description). Members are node ids, as current n8n exports them. A trigger cannot be in a group. The trigger,
 # Settings and Collect stay visible, so collapsed the canvas reads: trigger, Settings,
 # five review blocks, Collect, Trends and AI summary, three delivery blocks.
 GROUP_NS = uuid.UUID("b5f3c9a0-2c1e-4d8e-9a77-3e1f0c5a7d21")
@@ -88,8 +88,8 @@ def add_groups(wf, template, desc, override=None):
             continue  # a trigger cannot be in a group
         g = (override or {}).get(n["name"]) or group_of(n["name"])
         assert g, "node without a group: " + n["name"]
-        members.setdefault(g, []).append(n["name"])
-    wf["nodeGroups"] = [{"id": str(uuid.uuid5(GROUP_NS, template + "/" + g)), "name": g, "nodeNames": members[g],
+        members.setdefault(g, []).append(n["id"])
+    wf["nodeGroups"] = [{"id": str(uuid.uuid5(GROUP_NS, template + "/" + g)), "name": g, "nodeIds": members[g],
                          "description": desc[g]} for g in GROUP_ORDER if g in members]
 
 
@@ -547,7 +547,7 @@ def build_ads():
     starter = json.load(open(ADS_SRC))
     by = {n["name"]: n for n in starter["nodes"]}
     nodes, conns = {}, {}
-    wf = {"name": "Workshop | Ads review from Nick Christensen's starter | v1", "nodes": [], "connections": conns,
+    wf = {"name": "Workshop | Ads review from Nick Christensen's starter | v2", "nodes": [], "connections": conns,
           "settings": {"executionOrder": "v1"}}
 
     def add(node):
@@ -621,7 +621,7 @@ def build_ads():
              "type": "n8n-nodes-base.stickyNote", "typeVersion": 1})
     add_slack_fallback(wf, "Slack setup guide", ADS_SLACK_NOTE, ADS_SLACK_FALLBACK, 500)
     add_groups(wf, "ads", ADS_GROUP_DESC, override={"Slack | Format for Slack": "Deliver: Slack"})
-    out = f"{OUT}/ads-review-from-nick-v1.json"
+    out = f"{OUT}/ads-review-from-nick-v2.json"
     json.dump(wf, open(out, "w"), indent=2, ensure_ascii=False)
     print("wrote", out, len(wf["nodes"]), "nodes")
 
@@ -823,8 +823,8 @@ def build(fn, demo, full):
     group_layout(wf, METORIK_CHAINS, METORIK_TRENDS_ROW)
     add_slack_fallback(wf, "Slack app setup guide", SLACK_NOTE, SLACK_FALLBACK, 560)
     add_groups(wf, "metorik", METORIK_GROUP_DESC)
-    wf["name"] = wf["name"] + " | v1.1"
-    out = f"{OUT}/four-reviews-metorik-template-v1.1.json"
+    wf["name"] = wf["name"] + " | v1.2"
+    out = f"{OUT}/four-reviews-metorik-template-v1.2.json"
     json.dump(wf, open(out, "w"), indent=2, ensure_ascii=False)
     print("wrote", out, len(wf["nodes"]), "nodes")
 
@@ -1016,8 +1016,8 @@ def build_demo_v2(full):
     nodes["Your task"]["parameters"].update({"width": 520, "height": 470, "color": 3})
     add_slack_fallback(wf, "Slack app setup guide", DEMO_SLACK_NOTE, DEMO_SLACK_FALLBACK, 560)
     add_groups(wf, "demo-v2", DEMO_GROUP_DESC, override={"All reports and summary": "Summary"})
-    wf["name"] = "Workshop | Four reviews | Nick's demo | v2"
-    out = f"{OUT}/four-reviews-demo-v2.json"
+    wf["name"] = "Workshop | Four reviews | Nick's demo | v3"
+    out = f"{OUT}/four-reviews-demo-v3.json"
     json.dump(wf, open(out, "w"), indent=2, ensure_ascii=False)
     print("wrote", out, len(wf["nodes"]), "nodes")
 
@@ -1239,8 +1239,8 @@ def build_full():
     add_slack_fallback(wf, "Slack app setup guide", SLACK_NOTE, SLACK_FALLBACK, 560)
     add_groups(wf, "full", FULL_GROUP_DESC)
 
-    wf["name"] = "Workshop | Weekly business reviews | full template | v1.2"
-    out = f"{OUT}/four-reviews-connection-template-v1.2.json"
+    wf["name"] = "Workshop | Weekly business reviews | full template | v1.3"
+    out = f"{OUT}/four-reviews-connection-template-v1.3.json"
     json.dump(wf, open(out, "w"), indent=2, ensure_ascii=False)
     print("wrote", out, len(wf["nodes"]), "nodes")
     return wf

@@ -1,7 +1,7 @@
 const fs = require('fs');
 const { run } = require('./run');
 const [OUT, SRC, SAMPLES] = process.argv.slice(2);
-const demo = `${OUT}/four-reviews-demo-v2.json`, ads = `${OUT}/ads-review-from-nick-v1.json`, tmpl = `${OUT}/four-reviews-metorik-template-v1.1.json`, full = `${OUT}/four-reviews-connection-template-v1.2.json`;
+const demo = `${OUT}/four-reviews-demo-v3.json`, ads = `${OUT}/ads-review-from-nick-v2.json`, tmpl = `${OUT}/four-reviews-metorik-template-v1.2.json`, full = `${OUT}/four-reviews-connection-template-v1.3.json`;
 let failures = 0;
 const ok = (cond, msg) => { console.log((cond ? 'PASS ' : 'FAIL ') + msg); if (!cond) failures++; };
 const byName = items => Object.fromEntries(items.map(i => [i.json.fileName, i.json.markdown]));

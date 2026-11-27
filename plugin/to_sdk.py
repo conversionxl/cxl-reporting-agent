@@ -79,6 +79,15 @@ print(out_path, len(open(out_path).read()), "chars")
 # operation (group members are node names; trigger nodes cannot be in a group).
 if wf.get("nodeGroups"):
     groups_path = re.sub(r"\.[^./]+$", "", out_path) + ".groups.json"
-    op = {"type": "setNodeGroups", "nodeGroups": [{k: g[k] for k in ("name", "description", "nodeNames") if k in g} for g in wf["nodeGroups"]]}
+    # Shipped files list group members by node id (nodeIds), as current n8n exports them;
+    # older files list names (nodeNames). The operation takes names, so ids are mapped here.
+    by_id = {n.get("id"): n["name"] for n in wf["nodes"]}
+    def names(g):
+        if g.get("nodeNames"):
+            return g["nodeNames"]
+        missing = [i for i in g.get("nodeIds", []) if i not in by_id]
+        assert not missing, f"group {g.get('name')!r} lists node ids that are not in the workflow: {missing}"
+        return [by_id[i] for i in g.get("nodeIds", [])]
+    op = {"type": "setNodeGroups", "nodeGroups": [{"name": g["name"], "description": g.get("description", ""), "nodeNames": names(g)} for g in wf["nodeGroups"]]}
     json.dump([op], open(groups_path, "w"), indent=2, ensure_ascii=False)
     print(groups_path, len(op["nodeGroups"]), "groups: apply with update_workflow after creating the workflow")

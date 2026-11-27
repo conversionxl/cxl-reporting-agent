@@ -14,13 +14,16 @@ ln -s "$HERE/fixtures/nick-v1.0" "$WORK/handoff-src"
 python3 -I "$HERE/build.py" "$HERE/fixtures/nick-v1.0" "$WORK/out"
 [ "$(ls "$ROOT"/workflows/*.json | wc -l | tr -d ' ')" = 4 ] || { echo "FAIL workflows/ should hold exactly the four built workflows"; exit 1; }
 echo "PASS workflows/ holds exactly the four built workflows"
-for f in "$ROOT"/workflows/four-reviews-demo-v2.json "$ROOT"/workflows/ads-review-from-nick-v1.json "$ROOT"/workflows/four-reviews-metorik-template-v1.1.json "$ROOT"/workflows/four-reviews-connection-template-v1.2.json; do
+for f in "$ROOT"/workflows/four-reviews-demo-v3.json "$ROOT"/workflows/ads-review-from-nick-v2.json "$ROOT"/workflows/four-reviews-metorik-template-v1.2.json "$ROOT"/workflows/four-reviews-connection-template-v1.3.json; do
   b="$(basename "$f")"
   python3 -I - "$f" "$WORK/out/$b" <<'PY'
 import json,sys
 strip=lambda w:[{k:v for k,v in n.items() if k!="id"} for n in w["nodes"]]
 a,b=(json.load(open(p)) for p in sys.argv[1:])
-assert strip(a)==strip(b) and a["connections"]==b["connections"] and a.get("nodeGroups")==b.get("nodeGroups"), "shipped workflow differs from build: "+sys.argv[1]
+def groups(w):
+    byid={n["id"]:n["name"] for n in w["nodes"]}
+    return [{**{k:v for k,v in g.items() if k!="nodeIds"},"members":[byid[i] for i in g["nodeIds"]]} for g in w.get("nodeGroups",[])]
+assert a["name"]==b["name"] and strip(a)==strip(b) and a["connections"]==b["connections"] and groups(a)==groups(b), "shipped workflow differs from build: "+sys.argv[1]
 print("PASS shipped "+sys.argv[1].split("/")[-1]+" matches a fresh build, groups included (node ids aside)")
 PY
 done

@@ -12,7 +12,7 @@ ads=json.load(open(os.path.join(HERE,"fixtures","nick-ads-starter","starter-work
 ads_code={n["name"]:n["parameters"].get("jsCode") for n in ads["nodes"]}
 nick+=" "+" ".join(c for c in ads_code.values() if c)  # Nick's ads starter code is quoted unchanged
 nick+=" "+" ".join(strings(json.load(open("handoff-src/four-reviews-demo.json"))))  # Nick's demo text is quoted unchanged
-ALL=["out/four-reviews-demo-v2.json","out/ads-review-from-nick-v1.json","out/four-reviews-metorik-template-v1.1.json","out/four-reviews-connection-template-v1.2.json"]
+ALL=["out/four-reviews-demo-v3.json","out/ads-review-from-nick-v2.json","out/four-reviews-metorik-template-v1.2.json","out/four-reviews-connection-template-v1.3.json"]
 for new in ALL:
     b=json.load(open(new))
     ids=[n["id"] for n in b["nodes"]]; names=[n["name"] for n in b["nodes"]]
@@ -26,7 +26,7 @@ for new in ALL:
     print("secrets scan:",re.findall(r"(xox[bp]-|ghp_|github_pat_|Bearer [A-Za-z0-9]{10}|@cxl\.com)",json.dumps(b)))
 
 # The full template is public: hard checks
-full=json.load(open("out/four-reviews-connection-template-v1.2.json"))
+full=json.load(open("out/four-reviews-connection-template-v1.3.json"))
 src=json.dumps(full)
 fails=[]
 def check(cond,msg):
@@ -49,11 +49,13 @@ check(nodes["AI | Claude model"]["parameters"]["options"].get("maxTokensToSample
 
 # Every shipped workflow: collapsible groups, public-repo checks, notes clear of grouped nodes
 COL="Collect all reports"
-EXPECT={"four-reviews-demo-v2.json":6,"ads-review-from-nick-v1.json":3,"four-reviews-metorik-template-v1.1.json":9,"four-reviews-connection-template-v1.2.json":9}
+EXPECT={"four-reviews-demo-v3.json":6,"ads-review-from-nick-v2.json":3,"four-reviews-metorik-template-v1.2.json":9,"four-reviews-connection-template-v1.3.json":9}
 for fn in ALL:
     w=json.load(open(fn)); N={n["name"]:n for n in w["nodes"]}; base=fn.split("/")[-1]; tag=base+": "
     groups=w.get("nodeGroups") or []
-    members=[m for g in groups for m in g["nodeNames"]]
+    byid={n["id"]:n["name"] for n in w["nodes"]}
+    check(all(i in byid for g in groups for i in g.get("nodeIds",[])),tag+"every group node id exists")
+    members=[byid.get(i,i) for g in groups for i in g.get("nodeIds",[])]
     check(len(groups)==EXPECT[base] and all(g.get("id") and g.get("name") and g.get("description") for g in groups),tag+str(EXPECT[base])+" named groups with ids and descriptions")
     check(all(m in N for m in members),tag+"every grouped node exists")
     check(not [m for m in members if N[m]["type"].endswith("Trigger")],tag+"no trigger in a group")
@@ -82,14 +84,14 @@ for fn in ALL:
     check(not added,tag+"no em dashes in added code or notes "+str(added[:2]))
 
 # The two worked examples: History expression safe, email lane kept, Collect takes five
-for fn in ["out/four-reviews-metorik-template-v1.1.json","out/four-reviews-connection-template-v1.2.json"]:
+for fn in ["out/four-reviews-metorik-template-v1.2.json","out/four-reviews-connection-template-v1.3.json"]:
     w=json.load(open(fn)); N={n["name"]:n for n in w["nodes"]}; tag=fn.split("/")[-1]+": "
     check(N[COL]["parameters"]["numberInputs"]==5 and any(n.startswith("Customer.io | ") for n in N),tag+"Collect takes five reviews, the email lane included")
     check("adsEnabled" not in N["Settings"]["parameters"]["jsCode"],tag+"no ads switch in Settings")
     check("}}" not in N["History | Save this run"]["parameters"]["columns"]["value"]["facts_json"][3:-2],tag+"history expression has no }} inside it")
 
 # Nick's v2 demo: Settings, Collect, the two summaries, Slack only
-d=json.load(open("out/four-reviews-demo-v2.json")); D={n["name"]:n for n in d["nodes"]}
+d=json.load(open("out/four-reviews-demo-v3.json")); D={n["name"]:n for n in d["nodes"]}
 check(D[COL]["parameters"]["numberInputs"]==4 and "Settings" in D,"demo v2: Settings and Collect (4 reviews)")
 check(D["Summary | Week at a glance"]["type"]=="n8n-nodes-base.code" and not D["Summary | Week at a glance"].get("disabled"),"demo v2: week at a glance in code, switched on")
 check(D["Summary | AI summary"].get("disabled") and D["Summary | Claude model"]["parameters"]["model"]["value"]=="claude-sonnet-5-5" and D["Summary | Claude model"]["parameters"]["options"].get("maxTokensToSample")==6000,"demo v2: AI summary off, claude-sonnet-5-5, 6000 tokens")
@@ -101,7 +103,7 @@ nickdemo={n["name"]:n for n in json.load(open("handoff-src/four-reviews-demo.jso
 check(all(D[k]["parameters"]["jsCode"]==nickdemo[k]["parameters"]["jsCode"] for k in ["Executive | Current revenue","Executive | Previous revenue","Marketing | Order sources","Products | Top products","Traffic | Synthetic GA4 response"]),"demo v2: Nick's made-up data nodes unchanged")
 
 # The ads review workflow: Nick's chain, his code verbatim, the report contract
-a=json.load(open("out/ads-review-from-nick-v1.json")); A={n["name"]:n for n in a["nodes"]}
+a=json.load(open("out/ads-review-from-nick-v2.json")); A={n["name"]:n for n in a["nodes"]}
 for old,new in {"Mock Google Ads":"Ads | Google Ads (sample data)","Mock Meta Ads":"Ads | Meta Ads (sample data)","Analyze":"Ads | Analyze"}.items():
     js=A[new]["parameters"]["jsCode"]
     check(js.endswith(ads_code[old]) and "Nick Christensen" in js and "MIT" in js and "nickyc1/ship-icp-ads-automate-monitoring" in js,"ads: "+new+": Nick's code carried unchanged under a credit header")
@@ -130,7 +132,7 @@ manual=[(f,m.group(0)) for f,t in docs.items() for m in re.finditer(r"(?i)by han
 check(not manual,"no manual-build route offered in the commands, README or CLAUDE.md section "+str(manual[:3]))
 named={m for t in docs.values() for m in re.findall(r"[\w.-]+-v\d+(?:\.\d+)?\.json",t)}
 check(named and all(os.path.exists(os.path.join(ROOT,"workflows",n)) for n in named),"every workflow file the docs name ships: "+", ".join(sorted(named)))
-check("four-reviews-demo-v2.json" in cmds["build-reporting-demo.md"] and "four-reviews-demo-v2.json" in cmds["build-reporting-agent.md"] and "ads-review-from-nick-v1.json" in cmds["build-reporting-agent-ads.md"],"each build command starts from its own workflow")
+check("four-reviews-demo-v3.json" in cmds["build-reporting-demo.md"] and "four-reviews-demo-v3.json" in cmds["build-reporting-agent.md"] and "ads-review-from-nick-v2.json" in cmds["build-reporting-agent-ads.md"],"each build command starts from its own workflow")
 agent=cmds["build-reporting-agent.md"]
 check(all(k in agent for k in ["Connect GA4","store or CRM","email review","Microsoft Teams","get-email-reports","--json visibility","PRIVATE"]) and agent.count("| Login |")+agent.count("| Fetch |")+agent.count("| Convert |")+agent.count("| Reconcile |")+agent.count("| Edit |")+agent.count("| Summary |")+agent.count("| Copy |")+agent.count("| Delivery |")>=17,"build-reporting-agent: GA4, store or CRM, email review, outputs (Teams, email, private-only GitHub) and the 17 checkpoints")
 check("Ads |" not in agent and "adsEnabled" not in agent and "lane 6" not in agent.lower(),"build-reporting-agent adds no ads lane; it points to the ads command instead")
